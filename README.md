@@ -8,9 +8,9 @@
 
 A fast, secure, and client-side SQLite editor that runs entirely in your browser—no server required. Built with WebAssembly, sql.js, and ReactJS, brings the full power of SQLite database management right to your browser.
 
-[![License](https://img.shields.io/github/license/vwh/sqlite-online?label=License)](https://github.com/vwh/sqlite-online/blob/main/LICENSE)
-[![Format Check](https://github.com/vwh/sqlite-online/actions/workflows/format.yml/badge.svg)](https://github.com/vwh/sqlite-online/actions/workflows/format.yml)
-[![Lint](https://github.com/vwh/sqlite-online/actions/workflows/lint.yml/badge.svg)](https://github.com/vwh/sqlite-online/actions/workflows/lint.yml)
+[![License](https://img.shields.io/github/license/yzua/sqlite-online?label=License)](https://github.com/yzua/sqlite-online/blob/main/LICENSE)
+[![Format Check](https://github.com/yzua/sqlite-online/actions/workflows/format.yml/badge.svg)](https://github.com/yzua/sqlite-online/actions/workflows/format.yml)
+[![Lint](https://github.com/yzua/sqlite-online/actions/workflows/lint.yml/badge.svg)](https://github.com/yzua/sqlite-online/actions/workflows/lint.yml)
 
 </div>
 
@@ -64,4 +64,4 @@ Streamline your workflow with these built-in hotkeys:
 
 ## License
 
-SQLite Online is released under the [MIT License](https://github.com/vwh/sqlite-online/blob/main/LICENSE).
+SQLite Online is released under the [MIT License](https://github.com/yzua/sqlite-online/blob/main/LICENSE).
