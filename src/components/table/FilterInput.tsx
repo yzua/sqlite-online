@@ -1,5 +1,5 @@
-import { debounce } from "lodash";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import debounce from "lodash/debounce";
+import { useCallback, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 
 interface FilterInputProps {
@@ -15,13 +15,6 @@ function FilterInput({
   onChange,
   debounceTime = 300
 }: Readonly<FilterInputProps>) {
-  const [inputValue, setInputValue] = useState(value);
-
-  // Update the local value when the prop value changes
-  useEffect(() => {
-    setInputValue(value);
-  }, [value]);
-
   const debouncedOnChange = useMemo(() => {
     const handler = debounce((col: string, val: string) => {
       onChange(col, val);
@@ -33,7 +26,6 @@ function FilterInput({
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
-      setInputValue(newValue);
       debouncedOnChange(column, newValue);
     },
     [column, debouncedOnChange]
@@ -54,10 +46,11 @@ function FilterInput({
         Filter {column} column
       </label>
       <Input
+        key={`${column}:${value}`}
         id={filterId}
         type="text"
         className="border-primary/20 max-h-6 w-full rounded px-2 py-1 text-[0.8rem]!"
-        value={inputValue}
+        defaultValue={value}
         onChange={handleChange}
         placeholder="Filter"
         aria-labelledby={labelId}

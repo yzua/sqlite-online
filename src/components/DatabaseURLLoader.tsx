@@ -34,6 +34,11 @@ function DatabaseURLLoader() {
     }
   }, []);
 
+  const finishFetch = useCallback(() => {
+    setDatabaseLoading(false);
+    fetchInProgress.current = false;
+  }, [setDatabaseLoading]);
+
   const fetchDatabase = useCallback(
     async (url: string, useProxy = false) => {
       if (fetchInProgress.current) {
@@ -51,62 +56,59 @@ function DatabaseURLLoader() {
         return false;
       }
 
-      try {
-        setDatabaseLoading(true);
+      setDatabaseLoading(true);
 
-        const fetchUrl = useProxy
-          ? `https://corsproxy.io/?url=${encodeURIComponent(url)}`
-          : url;
+      const fetchUrl = useProxy
+        ? `https://corsproxy.io/?url=${encodeURIComponent(url)}`
+        : url;
 
-        const response = await fetch(fetchUrl, {
-          method: "GET"
-        });
+      return fetch(fetchUrl, { method: "GET" })
+        .then(async (response) => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        if (!useProxy) {
-          showToast("Retrieving database, please wait", "info");
-        } else {
-          showToast("Retrieving database with CORS proxy, please wait", "info");
-        }
-
-        const blob = await response.blob();
-
-        if (blob.size < 100) {
-          throw new Error(
-            "The downloaded file seems too small to be a valid SQLite database"
+          showToast(
+            useProxy
+              ? "Retrieving database with CORS proxy, please wait"
+              : "Retrieving database, please wait",
+            "info"
           );
-        }
 
-        const file = new File([blob], "database.sqlite");
+          const blob = await response.blob();
 
-        handleFileUpload(file);
+          if (blob.size < 100) {
+            throw new Error(
+              "The downloaded file seems too small to be a valid SQLite database"
+            );
+          }
 
-        showToast("Database loaded successfully", "success");
+          handleFileUpload(new File([blob], "database.sqlite"));
+          showToast("Database loaded successfully", "success");
+          setFetchError(null);
 
-        setFetchError(null);
-        return true;
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        setFetchError(errorMsg);
+          return true;
+        })
+        .catch((error: unknown) => {
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          setFetchError(errorMsg);
 
-        if (useProxy) {
-          showToast(`Failed to load with CORS proxy: ${errorMsg}`, "error");
-        } else {
-          // First attempt failed, show dialog
-          setUrlToFetch(url);
-          setShowProxyDialog(true);
-        }
+          if (useProxy) {
+            showToast(`Failed to load with CORS proxy: ${errorMsg}`, "error");
+          } else {
+            setUrlToFetch(url);
+            setShowProxyDialog(true);
+          }
 
-        return false;
-      } finally {
-        setDatabaseLoading(false);
-        fetchInProgress.current = false;
-      }
+          return false;
+        })
+        .then((result) => {
+          finishFetch();
+          return result;
+        });
     },
-    [handleFileUpload, isValidURL, setDatabaseLoading]
+    [finishFetch, handleFileUpload, isValidURL, setDatabaseLoading]
   );
 
   useEffect(() => {

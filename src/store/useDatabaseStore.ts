@@ -39,7 +39,7 @@ interface DatabaseActions {
   setFilters: (filters: Filters) => void;
   setSorters: (sorters: Sorters) => void;
   setLimit: (limit: number) => void;
-  setOffset: (offset: number) => void;
+  setOffset: (offset: number | ((currentOffset: number) => number)) => void;
   setCustomQuery: (query: string) => void;
   setCustomQueryObject: (
     obj: { data: SqlValue[][]; columns: string[] } | null
@@ -85,7 +85,10 @@ export const useDatabaseStore = create<DatabaseStore>((set) => ({
   setFilters: (filters) => set({ filters }),
   setSorters: (sorters) => set({ sorters }),
   setLimit: (limit) => set({ limit }),
-  setOffset: (offset) => set({ offset }),
+  setOffset: (offset) =>
+    set((state) => ({
+      offset: typeof offset === "function" ? offset(state.offset) : offset
+    })),
   setCustomQuery: (query) => set({ customQuery: query }),
   setCustomQueryObject: (obj) => set({ customQueryObject: obj }),
   setGeminiApiKey: async (key) => {
@@ -137,3 +140,7 @@ export const useDatabaseStore = create<DatabaseStore>((set) => ({
     }
   }
 }));
+
+export const selectIsCurrentTableView = (state: DatabaseState): boolean =>
+  state.currentTable != null &&
+  state.tablesSchema[state.currentTable]?.type === "view";

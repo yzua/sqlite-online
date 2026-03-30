@@ -13,15 +13,18 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import usePanelManager from "@/hooks/usePanel";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import type { exportTypes, Filters, Sorters } from "@/types";
+import {
+  selectIsCurrentTableView,
+  useDatabaseStore
+} from "@/store/useDatabaseStore";
+import type { ExportTypes, Filters, Sorters } from "@/types";
 
 interface ActionDropdownProps {
   setFilters: (filters: Filters) => void;
   setSorters: (sorters: Sorters) => void;
   filters: Filters;
   sorters: Sorters;
-  handleExport: (exportType: exportTypes) => void;
+  handleExport: (exportType: ExportTypes) => void;
 }
 
 function ActionsDropdown({
@@ -32,11 +35,7 @@ function ActionsDropdown({
   handleExport
 }: Readonly<ActionDropdownProps>) {
   const { isInserting, handleInsert, setSelectedRowObject } = usePanelManager();
-  const isView = useDatabaseStore(
-    (state) =>
-      state.currentTable != null &&
-      state.tablesSchema[state.currentTable]?.type === "view"
-  );
+  const isView = useDatabaseStore(selectIsCurrentTableView);
 
   return (
     <DropdownMenu>

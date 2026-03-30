@@ -9,7 +9,10 @@ import {
 import { Button } from "@/components/ui/button";
 import usePanelManager from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import {
+  selectIsCurrentTableView,
+  useDatabaseStore
+} from "@/store/useDatabaseStore";
 
 function PaginationControls() {
   const { handlePageChange, handleExport } = useDatabaseWorker();
@@ -18,11 +21,7 @@ function PaginationControls() {
   const limit = useDatabaseStore((state) => state.limit);
   const maxSize = useDatabaseStore((state) => state.maxSize);
   const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
-  const isView = useDatabaseStore(
-    (state) =>
-      state.currentTable != null &&
-      state.tablesSchema[state.currentTable]?.type === "view"
-  );
+  const isView = useDatabaseStore(selectIsCurrentTableView);
 
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = Math.ceil(maxSize / limit);

@@ -12,7 +12,10 @@ import { Span } from "@/components/ui/span";
 import usePanelManager from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
 import { isDate, isNumber, isText } from "@/sqlite/sqlite-type-check";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import {
+  selectIsCurrentTableView,
+  useDatabaseStore
+} from "@/store/useDatabaseStore";
 import { usePanelStore } from "@/store/usePanelStore";
 import { Textarea } from "../ui/textarea";
 
@@ -108,7 +111,7 @@ function EditSection() {
     });
   }, [columns, currentTableSchema, editValues, handleEditInputChange]);
 
-  const isView = currentTableSchema?.type === "view";
+  const isView = useDatabaseStore(selectIsCurrentTableView);
 
   const actionButtons = useMemo(
     () => (
