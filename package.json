@@ -4,15 +4,28 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
-    "build:pages": "tsc -b && vite build --mode pages",
+    "build:pages": "npm run typecheck && vite build --mode pages",
     "preview:pages": "vite preview --mode pages",
     "deploy": "gh-pages -d dist",
-    "lint": "eslint .",
-    "format": "prettier --write 'src/**/*.{js,jsx,ts,tsx}'",
-    "format:check": "prettier --check 'src/**/*.{js,jsx,ts,tsx}'",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "format:check": "biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false .",
     "knip": "knip"
+  },
+  "knip": {
+    "entry": [
+      "src/main.tsx",
+      "src/sqlite/sqliteWorker.ts"
+    ],
+    "ignore": [
+      "src/types/window.d.ts"
+    ]
   },
   "dependencies": {
     "@codemirror/autocomplete": "^6.18.6",
@@ -44,7 +57,7 @@
     "zustand": "^5.0.3"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
+    "@biomejs/biome": "^2.2.4",
     "@types/node": "^22.13.10",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.0.4",
@@ -52,16 +65,8 @@
     "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-react": "^4.3.4",
     "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250328",
-    "eslint": "^9.21.0",
-    "eslint-plugin-react-compiler": "^19.0.0-beta-e993439-20250328",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
-    "globals": "^15.15.0",
     "knip": "^5.52.0",
-    "prettier": "3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11",
     "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
     "vite": "^6.3.5"
   }
 }
