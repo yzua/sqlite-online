@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-import type { EditTypes, exportTypes } from "@/types";
+import type { EditTypes, ExportTypes } from "@/types";
 
 interface DatabaseWorkerContextProps {
   workerRef: { current: Worker | null };
@@ -11,7 +11,7 @@ interface DatabaseWorkerContextProps {
   handleQueryFilter: (column: string, value: string) => void;
   handleQuerySorter: (column: string) => void;
   handlePageChange: (type: "next" | "prev" | "first" | "last" | number) => void;
-  handleExport: (exportType: exportTypes) => void;
+  handleExport: (exportType: ExportTypes) => void;
   handleQueryExecute: () => void;
   handleEditSubmit: (type: EditTypes) => void;
 }

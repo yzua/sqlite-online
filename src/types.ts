@@ -27,7 +27,7 @@ export type Sorters = Record<string, "asc" | "desc"> | null;
 export type Filters = Record<string, string> | null;
 
 export type EditTypes = "insert" | "update" | "delete";
-export type exportTypes = "table" | "current" | "custom";
+export type ExportTypes = "table" | "current" | "custom";
 
 // --- WORKER MESSAGES --- //
 interface InitEvent {
@@ -129,7 +129,7 @@ interface ExportEvent {
     limit: number;
     offset: number;
     customQuery: string;
-    exportType: exportTypes;
+    exportType: ExportTypes;
   };
 }
 
