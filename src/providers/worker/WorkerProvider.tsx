@@ -4,12 +4,8 @@ import useKeyPress from "@/hooks/useKeyPress";
 import usePanelManager from "@/hooks/usePanel";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { usePanelStore } from "@/store/usePanelStore";
-import type {
-  EditTypes,
-  exportTypes,
-  Sorters,
-  WorkerResponseEvent
-} from "@/types";
+import type { EditTypes, ExportTypes, Sorters } from "@/types";
+import { createWorkerMessageHandler } from "./handleWorkerMessage";
 import DatabaseWorkerContext from "./WorkerContext";
 
 interface DatabaseWorkerProviderProps {
@@ -86,164 +82,25 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
     }
 
     // Listen for messages from the worker
-    workerRef.current.onmessage = (
-      event: MessageEvent<WorkerResponseEvent>
-    ) => {
-      const workerEvent = event.data;
-      const { action } = workerEvent;
-
-      // When the worker is initialized
-      if (action === "initComplete") {
-        window.parent.postMessage({ type: "loadDatabaseBufferReady" }, "*");
-
-        const { payload } = workerEvent;
-
-        if (!payload.currentTable) {
-          console.error("Main: No current table found in payload");
-          setErrorMessage("No tables found in database");
-          setIsDatabaseLoading(false);
-          return;
-        }
-
-        const currentTableSchema = payload.tableSchema[payload.currentTable];
-        if (!currentTableSchema) {
-          console.error("Main: Current table schema not found in payload");
-          setErrorMessage("Unable to load the current table schema");
-          setIsDatabaseLoading(false);
-          return;
-        }
-
-        setTablesSchema(payload.tableSchema);
-        setIndexesSchema(payload.indexSchema);
-        setCurrentTable(payload.currentTable);
-        setColumns(currentTableSchema.schema.map((column) => column.name));
-        setFilters(null);
-        setSorters(null);
-        setSelectedRowObject(null);
-        setIsInserting(false);
-        setCustomQueryObject(null);
-        setCustomQuery("");
-        setOffset(0);
-        setIsDatabaseLoading(false);
-      }
-      // When the query is executed and returns results
-      else if (action === "queryComplete") {
-        const { payload } = workerEvent;
-
-        setMaxSize(payload.maxSize);
-
-        const results = payload.results;
-        if (!results) {
-          setData(null);
-        } else {
-          const data = results[0]?.values || [];
-          // To be able to cache the columns
-          if (data.length !== 0) {
-            setData(data);
-          } else {
-            setData(null);
-          }
-        }
-
-        setIsDataLoading(false);
-      }
-      // When the custom query is executed and returns results
-      else if (action === "customQueryComplete") {
-        const { payload } = workerEvent;
-
-        const results = payload.results;
-        if (!results) {
-          setData(null);
-        } else {
-          const data = results[0]?.values || [];
-          if (data.length !== 0) {
-            setCustomQueryObject({
-              data: data,
-              columns: results[0]?.columns || []
-            });
-          } else {
-            setCustomQueryObject(null);
-          }
-        }
-
-        setIsDataLoading(false);
-        setErrorMessage(null);
-      }
-      // When the database is updated and requires a new schema
-      else if (action === "updateInstance") {
-        const { payload } = workerEvent;
-
-        setTablesSchema(payload.tableSchema);
-        setIndexesSchema(payload.indexSchema);
-        setIsDataLoading(false);
-        setErrorMessage(null);
-
-        showToast("Database schema updated successfully", "success");
-      }
-      // When a row is updated
-      else if (action === "updateComplete") {
-        const { payload } = workerEvent;
-
-        setErrorMessage(null);
-        handleCloseEdit();
-
-        showToast(`Row ${payload.type} successfully`, "success");
-      }
-      // When a row is inserted
-      else if (action === "insertComplete") {
-        setErrorMessage(null);
-        handleCloseEdit();
-
-        showToast("Row inserted successfully", "success");
-      }
-      // When the database is downloaded
-      else if (action === "downloadComplete") {
-        const { payload } = workerEvent;
-
-        const blob = new Blob([payload.bytes], {
-          type: "application/octet-stream"
-        });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "database.sqlite";
-        link.click();
-
-        showToast("Database downloaded successfully", "success");
-      }
-      // When the database is exported
-      else if (action === "exportComplete") {
-        const { payload } = workerEvent;
-
-        const blob = new Blob([payload.results], {
-          type: "text/csv"
-        });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = "export.csv";
-        link.click();
-
-        showToast("Database exported successfully", "success");
-      }
-      // When the worker encounters an error
-      else if (action === "queryError") {
-        const { payload } = workerEvent;
-
-        console.error("Worker error:", payload.error);
-
-        setIsDataLoading(false);
-
-        if (payload.error.isCustomQueryError) {
-          setErrorMessage(payload.error.message);
-          showToast(payload.error.message, "error");
-        } else {
-          showToast(payload.error.message, "error");
-        }
-      } else {
-        console.warn("Unknown action:", action);
-      }
-    };
+    workerRef.current.onmessage = createWorkerMessageHandler({
+      setTablesSchema,
+      setIndexesSchema,
+      setCurrentTable,
+      setData,
+      setColumns,
+      setMaxSize,
+      setIsDatabaseLoading,
+      setIsDataLoading,
+      setErrorMessage,
+      setFilters,
+      setSorters,
+      setOffset,
+      setCustomQuery,
+      setCustomQueryObject,
+      handleCloseEdit,
+      setSelectedRowObject,
+      setIsInserting
+    });
 
     setIsDatabaseLoading(true);
 
@@ -350,24 +207,25 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
   useEffect(() => {
     window.loadDatabaseBuffer = loadDatabaseBuffer;
-    const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       if (event.data.type === "invokeLoadDatabaseBuffer") {
-        try {
-          const buffer = event.data.buffer;
-          await loadDatabaseBuffer(buffer); // Invoke the function
-          event.source?.postMessage(
-            { type: "loadDatabaseBufferSuccess" },
-            event.origin as WindowPostMessageOptions
-          );
-        } catch (error: unknown) {
-          event.source?.postMessage(
-            {
-              type: "loadDatabaseBufferError",
-              error: (error as Error)?.message
-            },
-            event.origin as WindowPostMessageOptions
-          );
-        }
+        const buffer = event.data.buffer;
+        void loadDatabaseBuffer(buffer)
+          .then(() => {
+            event.source?.postMessage(
+              { type: "loadDatabaseBufferSuccess" },
+              event.origin as WindowPostMessageOptions
+            );
+          })
+          .catch((error: unknown) => {
+            event.source?.postMessage(
+              {
+                type: "loadDatabaseBufferError",
+                error: error instanceof Error ? error.message : String(error)
+              },
+              event.origin as WindowPostMessageOptions
+            );
+          });
       }
     };
     window.addEventListener("message", handleMessage);
@@ -487,8 +345,6 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   // Handles when user changes the page
   const handlePageChange = useCallback(
     (type: "next" | "prev" | "first" | "last" | number) => {
-      const currentOffset = useDatabaseStore.getState().offset;
-
       if (!maxSize) {
         return;
       }
@@ -496,29 +352,20 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
       if (typeof type === "number") {
         setOffset(type);
       } else if (type === "next") {
-        const toSet = currentOffset + limit;
-        if (toSet >= maxSize) {
-          if (maxSize - limit < 0) {
-            setOffset(0);
+        setOffset((previousOffset) => {
+          const toSet = previousOffset + limit;
+          if (toSet >= maxSize) {
+            return maxSize - limit < 0 ? 0 : previousOffset;
           }
-        } else {
-          setOffset(toSet);
-        }
+
+          return toSet;
+        });
       } else if (type === "prev") {
-        const toSet = currentOffset - limit;
-        if (toSet < 0) {
-          setOffset(0);
-        } else {
-          setOffset(toSet);
-        }
+        setOffset((previousOffset) => Math.max(previousOffset - limit, 0));
       } else if (type === "first") {
         setOffset(0);
       } else if (type === "last") {
-        if (maxSize - limit < 0) {
-          setOffset(0);
-        } else {
-          setOffset(maxSize - limit);
-        }
+        setOffset(() => (maxSize - limit < 0 ? 0 : maxSize - limit));
       }
 
       setSelectedRowObject(null);
@@ -528,7 +375,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
   // Handle when user exports the data
   const handleExport = useCallback(
-    (exportType: exportTypes) => {
+    (exportType: ExportTypes) => {
       if (!workerRef.current) {
         showToast("Worker is not initialized", "error");
         return;
