@@ -1,8 +1,6 @@
-import { useEffect, useState } from "react";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 function LiveRegion() {
-  const [message, setMessage] = useState("");
   const isDatabaseLoading = useDatabaseStore(
     (state) => state.isDatabaseLoading
   );
@@ -11,23 +9,19 @@ function LiveRegion() {
   const data = useDatabaseStore((state) => state.data);
   const maxSize = useDatabaseStore((state) => state.maxSize);
 
-  useEffect(() => {
-    if (isDatabaseLoading) {
-      setMessage("Loading database, please wait...");
-    } else if (isDataLoading) {
-      setMessage("Loading table data...");
-    } else if (currentTable && data) {
-      const rowCount = data.length;
-      const totalRows = maxSize || 0;
-      setMessage(
-        `Loaded ${rowCount} rows from ${currentTable} table. Total rows: ${totalRows}`
-      );
-    } else if (currentTable && !data?.length) {
-      setMessage(`${currentTable} table is empty`);
-    } else {
-      setMessage("");
-    }
-  }, [isDatabaseLoading, isDataLoading, currentTable, data, maxSize]);
+  let message = "";
+
+  if (isDatabaseLoading) {
+    message = "Loading database, please wait...";
+  } else if (isDataLoading) {
+    message = "Loading table data...";
+  } else if (currentTable && data) {
+    const rowCount = data.length;
+    const totalRows = maxSize || 0;
+    message = `Loaded ${rowCount} rows from ${currentTable} table. Total rows: ${totalRows}`;
+  } else if (currentTable && !data?.length) {
+    message = `${currentTable} table is empty`;
+  }
 
   if (!message) return null;
 

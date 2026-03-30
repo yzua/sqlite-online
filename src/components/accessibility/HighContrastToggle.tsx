@@ -3,29 +3,22 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 function HighContrastToggle() {
-  const [isHighContrast, setIsHighContrast] = useState(false);
+  const [isHighContrast, setIsHighContrast] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+
+    return localStorage.getItem("high-contrast") === "true";
+  });
 
   useEffect(() => {
-    // Check if high contrast is already enabled
-    const saved = localStorage.getItem("high-contrast");
-    const enabled = saved === "true";
-    setIsHighContrast(enabled);
-
-    if (enabled) {
-      document.documentElement.classList.add("high-contrast");
-    }
-  }, []);
+    document.documentElement.classList.toggle("high-contrast", isHighContrast);
+  }, [isHighContrast]);
 
   const toggleHighContrast = () => {
     const newValue = !isHighContrast;
     setIsHighContrast(newValue);
     localStorage.setItem("high-contrast", String(newValue));
-
-    if (newValue) {
-      document.documentElement.classList.add("high-contrast");
-    } else {
-      document.documentElement.classList.remove("high-contrast");
-    }
   };
 
   return (
