@@ -1,18 +1,16 @@
-import { useEffect, useRef, useCallback, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import showToast from "@/components/common/Toaster/Toast";
 import useKeyPress from "@/hooks/useKeyPress";
+import usePanelManager from "@/hooks/usePanel";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { usePanelStore } from "@/store/usePanelStore";
-import usePanelManager from "@/hooks/usePanel";
-
-import showToast from "@/components/common/Toaster/Toast";
-import DatabaseWorkerContext from "./WorkerContext";
-
 import type {
   EditTypes,
   exportTypes,
   Sorters,
   WorkerResponseEvent
 } from "@/types";
+import DatabaseWorkerContext from "./WorkerContext";
 
 interface DatabaseWorkerProviderProps {
   children: React.ReactNode;
@@ -107,14 +105,18 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
           return;
         }
 
+        const currentTableSchema = payload.tableSchema[payload.currentTable];
+        if (!currentTableSchema) {
+          console.error("Main: Current table schema not found in payload");
+          setErrorMessage("Unable to load the current table schema");
+          setIsDatabaseLoading(false);
+          return;
+        }
+
         setTablesSchema(payload.tableSchema);
         setIndexesSchema(payload.indexSchema);
         setCurrentTable(payload.currentTable);
-        setColumns(
-          payload.tableSchema[payload.currentTable].schema.map(
-            (column: { name: string }) => column.name
-          )
-        );
+        setColumns(currentTableSchema.schema.map((column) => column.name));
         setFilters(null);
         setSorters(null);
         setSelectedRowObject(null);
@@ -424,6 +426,12 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   // Handle when user changes the table
   const handleTableChange = useCallback(
     (selectedTable: string) => {
+      const selectedTableSchema = tablesSchema[selectedTable];
+      if (!selectedTableSchema) {
+        showToast("Selected table schema not found", "error");
+        return;
+      }
+
       setFilters(null);
       setSorters(null);
       resetPagination();
@@ -431,7 +439,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
       setSelectedRowObject(null);
       setIsInserting(false);
       setCurrentTable(selectedTable);
-      setColumns(tablesSchema[selectedTable].schema.map((col) => col.name));
+      setColumns(selectedTableSchema.schema.map((col) => col.name));
     },
     [
       setFilters,
@@ -614,7 +622,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
         return;
       }
 
-      if (!selectedRowObject?.primaryValue && type !== "insert") {
+      if (selectedRowObject?.primaryValue == null && type !== "insert") {
         if (type === "delete") {
           showToast("No row selected to delete", "error");
         } else {
@@ -688,7 +696,6 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
       handleEditSubmit
     }),
     [
-      workerRef,
       handleFileUpload,
       handleFileChange,
       handleDownload,

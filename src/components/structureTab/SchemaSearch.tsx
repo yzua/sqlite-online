@@ -1,8 +1,6 @@
-import { memo } from "react";
-
-import { Input } from "@/components/ui/input";
-
 import { SearchIcon } from "lucide-react";
+import { memo } from "react";
+import { Input } from "@/components/ui/input";
 
 interface SchemaSearchProps {
   onFilterChange: (value: string) => void;

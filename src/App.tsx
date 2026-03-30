@@ -1,22 +1,19 @@
-import { useDatabaseStore } from "./store/useDatabaseStore";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import TopBar from "@/components/TopBar";
-import StructureTab from "@/components/structureTab/StructureTab";
-import BrowseTab from "@/components/browseTab/BrowseTab";
-import ExecuteTab from "@/components/executeTab/ExecuteTab";
-
-import FileDropHandler from "@/components/FileDropHandler";
-import DatabaseURLLoader from "./components/DatabaseURLLoader";
-import SkipLinks from "@/components/accessibility/SkipLinks";
-import LiveRegion from "@/components/accessibility/LiveRegion";
-
 import {
   CodeIcon,
   DatabaseIcon,
   LoaderCircleIcon,
   TableIcon
 } from "lucide-react";
+import LiveRegion from "@/components/accessibility/LiveRegion";
+import SkipLinks from "@/components/accessibility/SkipLinks";
+import BrowseTab from "@/components/browseTab/BrowseTab";
+import ExecuteTab from "@/components/executeTab/ExecuteTab";
+import FileDropHandler from "@/components/FileDropHandler";
+import StructureTab from "@/components/structureTab/StructureTab";
+import TopBar from "@/components/TopBar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import DatabaseURLLoader from "./components/DatabaseURLLoader";
+import { useDatabaseStore } from "./store/useDatabaseStore";
 
 function App() {
   const isDatabaseLoading = useDatabaseStore(
@@ -30,7 +27,6 @@ function App() {
       <FileDropHandler>
         <main
           className="bg-primary/5 flex h-screen flex-col overflow-hidden"
-          role="main"
           id="main-content"
         >
           <TopBar />

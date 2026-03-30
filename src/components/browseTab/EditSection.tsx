@@ -1,23 +1,20 @@
-import { useCallback, useEffect, useMemo } from "react";
-import useDatabaseWorker from "@/hooks/useWorker";
-import usePanelManager from "@/hooks/usePanel";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { usePanelStore } from "@/store/usePanelStore";
-
-import { isDate, isNumber, isText } from "@/sqlite/sqlite-type-check";
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Span } from "@/components/ui/span";
-import ColumnIcon from "@/components/table/ColumnIcon";
-import { Textarea } from "../ui/textarea";
-
 import {
   ChevronLeftIcon,
   PlusIcon,
   SquarePenIcon,
   Trash2Icon
 } from "lucide-react";
+import { useCallback, useEffect, useMemo } from "react";
+import ColumnIcon from "@/components/table/ColumnIcon";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Span } from "@/components/ui/span";
+import usePanelManager from "@/hooks/usePanel";
+import useDatabaseWorker from "@/hooks/useWorker";
+import { isDate, isNumber, isText } from "@/sqlite/sqlite-type-check";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
+import { usePanelStore } from "@/store/usePanelStore";
+import { Textarea } from "../ui/textarea";
 
 function EditSection() {
   const { handleEditSubmit } = useDatabaseWorker();
@@ -27,6 +24,9 @@ function EditSection() {
   const tablesSchema = useDatabaseStore((state) => state.tablesSchema);
   const currentTable = useDatabaseStore((state) => state.currentTable);
   const columns = useDatabaseStore((state) => state.columns);
+  const currentTableSchema = currentTable
+    ? tablesSchema[currentTable]
+    : undefined;
 
   useEffect(() => {
     if (isInserting) {
@@ -49,9 +49,9 @@ function EditSection() {
   );
 
   const formItems = useMemo(() => {
-    if (!columns || !currentTable || !tablesSchema[currentTable]) return null;
+    if (!columns || !currentTableSchema) return null;
 
-    const schema = tablesSchema[currentTable]?.schema;
+    const schema = currentTableSchema.schema;
 
     return columns.map((column, index) => {
       const columnSchema = schema[index];
@@ -71,10 +71,10 @@ function EditSection() {
           >
             <div className="flex w-full items-center justify-between gap-2">
               <div className="flex items-center gap-1.5">
-                <ColumnIcon columnSchema={columnSchema} />
+                <ColumnIcon columnSchema={columnSchema ?? null} />
                 <Span className="text-xs font-medium capitalize">{column}</Span>
               </div>
-              {columnSchema.IsNullable && (
+              {columnSchema?.IsNullable && (
                 <span className="text-primary/50 bg-primary/5 rounded-full px-2 py-0.5 text-xs">
                   Nullable
                 </span>
@@ -106,7 +106,9 @@ function EditSection() {
         </div>
       );
     });
-  }, [columns, currentTable, tablesSchema, editValues, handleEditInputChange]);
+  }, [columns, currentTableSchema, editValues, handleEditInputChange]);
+
+  const isView = currentTableSchema?.type === "view";
 
   const actionButtons = useMemo(
     () => (
@@ -117,7 +119,7 @@ function EditSection() {
           className="w-full py-2 text-xs font-medium"
           onClick={() => handleEditSubmit(isInserting ? "insert" : "update")}
           aria-label={isInserting ? "Insert row" : "Apply changes"}
-          disabled={tablesSchema[currentTable!]?.type === "view"}
+          disabled={isView}
         >
           {isInserting ? (
             <>
@@ -138,14 +140,14 @@ function EditSection() {
             className="hover:bg-destructive/50 rounded text-xs"
             onClick={() => handleEditSubmit("delete")}
             aria-label="Delete row"
-            disabled={tablesSchema[currentTable!]?.type === "view"}
+            disabled={isView}
           >
             <Trash2Icon className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>
     ),
-    [handleEditSubmit, isInserting, currentTable, tablesSchema]
+    [handleEditSubmit, isInserting, isView]
   );
 
   const sectionHeader = useMemo(

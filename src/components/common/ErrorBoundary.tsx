@@ -1,11 +1,12 @@
-import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangleIcon, RefreshCwIcon } from "lucide-react";
+import type { ErrorInfo, ReactNode } from "react";
+import { Component } from "react";
 import { Button } from "@/components/ui/button";
 
 interface Props {
   children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  fallback?: ReactNode | undefined;
+  onError?: ((error: Error, errorInfo: ErrorInfo) => void) | undefined;
 }
 
 interface State {
@@ -32,7 +33,7 @@ class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({
       error,
       errorInfo
@@ -64,7 +65,7 @@ class ErrorBoundary extends Component<Props, State> {
     window.location.reload();
   };
 
-  render() {
+  override render() {
     if (this.state.hasError) {
       // Custom fallback UI
       if (this.props.fallback) {
@@ -133,30 +134,3 @@ class ErrorBoundary extends Component<Props, State> {
 }
 
 export default ErrorBoundary;
-
-// Hook version for functional components that need error boundary functionality
-export const useErrorHandler = () => {
-  return (error: Error, errorInfo?: ErrorInfo) => {
-    console.error("Unhandled error:", error, errorInfo);
-
-    // In production, send to error reporting service
-    // Example: Sentry.captureException(error);
-  };
-};
-
-// Higher-order component for wrapping components with error boundary
-export const withErrorBoundary = <P extends object>(
-  Component: React.ComponentType<P>,
-  fallback?: ReactNode,
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
-) => {
-  const WrappedComponent = (props: P) => (
-    <ErrorBoundary fallback={fallback} onError={onError}>
-      <Component {...props} />
-    </ErrorBoundary>
-  );
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-
-  return WrappedComponent;
-};

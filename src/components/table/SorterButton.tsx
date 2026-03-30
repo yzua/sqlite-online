@@ -1,12 +1,11 @@
-import { memo } from "react";
-import useDatabaseWorker from "@/hooks/useWorker";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-
 import {
   ArrowDownNarrowWideIcon,
   ArrowUpDownIcon,
   ArrowUpNarrowWideIcon
 } from "lucide-react";
+import { memo } from "react";
+import useDatabaseWorker from "@/hooks/useWorker";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 interface SorterButtonProps {
   column: string;

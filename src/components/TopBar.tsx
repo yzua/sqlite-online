@@ -1,23 +1,17 @@
-import useDatabaseWorker from "@/hooks/useWorker";
-
+import { DatabaseIcon, GithubIcon, SaveIcon } from "lucide-react";
+import HighContrastToggle from "@/components/accessibility/HighContrastToggle";
+import ModeToggle from "@/components/theme/ModeToggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import ModeToggle from "@/components/theme/ModeToggle";
-import HighContrastToggle from "@/components/accessibility/HighContrastToggle";
-
-import { DatabaseIcon, SaveIcon, GithubIcon } from "lucide-react";
+import useDatabaseWorker from "@/hooks/useWorker";
 
 function TopBar() {
   const { handleFileChange, handleDownload } = useDatabaseWorker();
 
   return (
-    <header
-      className="flex items-center justify-between gap-2 border-b px-1 py-1.5"
-      role="banner"
-    >
-      <div
+    <header className="flex items-center justify-between gap-2 border-b px-1 py-1.5">
+      <section
         className="flex items-center gap-1"
-        role="group"
         aria-label="Database file operations"
       >
         <label
@@ -56,11 +50,10 @@ function TopBar() {
           <SaveIcon className="mr-1.5 h-3.5 w-3.5" aria-hidden="true" />
           Save Database
         </Button>
-      </div>
+      </section>
 
-      <div
+      <section
         className="flex items-center gap-1"
-        role="group"
         aria-label="Application settings and links"
       >
         <a
@@ -83,7 +76,7 @@ function TopBar() {
 
         <HighContrastToggle />
         <ModeToggle />
-      </div>
+      </section>
     </header>
   );
 }

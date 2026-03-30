@@ -1,5 +1,5 @@
-import React, { memo } from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
+import React, { memo } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -65,4 +65,4 @@ const TabsContent = React.memo(function TabsContent({
   );
 });
 
-export { Tabs, TabsList, TabsTrigger, TabsContent };
+export { Tabs, TabsContent, TabsList, TabsTrigger };

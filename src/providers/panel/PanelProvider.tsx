@@ -1,7 +1,6 @@
-import { useCallback, useState, useMemo } from "react";
-import useKeyPress from "@/hooks/useKeyPress";
-
+import { useCallback, useMemo, useState } from "react";
 import type { SqlValue } from "sql.js";
+import useKeyPress from "@/hooks/useKeyPress";
 
 import PanelContext from "./PanelContext";
 
@@ -13,7 +12,7 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
   const [selectedRowObject, setSelectedRowObject] = useState<{
     data: SqlValue[];
     index: number;
-    primaryValue: SqlValue;
+    primaryValue: SqlValue | null;
   } | null>(null);
   const [isInserting, setIsInserting] = useState(false);
 
@@ -21,7 +20,7 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
 
   // Handle row click to toggle edit panel
   const handleRowClick = useCallback(
-    (row: SqlValue[], index: number, primaryValue: SqlValue) => {
+    (row: SqlValue[], index: number, primaryValue: SqlValue | null) => {
       setIsInserting(false);
       setSelectedRowObject({ data: row, index, primaryValue });
     },
@@ -61,9 +60,7 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
       handleCloseEdit,
       isEditing,
       selectedRowObject,
-      isInserting,
-      setIsInserting,
-      setSelectedRowObject
+      isInserting
     ]
   );
 

@@ -1,6 +1,6 @@
-import { useState, useCallback, useEffect } from "react";
-import useDatabaseWorker from "@/hooks/useWorker";
+import { useCallback, useEffect, useState } from "react";
 import showToast from "@/components/common/Toaster/Toast";
+import useDatabaseWorker from "@/hooks/useWorker";
 
 const useFileDrop = () => {
   const { handleFileUpload } = useDatabaseWorker();
@@ -55,6 +55,11 @@ const useFileDrop = () => {
         }
 
         const file = files[0];
+        if (!file) {
+          showToast("No file detected", "error");
+          return;
+        }
+
         handleFileUpload(file);
       } catch (error) {
         const errorMessage =

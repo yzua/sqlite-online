@@ -1,11 +1,9 @@
+import { EyeIcon } from "lucide-react";
 import { memo, useCallback } from "react";
-
 import { cn } from "@/lib/utils";
 import type { TableSchemaRow } from "@/types";
-
-import TableColumn from "./TableColumn";
 import ToggleChevron from "./common/ToggleChevron";
-import { EyeIcon } from "lucide-react";
+import TableColumn from "./TableColumn";
 
 interface TableItemProps {
   name: string;
@@ -24,6 +22,7 @@ const TableItem = memo(
     return (
       <article>
         <button
+          type="button"
           className={cn(
             "flex cursor-pointer items-center rounded px-1.5 py-1 transition-all hover:ml-2",
             expanded && "ml-1"

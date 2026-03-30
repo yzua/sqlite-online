@@ -16,7 +16,7 @@ export function useGeminiAI() {
       return;
     }
 
-    if (!customQuery || !customQuery.startsWith("/ai ")) {
+    if (!customQuery.startsWith("/ai ")) {
       return;
     }
 
@@ -60,7 +60,7 @@ export function useGeminiAI() {
       const data = await response.json();
       let sqlQuery = data.candidates[0].content.parts[0].text;
       const sqlMatch = sqlQuery.match(/```(?:sql|sqlite)\n([\s\S]*?)\n```/);
-      if (sqlMatch && sqlMatch[1]) {
+      if (sqlMatch?.[1]) {
         sqlQuery = sqlMatch[1].trim();
       } else {
         sqlQuery = sqlQuery.trim();

@@ -1,7 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from "react";
-import useDatabaseWorker from "@/hooks/useWorker";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-
+import { useCallback, useEffect, useRef, useState } from "react";
 import showToast from "@/components/common/Toaster/Toast";
 import {
   Dialog,
@@ -11,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle
 } from "@/components/ui/dialog";
+import useDatabaseWorker from "@/hooks/useWorker";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { Button } from "./ui/button";
 
 function DatabaseURLLoader() {
@@ -107,7 +106,7 @@ function DatabaseURLLoader() {
         fetchInProgress.current = false;
       }
     },
-    [handleFileUpload, setDatabaseLoading]
+    [handleFileUpload, isValidURL, setDatabaseLoading]
   );
 
   useEffect(() => {

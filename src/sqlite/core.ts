@@ -1,9 +1,6 @@
+import type { Database, QueryExecResult, SqlJsStatic, SqlValue } from "sql.js";
 import initSqlJs from "sql.js";
-
-import DEMO_DB from "./demo-db";
 import { tableDataCache } from "@/lib/queryCache";
-
-import type { Database, SqlJsStatic, SqlValue, QueryExecResult } from "sql.js";
 import type {
   Filters,
   IndexSchema,
@@ -11,6 +8,7 @@ import type {
   TableSchema,
   TableSchemaRow
 } from "@/types";
+import DEMO_DB from "./demo-db";
 
 export default class Sqlite {
   // Static SQL.js instance
@@ -98,16 +96,16 @@ export default class Sqlite {
     );
 
     const foreignKeys: Record<string, boolean> = {};
-    if (pragmaForeignKeysResults.length > 0) {
-      for (const row of pragmaForeignKeysResults[0].values) {
-        foreignKeys[row[3] as string] = true; // Get the 'from'
-      }
+    const foreignKeyRows = pragmaForeignKeysResults[0]?.values ?? [];
+    for (const row of foreignKeyRows) {
+      foreignKeys[row[3] as string] = true; // Get the 'from'
     }
 
     let primaryKey = "_rowid_";
     const tableSchema: TableSchemaRow[] = [];
-    if (pragmaTableInfoResults.length > 0) {
-      for (const row of pragmaTableInfoResults[0].values) {
+    const tableInfoRows = pragmaTableInfoResults[0]?.values ?? [];
+    if (tableInfoRows.length > 0) {
+      for (const row of tableInfoRows) {
         const [cid, name, type, notnull, dflt_value, pk] = row;
         if (pk === 1) primaryKey = name as string;
         tableSchema.push({
@@ -139,9 +137,10 @@ export default class Sqlite {
       "SELECT type, name, tbl_name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
     );
 
-    if (results.length === 0) return;
+    const schemaRows = results[0]?.values ?? [];
+    if (schemaRows.length === 0) return;
 
-    for (const row of results[0].values) {
+    for (const row of schemaRows) {
       const [type, name, tableName] = row;
       if (type === "table" || type === "view") {
         const [tableSchema, primaryKey] = this.getTableInfo(
@@ -160,7 +159,7 @@ export default class Sqlite {
       }
     }
 
-    this.firstTable = Object.keys(this.tablesSchema)[0];
+    this.firstTable = Object.keys(this.tablesSchema)[0] ?? null;
   }
 
   // Get the max size of the requested table
@@ -181,7 +180,8 @@ export default class Sqlite {
     } else {
       const [results] = this.exec(query);
       if (results.length === 0) return 0;
-      return Math.ceil(results[0].values[0][0] as number);
+      const count = results[0]?.values[0]?.[0];
+      return Math.ceil(Number(count ?? 0));
     }
   }
 
@@ -230,7 +230,7 @@ export default class Sqlite {
       LIMIT ${safeLimit} OFFSET ${safeOffset}
     `;
 
-    let results;
+    let results: QueryExecResult[] = [];
     if (params.length > 0) {
       const stmt = this.db.prepare(query);
       stmt.bind(params);
@@ -342,8 +342,17 @@ export default class Sqlite {
     try {
       // Filter out empty values and their corresponding columns
       const filteredEntries = columns
-        .map((col, index) => ({ col, val: values[index] }))
-        .filter((entry) => entry.val !== "");
+        .map((col, index) => {
+          const value = values[index];
+          if (value === undefined || value === "") {
+            return null;
+          }
+
+          return { col, val: value };
+        })
+        .filter(
+          (entry): entry is { col: string; val: SqlValue } => entry !== null
+        );
 
       // If there are no valid columns/values, avoid executing an empty INSERT
       if (filteredEntries.length === 0) {
@@ -479,7 +488,7 @@ function buildOrderByClause(sorters?: Sorters): string {
 export function arrayToCSV(columns: string[], rows: SqlValue[][]) {
   const header = columns.map((col) => `"${col}"`).join(",");
   const csvRows = rows.map((row) =>
-    columns.map((col) => `"${row[columns.indexOf(col)]}"`).join(",")
+    columns.map((col) => `"${row[columns.indexOf(col)] ?? ""}"`).join(",")
   );
   return [header, ...csvRows].join("\n");
 }

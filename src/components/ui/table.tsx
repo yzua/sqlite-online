@@ -124,11 +124,11 @@ const TableCell = function TableCell({
 
 export {
   Table,
-  TableHeader,
   TableBody,
+  TableCell,
   // TableFooter,
   TableHead,
-  TableRow,
-  TableCell
+  TableHeader,
+  TableRow
   // TableCaption,
 };

@@ -1,20 +1,18 @@
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { usePanelStore } from "@/store/usePanelStore";
-import usePanelManager from "@/hooks/usePanel";
-
+import { LoaderCircleIcon } from "lucide-react";
+import SchemaTree from "@/components/structureTab/SchemaTree";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from "@/components/ui/resizable";
-import SchemaTree from "@/components/structureTab/SchemaTree";
-import TableSelector from "./TableSelector";
-import EditSection from "./EditSection";
-import DataTable from "./DataTable";
-import PaginationControls from "./PaginationControls";
+import usePanelManager from "@/hooks/usePanel";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
+import { usePanelStore } from "@/store/usePanelStore";
 import ActionButtons from "./ActionButtons";
-
-import { LoaderCircleIcon } from "lucide-react";
+import DataTable from "./DataTable";
+import EditSection from "./EditSection";
+import PaginationControls from "./PaginationControls";
+import TableSelector from "./TableSelector";
 
 function BrowseDataTab() {
   const filters = useDatabaseStore((state) => state.filters);

@@ -1,5 +1,5 @@
-import type * as React from "react";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import type * as React from "react";
 // import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -238,12 +238,12 @@ function DropdownMenuItem({
 
 export {
   DropdownMenu,
-  // DropdownMenuPortal,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   // DropdownMenuGroup,
   // DropdownMenuLabel,
-  DropdownMenuItem
+  DropdownMenuItem,
+  // DropdownMenuPortal,
+  DropdownMenuTrigger
   // DropdownMenuCheckboxItem,
   // DropdownMenuRadioGroup,
   // DropdownMenuRadioItem,

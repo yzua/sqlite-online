@@ -1,8 +1,6 @@
 import { memo } from "react";
-
-import type { IndexSchema } from "@/types";
-
 import { Span } from "@/components/ui/span";
+import type { IndexSchema } from "@/types";
 
 interface IndexItemProps {
   index: IndexSchema;

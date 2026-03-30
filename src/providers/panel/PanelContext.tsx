@@ -6,19 +6,23 @@ interface PanelContextProps {
   handleRowClick: (
     row: SqlValue[],
     index: number,
-    primaryValue: SqlValue
+    primaryValue: SqlValue | null
   ) => void;
   handleInsert: () => void;
   isEditing: boolean;
   selectedRowObject: {
     data: SqlValue[];
     index: number;
-    primaryValue: SqlValue;
+    primaryValue: SqlValue | null;
   } | null;
   isInserting: boolean;
   setIsInserting: (value: boolean) => void;
   setSelectedRowObject: (
-    value: { data: SqlValue[]; index: number; primaryValue: SqlValue } | null
+    value: {
+      data: SqlValue[];
+      index: number;
+      primaryValue: SqlValue | null;
+    } | null
   ) => void;
   handleCloseEdit: () => void;
 }

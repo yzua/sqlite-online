@@ -1,13 +1,10 @@
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import { FilterXIcon, FolderOutputIcon, ListRestartIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import usePanelManager from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
-
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 import type { Filters, Sorters } from "@/types";
-
-import { Button } from "@/components/ui/button";
 import ActionsDropdown from "./ActionsDropdown";
-
-import { FilterXIcon, FolderOutputIcon, ListRestartIcon } from "lucide-react";
 
 interface ActionButtonsProps {
   filters: Filters;
@@ -27,9 +24,8 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
 
   return (
     <>
-      <div
+      <section
         className="hidden items-center gap-1 md:flex"
-        role="group"
         aria-label="Table actions"
       >
         <Button
@@ -92,7 +88,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
           <FolderOutputIcon className="mr-1 h-3 w-3" aria-hidden="true" />
           Export table
         </Button>
-      </div>
+      </section>
       <div className="md:hidden">
         <ActionsDropdown
           setFilters={setFilters}

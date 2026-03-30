@@ -1,8 +1,10 @@
+import { DatabaseIcon, FilterXIcon } from "lucide-react";
 import { useMemo } from "react";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import useDatabaseWorker from "@/hooks/useWorker";
-import usePanelManager from "@/hooks/usePanel";
-
+import ColumnIcon from "@/components/table/ColumnIcon";
+import FilterInput from "@/components/table/FilterInput";
+import Badge from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Span } from "@/components/ui/span";
 import {
   Table,
   TableBody,
@@ -11,14 +13,10 @@ import {
   TableHeader,
   TableRow
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Span } from "@/components/ui/span";
-import ColumnIcon from "@/components/table/ColumnIcon";
-import FilterInput from "@/components/table/FilterInput";
-import Badge from "@/components/ui/badge";
+import usePanelManager from "@/hooks/usePanel";
+import useDatabaseWorker from "@/hooks/useWorker";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 import SorterButton from "../table/SorterButton";
-
-import { DatabaseIcon, FilterXIcon } from "lucide-react";
 
 function DataTable() {
   const data = useDatabaseStore((state) => state.data);
@@ -28,6 +26,9 @@ function DataTable() {
   const filters = useDatabaseStore((state) => state.filters);
   const sorters = useDatabaseStore((state) => state.sorters);
   const setFilters = useDatabaseStore((state) => state.setFilters);
+  const currentTableSchema = currentTable
+    ? tablesSchema[currentTable]
+    : undefined;
 
   const { handleQueryFilter } = useDatabaseWorker();
   const { handleRowClick, selectedRowObject } = usePanelManager();
@@ -83,7 +84,7 @@ function DataTable() {
   }, [columns, filters, handleQueryFilter]);
 
   return (
-    <div role="region" aria-label="Database table data" aria-live="polite">
+    <section aria-label="Database table data" aria-live="polite">
       <Table
         role="table"
         aria-label={
@@ -92,7 +93,7 @@ function DataTable() {
       >
         <TableHeader>
           <TableRow className="bg-primary/5" role="row">
-            {columns && currentTable ? (
+            {columns && currentTableSchema ? (
               columns.map((column, index) => (
                 <TableHead
                   key={column}
@@ -112,7 +113,7 @@ function DataTable() {
                       {column}
                     </Span>
                     <ColumnIcon
-                      columnSchema={tablesSchema[currentTable].schema[index]}
+                      columnSchema={currentTableSchema.schema[index] ?? null}
                     />
                   </div>
                   {memoizedFilterInput?.[index]}
@@ -128,14 +129,19 @@ function DataTable() {
         <TableBody>
           {data && data.length > 0 ? (
             data.map((row, i) => {
-              const isView = tablesSchema[currentTable!]?.type === "view";
-              const primaryKey = tablesSchema[currentTable!]?.primaryKey;
-              const primaryValue = primaryKey && !isView ? row[0] : null;
+              const isView = currentTableSchema?.type === "view";
+              const primaryKey = currentTableSchema?.primaryKey;
+              const primaryValue =
+                primaryKey && !isView ? (row[0] ?? null) : null;
               const displayData = primaryKey && !isView ? row.slice(1) : row;
 
               return (
                 <TableRow
-                  key={i}
+                  key={
+                    primaryValue !== null
+                      ? String(primaryValue)
+                      : row.map((cell) => String(cell)).join("|")
+                  }
                   onClick={() => handleRowClick(displayData, i, primaryValue)}
                   className="hover:bg-primary/5 focus:bg-primary/5 data-[state=selected]:bg-primary/5 focus:ring-ring cursor-pointer text-xs focus:ring-2 focus:ring-offset-1 focus:outline-none"
                   role="row"
@@ -153,14 +159,13 @@ function DataTable() {
                 >
                   {displayData.map((value, j) => (
                     <TableCell
-                      key={j}
+                      key={currentTableSchema?.schema[j]?.name ?? String(value)}
                       className="border-primary/5 border-t p-2"
                       role="cell"
                       aria-label={`${columns?.[j] || `Column ${j + 1}`}: ${
                         value === null
                           ? "NULL"
-                          : tablesSchema[currentTable!].schema[j]?.type ===
-                              "BLOB"
+                          : currentTableSchema?.schema[j]?.type === "BLOB"
                             ? "BLOB data"
                             : String(value)
                       }`}
@@ -169,15 +174,10 @@ function DataTable() {
                         <Badge aria-label="NULL value">
                           {value === null ? "NULL" : JSON.stringify(value)}
                         </Badge>
+                      ) : currentTableSchema?.schema[j]?.type === "BLOB" ? (
+                        <Badge aria-label="Binary data">BLOB</Badge>
                       ) : (
-                        <>
-                          {tablesSchema[currentTable!].schema[j]?.type ===
-                          "BLOB" ? (
-                            <Badge aria-label="Binary data">BLOB</Badge>
-                          ) : (
-                            <Span className="text-xs">{value}</Span>
-                          )}
-                        </>
+                        <Span className="text-xs">{value}</Span>
                       )}
                     </TableCell>
                   ))}
@@ -198,7 +198,7 @@ function DataTable() {
           )}
         </TableBody>
       </Table>
-    </div>
+    </section>
   );
 }
 

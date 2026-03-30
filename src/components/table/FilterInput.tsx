@@ -1,6 +1,6 @@
-import { useCallback, useState, useEffect, useMemo } from "react";
-import { Input } from "@/components/ui/input";
 import { debounce } from "lodash";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Input } from "@/components/ui/input";
 
 interface FilterInputProps {
   column: string;
@@ -28,7 +28,7 @@ function FilterInput({
     }, debounceTime);
 
     return handler;
-  }, [debounceTime]);
+  }, [debounceTime, onChange]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

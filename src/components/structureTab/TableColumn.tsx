@@ -1,9 +1,8 @@
 import { memo } from "react";
-
-import type { TableSchemaRow } from "@/types";
+import ColumnIcon from "@/components/table/ColumnIcon";
 
 import { Span } from "@/components/ui/span";
-import ColumnIcon from "@/components/table/ColumnIcon";
+import type { TableSchemaRow } from "@/types";
 
 interface TableColumnProps {
   columnSchema: TableSchemaRow;

@@ -1,12 +1,11 @@
-import { useState, useMemo, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { useSchemaStore } from "@/store/useSchemaStore";
 
 import type { TableSchema } from "@/types";
-
-import TablesSection from "./TablesSection";
 import IndexesSection from "./IndexesSection";
 import SchemaSearch from "./SchemaSearch";
+import TablesSection from "./TablesSection";
 
 const SchemaTree = () => {
   const [filter, setFilter] = useState("");

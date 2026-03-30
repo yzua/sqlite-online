@@ -1,16 +1,3 @@
-import usePanelManager from "@/hooks/usePanel";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-
-import type { exportTypes, Filters, Sorters } from "@/types";
-
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-
 import {
   ChevronDownIcon,
   FilterXIcon,
@@ -18,6 +5,16 @@ import {
   ListRestartIcon,
   PlusIcon
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import usePanelManager from "@/hooks/usePanel";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
+import type { exportTypes, Filters, Sorters } from "@/types";
 
 interface ActionDropdownProps {
   setFilters: (filters: Filters) => void;
@@ -36,7 +33,9 @@ function ActionsDropdown({
 }: Readonly<ActionDropdownProps>) {
   const { isInserting, handleInsert, setSelectedRowObject } = usePanelManager();
   const isView = useDatabaseStore(
-    (state) => state.tablesSchema[state.currentTable!]?.type === "view"
+    (state) =>
+      state.currentTable != null &&
+      state.tablesSchema[state.currentTable]?.type === "view"
   );
 
   return (

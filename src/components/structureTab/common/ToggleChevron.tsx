@@ -1,5 +1,5 @@
-import { memo } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react";
+import { memo } from "react";
 
 const MemoizedChevronDownIcon = memo(ChevronDownIcon);
 const MemoizedChevronRightIcon = memo(ChevronRightIcon);

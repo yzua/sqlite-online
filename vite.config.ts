@@ -1,16 +1,16 @@
 import path from "node:path";
-import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 
 import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
-import compression from "vite-plugin-compression";
 import babelReactCompiler from "babel-plugin-react-compiler";
+import { defineConfig } from "vite";
+import compression from "vite-plugin-compression";
 
 export default defineConfig(({ mode }) => {
-  const isPages = mode === 'pages';
+  const isPages = mode === "pages";
 
   return {
-    base: isPages ? '/sqlite-online/' : '/',
+    base: isPages ? "/sqlite-online/" : "/",
     plugins: [
       react({
         babel: {
@@ -25,12 +25,10 @@ export default defineConfig(({ mode }) => {
         output: {
           manualChunks(id) {
             if (id.includes("node_modules")) {
-              return id
-                .toString()
-                .split("node_modules/")[1]
-                .split("/")[0]
-                .toString();
+              return id.toString().split("node_modules/")[1]?.split("/")[0];
             }
+
+            return undefined;
           }
         }
       }
@@ -46,5 +44,5 @@ export default defineConfig(({ mode }) => {
         strict: false
       }
     }
-  }
-})
+  };
+});

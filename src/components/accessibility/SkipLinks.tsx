@@ -35,4 +35,3 @@ function SkipLinks() {
 }
 
 export default SkipLinks;
-export { SkipLink };

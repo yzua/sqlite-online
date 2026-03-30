@@ -1,14 +1,14 @@
-import { useCallback, useMemo } from "react";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import useTheme from "@/hooks/useTheme";
-
-import CodeMirror from "@uiw/react-codemirror";
-import { darcula } from "@uiw/codemirror-theme-darcula";
-import { sql, SQLite } from "@codemirror/lang-sql";
 import {
   autocompletion,
   type CompletionContext
 } from "@codemirror/autocomplete";
+import { SQLite, sql } from "@codemirror/lang-sql";
+import { darcula } from "@uiw/codemirror-theme-darcula";
+
+import CodeMirror from "@uiw/react-codemirror";
+import { useCallback, useMemo } from "react";
+import useTheme from "@/hooks/useTheme";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 // SQLlite Keywords used for autocompletion
 const SQLITE_KEYWORDS = [
@@ -173,8 +173,8 @@ function CustomSQLTextarea() {
 
   const { tableNames, columnNames } = useMemo(() => {
     const tableNames = Object.keys(tablesSchema);
-    const columnNames = tableNames.flatMap((table) =>
-      tablesSchema[table].schema.map((col) => col.name)
+    const columnNames = tableNames.flatMap(
+      (table) => tablesSchema[table]?.schema.map((col) => col.name) ?? []
     );
     return { tableNames, columnNames };
   }, [tablesSchema]);
@@ -223,7 +223,7 @@ function CustomSQLTextarea() {
   );
 
   const extensions = useMemo(() => {
-    if (customQuery && customQuery.startsWith("/ai ")) {
+    if (customQuery.startsWith("/ai ")) {
       return [autocompletion({ override: [myCompletions] })];
     } else {
       return [SQLite, sql(), autocompletion({ override: [myCompletions] })];

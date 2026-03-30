@@ -1,23 +1,21 @@
 import {
-  isDate,
-  isNumber,
-  isText,
-  isBlob,
-  isBoolean
-} from "@/sqlite/sqlite-type-check";
-
-import type { TableSchemaRow } from "@/types";
-
-import {
+  CalendarIcon,
+  CuboidIcon,
+  HashIcon,
+  HelpCircleIcon,
   KeyRoundIcon,
   KeySquareIcon,
-  CuboidIcon,
-  CalendarIcon,
-  TypeIcon,
-  HashIcon,
   ToggleLeftIcon,
-  HelpCircleIcon
+  TypeIcon
 } from "lucide-react";
+import {
+  isBlob,
+  isBoolean,
+  isDate,
+  isNumber,
+  isText
+} from "@/sqlite/sqlite-type-check";
+import type { TableSchemaRow } from "@/types";
 
 interface ColumnIconProps {
   columnSchema: TableSchemaRow | null;

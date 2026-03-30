@@ -1,9 +1,3 @@
-import useDatabaseWorker from "@/hooks/useWorker";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import usePanelManager from "@/hooks/usePanel";
-
-import { Button } from "@/components/ui/button";
-
 import {
   ChevronFirstIcon,
   ChevronLastIcon,
@@ -12,6 +6,10 @@ import {
   FolderOutputIcon,
   PlusIcon
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import usePanelManager from "@/hooks/usePanel";
+import useDatabaseWorker from "@/hooks/useWorker";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 function PaginationControls() {
   const { handlePageChange, handleExport } = useDatabaseWorker();
@@ -21,7 +19,9 @@ function PaginationControls() {
   const maxSize = useDatabaseStore((state) => state.maxSize);
   const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
   const isView = useDatabaseStore(
-    (state) => state.tablesSchema[state.currentTable!]?.type === "view"
+    (state) =>
+      state.currentTable != null &&
+      state.tablesSchema[state.currentTable]?.type === "view"
   );
 
   const currentPage = Math.floor(offset / limit) + 1;
@@ -37,7 +37,6 @@ function PaginationControls() {
       <section className="bg-primary/10 flex h-full grow items-center gap-2 p-1">
         <nav
           className="flex items-center rounded-md border shadow-sm"
-          role="navigation"
           aria-label="Table pagination"
         >
           <Button
@@ -106,7 +105,6 @@ function PaginationControls() {
       </section>
       <section
         className="bg-primary/10 hidden h-full items-center gap-1 p-2 md:flex"
-        role="group"
         aria-label="Table actions"
       >
         <Button

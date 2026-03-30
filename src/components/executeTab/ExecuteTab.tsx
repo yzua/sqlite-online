@@ -1,28 +1,25 @@
+import {
+  FolderOutputIcon,
+  LoaderCircleIcon,
+  PlayIcon,
+  SparklesIcon,
+  XIcon
+} from "lucide-react";
 import { useCallback, useState } from "react";
-
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { usePanelStore } from "@/store/usePanelStore";
-import useDatabaseWorker from "@/hooks/useWorker";
-import { useGeminiAI } from "@/hooks/useGeminiAI";
-
+import SchemaTree from "@/components/structureTab/SchemaTree";
+import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from "@/components/ui/resizable";
-import { Button } from "@/components/ui/button";
-import SchemaTree from "@/components/structureTab/SchemaTree";
-import CustomSQLTextarea from "./CustomSQLTextarea";
-import CustomQueryDataTable from "./CustomQueryDataTable";
+import { useGeminiAI } from "@/hooks/useGeminiAI";
+import useDatabaseWorker from "@/hooks/useWorker";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
+import { usePanelStore } from "@/store/usePanelStore";
 import ApiKeyModal from "./ApiKeyModal";
-
-import {
-  PlayIcon,
-  LoaderCircleIcon,
-  XIcon,
-  FolderOutputIcon,
-  SparklesIcon
-} from "lucide-react";
+import CustomQueryDataTable from "./CustomQueryDataTable";
+import CustomSQLTextarea from "./CustomSQLTextarea";
 
 function ExecuteTab() {
   const errorMessage = useDatabaseStore((state) => state.errorMessage);
@@ -47,7 +44,7 @@ function ExecuteTab() {
   const { generateSqlQuery, isAiLoading } = useGeminiAI();
 
   const handleExecuteClick = () => {
-    if (customQuery && customQuery.startsWith("/ai ")) {
+    if (customQuery.startsWith("/ai ")) {
       generateSqlQuery();
     } else {
       handleQueryExecute();

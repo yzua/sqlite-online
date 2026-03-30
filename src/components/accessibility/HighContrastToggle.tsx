@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { ContrastIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 function HighContrastToggle() {
   const [isHighContrast, setIsHighContrast] = useState(false);

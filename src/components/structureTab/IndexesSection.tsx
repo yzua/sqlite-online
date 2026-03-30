@@ -1,11 +1,8 @@
-import { memo } from "react";
-
-import type { IndexSchema } from "@/types";
-
-import IndexItem from "./IndexItem";
-import SectionHeader from "./common/SectionHeader";
-
 import { TagIcon } from "lucide-react";
+import { memo } from "react";
+import type { IndexSchema } from "@/types";
+import SectionHeader from "./common/SectionHeader";
+import IndexItem from "./IndexItem";
 
 interface IndexesSectionProps {
   indexes: IndexSchema[];

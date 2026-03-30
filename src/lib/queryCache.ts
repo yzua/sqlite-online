@@ -107,7 +107,9 @@ class QueryCache<T = unknown> {
       }
     }
 
-    keysToDelete.forEach((key) => this.cache.delete(key));
+    keysToDelete.forEach((key) => {
+      this.cache.delete(key);
+    });
   }
 
   /**
@@ -130,7 +132,9 @@ class QueryCache<T = unknown> {
       }
     }
 
-    keysToDelete.forEach((key) => this.cache.delete(key));
+    keysToDelete.forEach((key) => {
+      this.cache.delete(key);
+    });
   }
 
   /**
@@ -190,8 +194,3 @@ class QueryCache<T = unknown> {
 
 // Create singleton instance for table data caching
 export const tableDataCache = new QueryCache();
-
-// Create singleton instance for custom query caching
-export const customQueryCache = new QueryCache(50, 2 * 60 * 1000); // 2 minutes for custom queries
-
-export default QueryCache;

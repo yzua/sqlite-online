@@ -1,16 +1,14 @@
+import {
+  ChevronsDownUpIcon,
+  ChevronsUpDownIcon,
+  DatabaseIcon
+} from "lucide-react";
 import { memo, useCallback, useState } from "react";
 
-import type { TableSchema } from "@/types";
-
 import { Button } from "@/components/ui/button";
-import TableItem from "./TableItem";
+import type { TableSchema } from "@/types";
 import SectionHeader from "./common/SectionHeader";
-
-import {
-  DatabaseIcon,
-  ChevronsUpDownIcon,
-  ChevronsDownUpIcon
-} from "lucide-react";
+import TableItem from "./TableItem";
 
 interface TablesSectionProps {
   tablesSchema: TableSchema;

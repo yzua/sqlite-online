@@ -1,6 +1,5 @@
+import { AlertCircleIcon, CheckCircle2Icon, InfoIcon } from "lucide-react";
 import { toast } from "sonner";
-
-import { CheckCircle2Icon, InfoIcon, AlertCircleIcon } from "lucide-react";
 
 type ToastType = "success" | "error" | "info";
 type ToastOptions = Record<string, unknown>;

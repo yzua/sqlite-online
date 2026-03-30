@@ -2,12 +2,11 @@ import "./index.css";
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
-import AppToaster from "@/components/common/Toaster/Toaster";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
+import AppToaster from "@/components/common/Toaster/Toaster";
+import PanelProvider from "@/providers/panel/PanelProvider";
 import ThemeProvider from "@/providers/theme/ThemeProvider.tsx";
 import DatabaseWorkerProvider from "@/providers/worker/WorkerProvider.tsx";
-import PanelProvider from "@/providers/panel/PanelProvider";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 import App from "./App.tsx";

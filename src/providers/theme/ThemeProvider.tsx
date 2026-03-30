@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ThemeProviderContext from "./ThemeContext";
 
 export type Theme = "dark" | "light" | "system";

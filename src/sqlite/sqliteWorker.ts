@@ -1,7 +1,6 @@
-import { QueryExecResult } from "sql.js";
-import Sqlite, { CustomQueryError, arrayToCSV } from "./core";
-
+import type { QueryExecResult } from "sql.js";
 import type { WorkerEvent } from "@/types";
+import Sqlite, { arrayToCSV, CustomQueryError } from "./core";
 
 // Global variable to store the database instance
 let instance: Sqlite | null = null;
@@ -327,7 +326,10 @@ self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
           throw new Error("Unknown export type");
         }
 
-        const csvResults = arrayToCSV(results[0].columns, results[0].values);
+        const firstResult = results[0];
+        const csvResults = firstResult
+          ? arrayToCSV(firstResult.columns, firstResult.values)
+          : "";
 
         // Send the export response to the main thread
         self.postMessage({

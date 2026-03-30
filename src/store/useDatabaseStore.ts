@@ -1,8 +1,7 @@
-import { create } from "zustand";
-
-import type { TableSchema, IndexSchema, Filters, Sorters } from "@/types";
 import type { SqlValue } from "sql.js";
+import { create } from "zustand";
 import SecureStorage from "@/lib/secureStorage";
+import type { Filters, IndexSchema, Sorters, TableSchema } from "@/types";
 
 interface DatabaseState {
   tablesSchema: TableSchema;
@@ -18,7 +17,7 @@ interface DatabaseState {
   sorters: Sorters;
   limit: number;
   offset: number;
-  customQuery?: string;
+  customQuery: string;
   customQueryObject: {
     data: SqlValue[][];
     columns: string[];
@@ -68,7 +67,7 @@ export const useDatabaseStore = create<DatabaseStore>((set) => ({
   sorters: null,
   limit: 50,
   offset: 0,
-  customQuery: undefined,
+  customQuery: "",
   customQueryObject: null,
   geminiApiKey: null, // Will be initialized asynchronously
   isAiLoading: false,

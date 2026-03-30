@@ -1,6 +1,6 @@
 import { createContext } from "react";
 
-import { EditTypes, exportTypes } from "@/types";
+import type { EditTypes, exportTypes } from "@/types";
 
 interface DatabaseWorkerContextProps {
   workerRef: { current: Worker | null };

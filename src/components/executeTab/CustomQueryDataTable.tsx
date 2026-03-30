@@ -1,13 +1,10 @@
-import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { useRef, useCallback, useEffect, useMemo } from "react";
-
-import { VariableSizeGrid as Grid } from "react-window";
-import AutoSizer from "react-virtualized-auto-sizer";
-
-import { Span } from "@/components/ui/span";
-import Badge from "@/components/ui/badge";
-
 import { DatabaseIcon, TableIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { VariableSizeGrid as Grid } from "react-window";
+import Badge from "@/components/ui/badge";
+import { Span } from "@/components/ui/span";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 const ROW_HEIGHT = 36;
 const MIN_COLUMN_WIDTH = 120;
@@ -96,7 +93,7 @@ function CustomQueryDataTable() {
     if (gridRef.current) {
       gridRef.current.resetAfterColumnIndex(0);
     }
-  }, [customQueryObject]);
+  }, []);
 
   // Store current width to detect changes
   const currentWidthRef = useRef<number>(0);
@@ -197,7 +194,7 @@ function CustomQueryDataTable() {
                   <div className="flex" style={{ width: tableWidth }}>
                     {customQueryObject.columns.map((column, columnIndex) => (
                       <div
-                        key={`${column}-${columnIndex}`}
+                        key={column}
                         className="border-primary/10 flex flex-shrink-0 items-center border-r p-2 text-xs font-medium"
                         style={{ width: getColumnWidth(columnIndex, width) }}
                       >
@@ -224,7 +221,9 @@ function CustomQueryDataTable() {
                   key={`grid-${customQueryObject.columns.join("-")}`}
                 >
                   {({ columnIndex, rowIndex, style }) => {
-                    const value = customQueryObject.data[rowIndex][columnIndex];
+                    const row = customQueryObject.data[rowIndex];
+                    const value = row?.[columnIndex] ?? null;
+
                     return (
                       <div
                         style={style}
