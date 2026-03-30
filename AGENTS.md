@@ -24,8 +24,7 @@ used in this repo.
 - Runtime used in CI: Node.js `20`
 - Build tool: Vite
 - Language: TypeScript with `strict: true`
-- Linting: ESLint flat config (`eslint.config.js`)
-- Formatting: Prettier (`prettier.config.js`) with `prettier-plugin-tailwindcss`
+- Linting and formatting: Biome (`biome.json`)
 - Type checking: performed through `tsc -b` inside the build script
 - Tests: no automated test runner is configured right now
 
@@ -33,11 +32,13 @@ used in this repo.
 
 - Install dependencies: `npm install`
 - Start dev server: `npm run dev`
+- Run full code quality checks: `npm run check`
 - Build production app: `npm run build`
 - Build GitHub Pages variant: `npm run build:pages`
 - Preview normal build: `npm run preview`
 - Preview Pages build: `npm run preview:pages`
 - Deploy `dist/` to GitHub Pages: `npm run deploy`
+- Run type checking only: `npm run typecheck`
 - Run lint: `npm run lint`
 - Format source files: `npm run format`
 - Check formatting only: `npm run format:check`
@@ -45,10 +46,10 @@ used in this repo.
 
 ## Single-File And Narrow Checks
 
-- Lint one file: `npx eslint src/path/to/file.tsx`
-- Lint a folder: `npx eslint src/components/browseTab`
-- Check formatting for one file: `npx prettier --check src/path/to/file.tsx`
-- Format one file: `npx prettier --write src/path/to/file.tsx`
+- Lint one file: `npx biome lint src/path/to/file.tsx`
+- Lint a folder: `npx biome lint src/components/browseTab`
+- Check formatting for one file: `npx biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false src/path/to/file.tsx`
+- Format one file: `npx biome format --write src/path/to/file.tsx`
 - There is no dedicated standalone typecheck script; use `npm run build` to run
   the repo's TypeScript project references.
 
@@ -63,17 +64,10 @@ used in this repo.
 
 ## Recommended Validation Sequence
 
-1. `npx eslint <changed files>`
-2. `npx prettier --check <changed files>`
-3. `npm run build`
+1. `npx biome check <changed files>`
+2. `npm run build`
 
 If you touch dependency boundaries or dead code, also run `npm run knip`.
-
-Known current lint warnings:
-
-- `src/components/DatabaseURLLoader.tsx`: missing `isValidURL` callback dep
-- `src/components/common/ErrorBoundary.tsx`: fast-refresh warning for mixed exports
-- `src/components/table/FilterInput.tsx`: missing `onChange` memo dependency
 
 ## Import Conventions
 
@@ -89,14 +83,13 @@ Known current lint warnings:
 
 ## Formatting Rules
 
-- Prettier is authoritative.
+- Biome is authoritative.
 - Use 2-space indentation.
 - Use semicolons.
 - Use double quotes, including JSX attributes.
 - Keep `printWidth` near 80 columns.
 - Trailing commas are disabled.
 - Arrow functions should keep parentheses even for one parameter.
-- Tailwind class order is auto-sorted by the Prettier Tailwind plugin.
 
 ## TypeScript Rules
 
@@ -125,7 +118,7 @@ Known current lint warnings:
 ## React And State Conventions
 
 - This repo uses React 19 and the React Compiler Babel plugin.
-- Respect `eslint-plugin-react-compiler`.
+- Keep React Compiler-friendly patterns even though the repo no longer uses ESLint.
 - Use hooks and functional components by default.
 - Class components exist only where they provide value, such as `ErrorBoundary`.
 - Memoization with `useCallback` and `useMemo` is common in heavy UI and

@@ -52,6 +52,8 @@ Useful project commands:
 
 - `npm run build`
 - `npm run build:pages`
+- `npm run typecheck`
+- `npm run check`
 - `npm run preview`
 - `npm run preview:pages`
 - `npm run lint`
