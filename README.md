@@ -1,20 +1,15 @@
-<div align="center">
-
-<a href="https://sqlite3.online/" target="_blank">
-  <img src="https://github.com/user-attachments/assets/aef749bf-df08-4a84-8148-d34b796449d8" alt="SQLite Online Logo" width="128">
-</a>
-
 # SQLite Online
+
+[SQLite Online](https://sqlite3.online/)
+
+![SQLite Online Logo](https://github.com/user-attachments/assets/aef749bf-df08-4a84-8148-d34b796449d8)
 
 A client-side SQLite editor built with React, TypeScript, Vite, and `sql.js`.
 It runs in the browser, initializes a demo database by default, and can open
 local SQLite files without a backend.
 
 [![License](https://img.shields.io/github/license/yzua/sqlite-online?label=License)](https://github.com/yzua/sqlite-online/blob/main/LICENSE)
-[![Format Check](https://github.com/yzua/sqlite-online/actions/workflows/format.yml/badge.svg)](https://github.com/yzua/sqlite-online/actions/workflows/format.yml)
-[![Lint](https://github.com/yzua/sqlite-online/actions/workflows/lint.yml/badge.svg)](https://github.com/yzua/sqlite-online/actions/workflows/lint.yml)
-
-</div>
+[![Quality](https://github.com/yzua/sqlite-online/actions/workflows/quality.yml/badge.svg)](https://github.com/yzua/sqlite-online/actions/workflows/quality.yml)
 
 ## Overview
 

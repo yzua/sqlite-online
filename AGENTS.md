@@ -33,16 +33,19 @@ used in this repo.
 - Install dependencies: `npm install`
 - Start dev server: `npm run dev`
 - Run full code quality checks: `npm run check`
+- Fix all biome issues: `npm run check:fix`
 - Build production app: `npm run build`
 - Build GitHub Pages variant: `npm run build:pages`
 - Preview normal build: `npm run preview`
 - Preview Pages build: `npm run preview:pages`
 - Deploy `dist/` to GitHub Pages: `npm run deploy`
 - Run type checking only: `npm run typecheck`
-- Run lint: `npm run lint`
+- Run lint only: `npm run lint`
+- Fix lint issues: `npm run lint:fix`
 - Format source files: `npm run format`
 - Check formatting only: `npm run format:check`
 - Detect unused files / deps: `npm run knip`
+- Run diagnostics: `npm run doctor`
 
 ## Single-File And Narrow Checks
 
@@ -68,6 +71,15 @@ used in this repo.
 2. `npm run build`
 
 If you touch dependency boundaries or dead code, also run `npm run knip`.
+
+## Project Structure
+
+- `src/components/ui/` - shadcn/Radix UI primitives
+- `src/store/` - Zustand stores (useXStore named exports)
+- `src/providers/` - React context providers
+- `src/hooks/` - Custom React hooks (useX naming)
+- `src/types.ts` - Domain types for worker payloads and data
+- `src/lib/utils.ts` - Shared utilities including `cn()` for class composition
 
 ## Import Conventions
 

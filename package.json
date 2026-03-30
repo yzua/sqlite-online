@@ -16,7 +16,8 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
     "format:check": "biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false .",
-    "knip": "knip"
+    "knip": "knip",
+    "doctor": "react-doctor . --verbose"
   },
   "knip": {
     "entry": [
@@ -66,6 +67,7 @@
     "@vitejs/plugin-react": "^4.3.4",
     "babel-plugin-react-compiler": "^19.0.0-beta-e993439-20250328",
     "knip": "^5.52.0",
+    "react-doctor": "^0.0.30",
     "typescript": "~5.7.2",
     "vite": "^6.3.5"
   }
