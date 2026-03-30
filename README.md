@@ -64,4 +64,4 @@ Streamline your workflow with these built-in hotkeys:
 
 ## License
 
-SQLite Online is released under the [MIT License](https://github.com/yzua/sqlite-online/blob/main/LICENSE).
+SQLite Online is released under the [GNU GPL v3.0](https://github.com/yzua/sqlite-online/blob/main/LICENSE).
