@@ -1,147 +1,109 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
-    />
-    <link rel="manifest" href="site.webmanifest" />
-    <meta name="msapplication-TileColor" content="#0E0E10" />
-    <meta name="theme-color" content="#18181B" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://sqlite3.online/" />
-    <title>SQLite Online</title>
-    <!-- Favicon and icons -->
-    <link rel="icon" href="./icons/favicon.ico" type="image/x-icon" />
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="./icons/apple-touch-icon.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="32x32"
-      href="./icons/favicon-32x32.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="16x16"
-      href="./icons/favicon-16x16.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="192x192"
-      href="./icons/android-chrome-192x192.png"
-    />
-    <link
-      rel="icon"
-      type="image/png"
-      sizes="512x512"
-      href="./icons/android-chrome-512x512.png"
-    />
-    <!-- Meta Data -->
-    <meta
-      name="description"
-      content="Lightweight, secure, and WebAssembly-powered SQLite viewer and editor—works entirely in your browser."
-    />
-    <meta
-      name="keywords"
-      content="SQLite Viewer, SQLite Editor, WebAssembly SQLite, In-Browser SQLite, Client-Side SQLite, Secure SQLite Editor, Lightweight SQLite Tool, SQL.js, React, Offline SQLite Editor, Browser-Based Database Tool, Fast SQLite Editor, WASM-Powered SQLite, SQLite Management"
-    />
-    <meta property="og:title" content="SQLite Viewer" />
-    <meta property="og:site_name" content="SQLite Viewer" />
-    <meta property="og:locale" content="en_US" />
-    <meta
-      property="og:description"
-      content="Lightweight, secure, and WebAssembly-powered SQLite viewer and editor—works entirely in your browser."
-    />
-    <meta property="og:image" content="https://sqlite3.online/preview.png" />
-    <meta property="og:url" content="https://sqlite3.online/" />
-    <meta property="og:type" content="website" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="SQLite Viewer" />
-    <meta
-      name="twitter:description"
-      content="Lightweight, secure, and WebAssembly-powered SQLite viewer and editor—works entirely in your browser."
-    />
-    <meta name="twitter:image" content="https://sqlite3.online/preview.png" />
-    <meta name="author" content="yzua" />
-    <!-- Fonts -->
-    <link
-      rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
-      as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
-    />
-    <noscript
-      ><link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap"
-    /></noscript>
-    <!-- Critical CSS -->
-    <style>
-      body {
-        font-family: "Lexend", sans-serif;
-        font-display: swap;
-      }
-      .no-js {
-        text-align: center;
-        margin-top: 20%;
-      }
-      .no-js h1 {
-        font-size: 2rem;
-      }
-    </style>
-    <script type="module" crossorigin src="/sqlite-online/assets/index-C7Mm2awP.js"></script>
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/lodash-BkzDGCz7.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-egwdCabL.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/scheduler-DbUY97Hf.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-dom-c16NkdIc.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/sonner-B04xxARb.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/aria-hidden-DQ5UC2Eg.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/tslib-CDuPK5Eb.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/get-nonce-C-Z93AgS.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-style-singleton-CLIVpyst.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-remove-scroll-bar-C_cGMdAB.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/use-sidecar-DObfBPVs.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/use-callback-ref-DdFTBhld.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-remove-scroll-CPZec_zl.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@floating-ui-KsjFWC4B.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@radix-ui-DQiPYp3P.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/clsx-B-dksMZM.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/tailwind-merge-BJOqOzcM.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/class-variance-authority-Dp3B9jqt.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/lucide-react-Czitr04b.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/zustand-DEkusqDe.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-resizable-panels-B2groPTy.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@babel-BTbEZfjA.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@lezer-E7PapBHi.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/crelt-C8TCjufn.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@marijn-DXwl3gUT.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/style-mod-Bc2inJdb.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/w3c-keyname-Vcq4gwWv.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@codemirror-BjKk2IdN.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@uiw-B2yiLSyT.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/memoize-one-CcMeOnPo.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-window-CVzxQI-G.js">
-    <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-virtualized-auto-sizer-lrPAvcRu.js">
-    <link rel="stylesheet" crossorigin href="/sqlite-online/assets/index-WXaezXP8.css">
-  </head>
-  <body>
-    <div id="root"></div>
-    <noscript>
-      <div class="no-js">
-        <h1>JavaScript Required</h1>
-        <p>
-          We're sorry, but this application requires JavaScript to function
-          correctly. Please enable JavaScript in your browser and reload the
-          page.
-        </p>
-      </div>
-    </noscript>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <link rel="manifest" href="site.webmanifest" />
+  <meta name="msapplication-TileColor" content="#0E0E10" />
+  <meta name="theme-color" content="#18181B" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://yzua.github.io/sqlite-online/" />
+  <title>SQLite Online</title>
+  <!-- Favicon and icons -->
+  <link rel="icon" href="./icons/favicon.ico" type="image/x-icon" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16x16.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/android-chrome-192x192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./icons/android-chrome-512x512.png" />
+  <!-- Meta Data -->
+  <meta name="description"
+    content="Lightweight, secure, and WebAssembly-powered SQLite viewer and editor—works entirely in your browser." />
+  <meta name="keywords"
+    content="SQLite Viewer, SQLite Editor, WebAssembly SQLite, In-Browser SQLite, Client-Side SQLite, Secure SQLite Editor, Lightweight SQLite Tool, SQL.js, React, Offline SQLite Editor, Browser-Based Database Tool, Fast SQLite Editor, WASM-Powered SQLite, SQLite Management" />
+  <meta property="og:title" content="SQLite Viewer" />
+  <meta property="og:site_name" content="SQLite Viewer" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:description"
+    content="Lightweight, secure, and WebAssembly-powered SQLite viewer and editor—works entirely in your browser." />
+  <meta property="og:image" content="https://yzua.github.io/sqlite-online/preview.png" />
+  <meta property="og:url" content="https://yzua.github.io/sqlite-online/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SQLite Viewer" />
+  <meta name="twitter:description"
+    content="Lightweight, secure, and WebAssembly-powered SQLite viewer and editor—works entirely in your browser." />
+  <meta name="twitter:image" content="https://yzua.github.io/sqlite-online/preview.png" />
+  <meta name="author" content="yzua" />
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap" />
+  <!-- Critical CSS -->
+  <style>
+    body {
+      font-family: "Lexend", sans-serif;
+      font-display: swap;
+    }
+
+    .no-js {
+      text-align: center;
+      margin-top: 20%;
+    }
+
+    .no-js h1 {
+      font-size: 2rem;
+    }
+  </style>
+  <script type="module" crossorigin src="/sqlite-online/assets/index-DNrzivgO.js"></script>
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/lodash-CfPVlwRc.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-RpATH-9X.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/scheduler-DbUY97Hf.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-dom-CBJ4LWZw.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/aria-hidden-DQ5UC2Eg.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/tslib-CDuPK5Eb.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/get-nonce-C-Z93AgS.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-style-singleton-BEQnZRmt.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-remove-scroll-bar-CXsZZEsq.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/use-sidecar-CSxs9dvS.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/use-callback-ref-BRJW7OFF.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-remove-scroll-B8137lxA.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@floating-ui-DhyMMuMn.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@radix-ui-PgyXd5ZE.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/clsx-B-dksMZM.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/tailwind-merge-BJOqOzcM.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/class-variance-authority-Dp3B9jqt.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/lucide-react-BwWnoPe1.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/sonner-p4VXi3tX.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/zustand-DUTHWldM.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-resizable-panels-C4ROTyUB.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-virtualized-auto-sizer-C9Bg971a.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@babel-D4DlEvn7.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/memoize-one-CcMeOnPo.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/react-window-_dVbom47.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@lezer-Ch_qOS_n.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/crelt-C8TCjufn.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@marijn-DXwl3gUT.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/style-mod-Bc2inJdb.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/w3c-keyname-Vcq4gwWv.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@codemirror-G5eD-ed0.js">
+  <link rel="modulepreload" crossorigin href="/sqlite-online/assets/@uiw-ClGpScKj.js">
+  <link rel="stylesheet" crossorigin href="/sqlite-online/assets/index-D_pL7N1L.css">
+</head>
+
+<body>
+  <div id="root"></div>
+  <noscript>
+    <div class="no-js">
+      <h1>JavaScript Required</h1>
+      <p>
+        We're sorry, but this application requires JavaScript to function
+        correctly. Please enable JavaScript in your browser and reload the
+        page.
+      </p>
+    </div>
+  </noscript>
+</body>
+
 </html>
