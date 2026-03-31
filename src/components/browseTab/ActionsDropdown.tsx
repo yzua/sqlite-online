@@ -40,7 +40,7 @@ function ActionsDropdown({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 text-xs">
+        <Button variant="outline" size="sm" className="text-xs">
           Actions <ChevronDownIcon className="ml-1 h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
@@ -49,7 +49,7 @@ function ActionsDropdown({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-start text-xs"
+            className="w-full justify-start text-xs"
             onClick={() => {
               setFilters(null);
               setSelectedRowObject(null);
@@ -65,7 +65,7 @@ function ActionsDropdown({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-start text-xs"
+            className="w-full justify-start text-xs"
             onClick={() => {
               setSorters(null);
               setSelectedRowObject(null);
@@ -81,7 +81,7 @@ function ActionsDropdown({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-start text-xs"
+            className="w-full justify-start text-xs"
             onClick={handleInsert}
             disabled={isInserting || isView}
             title="Insert a new row"
@@ -94,7 +94,7 @@ function ActionsDropdown({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-start text-xs"
+            className="w-full justify-start text-xs"
             onClick={() => handleExport("table")}
             title="Export the current table as CSV"
           >
@@ -106,7 +106,7 @@ function ActionsDropdown({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-full justify-start text-xs"
+            className="w-full justify-start text-xs"
             onClick={() => handleExport("current")}
             title="Export the current data as CSV"
           >

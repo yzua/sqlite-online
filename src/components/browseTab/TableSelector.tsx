@@ -17,7 +17,7 @@ function TableSelector() {
 
   return (
     <Select onValueChange={handleTableChange} {...selectValue}>
-      <SelectTrigger className="border-primary/20 h-8 w-30 border text-sm sm:w-48">
+      <SelectTrigger className="border-primary/20 h-8 min-w-0 flex-1 border text-sm sm:max-w-48 sm:flex-none">
         <SelectValue placeholder="Select Table" />
       </SelectTrigger>
       <SelectContent>

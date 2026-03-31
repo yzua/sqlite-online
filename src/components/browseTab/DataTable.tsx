@@ -47,7 +47,7 @@ function DataTable() {
   );
 
   return (
-    <section aria-label="Database table data" aria-live="polite">
+    <section aria-label="Database table data">
       <Table
         role="table"
         aria-label={
@@ -59,7 +59,7 @@ function DataTable() {
             {columns && currentTableSchema ? (
               columns.map((column, index) => (
                 <TableHead
-                  key={column}
+                  key={`${column ?? "column"}-${index}`}
                   className="p-1 text-xs"
                   role="columnheader"
                   aria-sort={
@@ -97,7 +97,7 @@ function DataTable() {
           {data && data.length > 0 ? (
             data.map((row, index) => (
               <BrowseTableRow
-                key={getRowKey(row)}
+                key={`${getRowKey(row)}-${index}`}
                 row={row}
                 rowKey={getRowKey(row)}
                 rowIndex={index}

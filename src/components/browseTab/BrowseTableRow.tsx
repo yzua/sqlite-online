@@ -56,7 +56,12 @@ function BrowseTableRow({
     >
       {displayData.map((value, columnIndex) => (
         <TableCell
-          key={currentTableSchema?.schema[columnIndex]?.name ?? String(value)}
+          key={JSON.stringify({
+            column: columns?.[columnIndex] ?? null,
+            schemaName: currentTableSchema?.schema[columnIndex]?.name ?? null,
+            schemaType: currentTableSchema?.schema[columnIndex]?.type ?? null,
+            value
+          })}
           className="border-primary/5 border-t p-2"
           role="cell"
           aria-label={`${columns?.[columnIndex] || `Column ${columnIndex + 1}`}: ${

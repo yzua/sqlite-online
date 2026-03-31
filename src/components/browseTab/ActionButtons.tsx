@@ -42,7 +42,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
         <Button
           size="sm"
           variant="outline"
-          className="h-8 text-xs"
+          className="text-xs"
           onClick={handleClearFilters}
           disabled={!hasFilters}
           aria-label={
@@ -64,7 +64,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
         <Button
           size="sm"
           variant="outline"
-          className="h-8 text-xs"
+          className="text-xs"
           onClick={handleResetSorters}
           disabled={!hasSorters}
           aria-label={
@@ -86,7 +86,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
         <Button
           size="sm"
           variant="outline"
-          className="h-8 text-xs"
+          className="text-xs"
           onClick={() => handleExport("table")}
           aria-label="Export entire table as CSV file"
         >

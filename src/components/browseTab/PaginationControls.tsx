@@ -38,15 +38,13 @@ function PaginationControls() {
   const atLastPage = isAtLastPage(offset, limit, maxSize);
 
   return (
-    <footer
-      className="bg-background flex w-full items-center justify-between border-t shadow-sm"
+    <div
+      className="flex w-full flex-wrap items-center justify-between gap-2 border-t shadow-sm md:flex-nowrap"
       id="paginationControls"
-      role="contentinfo"
-      aria-label="Table pagination and actions"
     >
-      <section className="bg-primary/10 flex h-full grow items-center gap-2 p-1">
+      <section className="flex min-w-0 grow items-center gap-2 p-1">
         <nav
-          className="flex items-center rounded-md border shadow-sm"
+          className="flex min-w-0 items-center rounded-md border shadow-sm"
           aria-label="Table pagination"
         >
           <Button
@@ -54,7 +52,7 @@ function PaginationControls() {
             disabled={atFirstPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
-            className="h-8 w-8 rounded-l-md rounded-r-none border-r"
+            className="rounded-l-md rounded-r-none border-r"
             aria-label={`Go to first page (page 1 of ${totalPages})`}
           >
             <ChevronFirstIcon className="h-4 w-4" aria-hidden="true" />
@@ -64,29 +62,24 @@ function PaginationControls() {
             disabled={atFirstPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
-            className="h-8 w-8 rounded-none border-r"
+            className="rounded-none border-r"
             aria-label={`Go to previous page (page ${currentPage - 1} of ${totalPages})`}
           >
             <ChevronLeftIcon className="h-4 w-4" aria-hidden="true" />
           </Button>
-          <div
-            className="flex items-center justify-center px-3 text-xs font-medium"
-            role="status"
-            aria-live="polite"
-            aria-label={
-              maxSize
-                ? `Showing rows ${visibleRange.start} to ${visibleRange.end} of ${maxSize} total rows, page ${currentPage} of ${totalPages}`
-                : "No data available"
-            }
-          >
+          <div className="flex min-w-0 items-center justify-center px-3 text-sm font-medium">
             {maxSize ? (
-              <span aria-hidden="true">
+              <>
+                <span className="sr-only">
+                  Showing rows {visibleRange.start} to {visibleRange.end} of{" "}
+                  {maxSize}
+                </span>
                 {visibleRange.start}
                 <span className="text-primary/50 mx-1">-</span>
                 {visibleRange.end}
                 <span className="text-primary/50 mx-1">of</span>
                 {maxSize}
-              </span>
+              </>
             ) : (
               <span>No data</span>
             )}
@@ -96,7 +89,7 @@ function PaginationControls() {
             disabled={atLastPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
-            className="h-8 w-8 rounded-none border-l"
+            className="rounded-none border-l"
             aria-label={`Go to next page (page ${currentPage + 1} of ${totalPages})`}
           >
             <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
@@ -106,7 +99,7 @@ function PaginationControls() {
             disabled={atLastPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
-            className="h-8 w-8 rounded-l-none rounded-r-md border-l"
+            className="rounded-l-none rounded-r-md border-l"
             aria-label={`Go to last page (page ${totalPages} of ${totalPages})`}
           >
             <ChevronLastIcon className="h-4 w-4" aria-hidden="true" />
@@ -114,13 +107,13 @@ function PaginationControls() {
         </nav>
       </section>
       <section
-        className="bg-primary/10 hidden h-full items-center gap-1 p-2 md:flex"
+        className="hidden items-center gap-1 p-1 md:flex"
         aria-label="Table actions"
       >
         <Button
           size="sm"
           variant="outline"
-          className="h-8 text-xs font-medium shadow-sm"
+          className="text-xs font-medium shadow-sm"
           onClick={handleInsert}
           disabled={isInserting || isView}
           aria-label={
@@ -140,14 +133,14 @@ function PaginationControls() {
           onClick={() => handleExport("current")}
           size="sm"
           variant="outline"
-          className="h-8 text-xs font-medium shadow-sm"
+          className="text-xs font-medium shadow-sm"
           aria-label="Export current table data as CSV file"
         >
           <FolderOutputIcon className="mr-2 h-3.5 w-3.5" aria-hidden="true" />
           Export data
         </Button>
       </section>
-    </footer>
+    </div>
   );
 }
 

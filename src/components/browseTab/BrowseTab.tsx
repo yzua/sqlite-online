@@ -34,19 +34,14 @@ function BrowseDataTab() {
   return (
     <div className="flex h-full flex-col">
       <div
-        className="flex items-center gap-1 border-b px-1 py-2"
+        className="flex flex-wrap items-center gap-1 border-b px-1 py-2"
         role="toolbar"
         aria-label="Table controls and actions"
       >
         <TableSelector />
         <ActionButtons filters={filters} sorters={sorters} />
         {(isDataLoading || isDatabaseLoading) && (
-          <span
-            className="ml-2 flex items-center text-xs text-gray-500"
-            role="status"
-            aria-live="polite"
-            aria-label="Loading table data"
-          >
+          <span className="text-muted-foreground ml-2 flex items-center text-sm">
             <LoaderCircleIcon
               className="mr-1 h-3 w-3 animate-spin"
               aria-hidden="true"
@@ -58,7 +53,6 @@ function BrowseDataTab() {
 
       <div className="relative h-full overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full">
-          {/* Left Panel - Data Table */}
           <ResizablePanel
             id="dataPanel"
             defaultSize={dataPanelSize}
@@ -73,22 +67,28 @@ function BrowseDataTab() {
             </div>
           </ResizablePanel>
 
-          <ResizableHandle className="hidden md:flex" withHandle />
+          <div className="hidden md:contents">
+            <ResizableHandle withHandle />
 
-          <ResizablePanel
-            id="schemaPanel"
-            defaultSize={schemaPanelSize}
-            onResize={setSchemaPanelSize}
-            className={`static md:relative md:block ${isEditing ? "block" : "hidden"}`}
-          >
-            <div className="h-full overflow-hidden">
-              <div className="h-full overflow-y-auto">
-                <SchemaTree />
+            <ResizablePanel
+              id="schemaPanel"
+              defaultSize={schemaPanelSize}
+              onResize={setSchemaPanelSize}
+              className="relative"
+            >
+              <div className="h-full overflow-hidden">
+                <div className="h-full overflow-y-auto">
+                  <SchemaTree />
+                </div>
               </div>
-            </div>
-            <BrowseTabEditOverlay isEditing={isEditing} />
-          </ResizablePanel>
+              <BrowseTabEditOverlay isEditing={isEditing} />
+            </ResizablePanel>
+          </div>
         </ResizablePanelGroup>
+
+        <div className="md:hidden">
+          <BrowseTabEditOverlay isEditing={isEditing} />
+        </div>
       </div>
     </div>
   );
