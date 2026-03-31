@@ -27,6 +27,12 @@
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
+  --success: oklch(0.62 0.16 148);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.72 0.16 84);
+  --warning-foreground: oklch(0.145 0 0);
+  --info: oklch(0.58 0.15 245);
+  --info-foreground: oklch(0.985 0 0);
   --radius: 0.3rem;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
@@ -59,6 +65,12 @@
   --border: oklch(0% 0 0);
   --input: oklch(95% 0 0);
   --ring: oklch(0% 0 0);
+  --success: oklch(25% 0 0);
+  --success-foreground: oklch(100% 0 0);
+  --warning: oklch(20% 0 0);
+  --warning-foreground: oklch(100% 0 0);
+  --info: oklch(15% 0 0);
+  --info-foreground: oklch(100% 0 0);
 }
 
 .high-contrast.dark {
@@ -118,6 +130,12 @@
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
+  --success: oklch(0.72 0.14 148);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: oklch(0.8 0.16 84);
+  --warning-foreground: oklch(0.145 0 0);
+  --info: oklch(0.72 0.12 245);
+  --info-foreground: oklch(0.145 0 0);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
@@ -153,6 +171,12 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -248,6 +272,17 @@ body {
   position: relative;
   margin: 0;
   padding: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @supports (height: 100dvh) {
