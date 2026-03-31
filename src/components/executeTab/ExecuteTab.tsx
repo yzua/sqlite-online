@@ -1,13 +1,6 @@
-import {
-  FolderOutputIcon,
-  LoaderCircleIcon,
-  PlayIcon,
-  SparklesIcon,
-  XIcon
-} from "lucide-react";
 import { useCallback, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import SchemaTree from "@/components/structureTab/SchemaTree";
-import { Button } from "@/components/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -16,10 +9,10 @@ import {
 import { useGeminiAI } from "@/hooks/useGeminiAI";
 import useDatabaseWorker from "@/hooks/useWorker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { usePanelStore } from "@/store/usePanelStore";
+import { selectPanelSizes, usePanelStore } from "@/store/usePanelStore";
 import ApiKeyModal from "./ApiKeyModal";
-import CustomQueryDataTable from "./CustomQueryDataTable";
-import CustomSQLTextarea from "./CustomSQLTextarea";
+import ExecuteTabEditorPanel from "./ExecuteTabEditorPanel";
+import ExecuteTabToolbar from "./ExecuteTabToolbar";
 
 function ExecuteTab() {
   const errorMessage = useDatabaseStore((state) => state.errorMessage);
@@ -29,8 +22,9 @@ function ExecuteTab() {
     (state) => state.isDatabaseLoading
   );
 
-  const dataPanelSize = usePanelStore((state) => state.dataPanelSize);
-  const schemaPanelSize = usePanelStore((state) => state.schemaPanelSize);
+  const { dataPanelSize, schemaPanelSize } = usePanelStore(
+    useShallow(selectPanelSizes)
+  );
   const setDataPanelSize = usePanelStore((state) => state.setDataPanelSize);
   const setSchemaPanelSize = usePanelStore((state) => state.setSchemaPanelSize);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
@@ -61,49 +55,15 @@ function ExecuteTab() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-1 border-b px-1 py-2">
-        <Button
-          size="sm"
-          variant="outline"
-          className="w-[150px] text-xs"
-          onClick={handleExecuteClick}
-          disabled={isAiLoading}
-          title="Execute SQL"
-        >
-          {isAiLoading ? (
-            <LoaderCircleIcon className="mr-1 h-3 w-3 animate-spin" />
-          ) : (
-            <PlayIcon className="mr-1 h-3 w-3" />
-          )}
-          Execute SQL
-        </Button>
-
-        <Button
-          onClick={() => handleExport("custom")}
-          size="sm"
-          variant="outline"
-          className="text-xs"
-          disabled={!customQueryObject?.data}
-        >
-          <FolderOutputIcon className="mr-1 h-3 w-3" />
-          Export data
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-xs"
-          onClick={handleApiKeyModalOpen}
-        >
-          <SparklesIcon className="mr-1 h-3 w-3" />
-          Gemini
-        </Button>
-        {(isDataLoading || isDatabaseLoading) && (
-          <span className="ml-2 flex items-center text-xs text-gray-500">
-            <LoaderCircleIcon className="mr-1 h-3 w-3 animate-spin" />
-            Loading data
-          </span>
-        )}
-      </div>
+      <ExecuteTabToolbar
+        isAiLoading={isAiLoading}
+        isDataLoading={isDataLoading}
+        isDatabaseLoading={isDatabaseLoading}
+        canExport={Boolean(customQueryObject?.data)}
+        onExecute={handleExecuteClick}
+        onExport={() => handleExport("custom")}
+        onOpenGemini={handleApiKeyModalOpen}
+      />
 
       <div className="h-full overflow-hidden">
         <ResizablePanelGroup direction="horizontal" className="h-full">
@@ -111,31 +71,10 @@ function ExecuteTab() {
             defaultSize={dataPanelSize}
             onResize={setDataPanelSize}
           >
-            <ResizablePanelGroup direction="vertical">
-              <ResizablePanel defaultSize={25}>
-                {errorMessage && (
-                  <div className="flex items-center justify-between p-2">
-                    <div className="text-sm text-red-400">{errorMessage}</div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-xs"
-                      onClick={handleErrorClose}
-                    >
-                      <XIcon className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
-                <CustomSQLTextarea />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-
-              <ResizablePanel defaultSize={75}>
-                <div className="flex h-full flex-col justify-between border">
-                  <CustomQueryDataTable />
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
+            <ExecuteTabEditorPanel
+              errorMessage={errorMessage}
+              onDismissError={handleErrorClose}
+            />
           </ResizablePanel>
 
           <ResizableHandle className="hidden md:flex" withHandle />
