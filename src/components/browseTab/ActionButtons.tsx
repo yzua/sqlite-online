@@ -1,4 +1,5 @@
 import { FilterXIcon, FolderOutputIcon, ListRestartIcon } from "lucide-react";
+import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import usePanelManager from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
@@ -22,6 +23,16 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
   const filterCount = hasFilters ? Object.keys(filters).length : 0;
   const sorterCount = hasSorters ? Object.keys(sorters).length : 0;
 
+  const handleClearFilters = useCallback(() => {
+    setFilters(null);
+    setSelectedRowObject(null);
+  }, [setFilters, setSelectedRowObject]);
+
+  const handleResetSorters = useCallback(() => {
+    setSorters(null);
+    setSelectedRowObject(null);
+  }, [setSorters, setSelectedRowObject]);
+
   return (
     <>
       <section
@@ -32,10 +43,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
           size="sm"
           variant="outline"
           className="h-8 text-xs"
-          onClick={() => {
-            setFilters(null);
-            setSelectedRowObject(null);
-          }}
+          onClick={handleClearFilters}
           disabled={!hasFilters}
           aria-label={
             hasFilters
@@ -57,10 +65,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
           size="sm"
           variant="outline"
           className="h-8 text-xs"
-          onClick={() => {
-            setSorters(null);
-            setSelectedRowObject(null);
-          }}
+          onClick={handleResetSorters}
           disabled={!hasSorters}
           aria-label={
             hasSorters

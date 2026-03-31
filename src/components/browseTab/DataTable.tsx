@@ -1,9 +1,8 @@
-import { DatabaseIcon, FilterXIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useCallback } from "react";
+import type { SqlValue } from "sql.js";
+import { useShallow } from "zustand/react/shallow";
 import ColumnIcon from "@/components/table/ColumnIcon";
 import FilterInput from "@/components/table/FilterInput";
-import Badge from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Span } from "@/components/ui/span";
 import {
   Table,
@@ -15,73 +14,37 @@ import {
 } from "@/components/ui/table";
 import usePanelManager from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import {
+  selectBrowseTableState,
+  useDatabaseStore
+} from "@/store/useDatabaseStore";
 import SorterButton from "../table/SorterButton";
+import BrowseTableEmptyState from "./BrowseTableEmptyState";
+import BrowseTableRow from "./BrowseTableRow";
 
 function DataTable() {
-  const data = useDatabaseStore((state) => state.data);
-  const columns = useDatabaseStore((state) => state.columns);
-  const currentTable = useDatabaseStore((state) => state.currentTable);
-  const tablesSchema = useDatabaseStore((state) => state.tablesSchema);
-  const filters = useDatabaseStore((state) => state.filters);
-  const sorters = useDatabaseStore((state) => state.sorters);
+  const { data, columns, currentTable, currentTableSchema, filters, sorters } =
+    useDatabaseStore(useShallow(selectBrowseTableState));
   const setFilters = useDatabaseStore((state) => state.setFilters);
-  const currentTableSchema = currentTable
-    ? tablesSchema[currentTable]
-    : undefined;
 
   const { handleQueryFilter } = useDatabaseWorker();
   const { handleRowClick, selectedRowObject } = usePanelManager();
 
-  const emptyDataContent = useMemo(
-    () => (
-      <div className="flex h-full flex-col items-center justify-center gap-1 px-4">
-        {filters ? (
-          <>
-            <div className="text-center">
-              <h3 className="mb-1 font-medium">No Data To Show</h3>
-              <p className="text-muted-foreground max-w-md text-sm">
-                The current filters did not return any results
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              className="text-xs"
-              onClick={() => setFilters(null)}
-            >
-              <FilterXIcon className="mr-1 h-3 w-3" />
-              Clear filters
-            </Button>
-          </>
-        ) : (
-          <div className="flex h-full flex-col items-center justify-center gap-4 p-8">
-            <div className="bg-primary/10 rounded-full p-4">
-              <DatabaseIcon className="text-primary/70 h-8 w-8" />
-            </div>
-            <div className="text-center">
-              <h3 className="mb-1 font-medium">No Data To Show</h3>
-              <p className="text-muted-foreground max-w-md text-sm">
-                This table does not have any data to display
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
-    ),
-    [filters, setFilters]
-  );
+  const handleClearFilters = useCallback(() => {
+    setFilters(null);
+  }, [setFilters]);
 
-  const memoizedFilterInput = useMemo(() => {
-    return (columns || []).map((column) => (
-      <FilterInput
-        key={column}
-        column={column}
-        value={filters?.[column] ?? ""}
-        onChange={handleQueryFilter}
-      />
-    ));
-  }, [columns, filters, handleQueryFilter]);
+  const getRowKey = useCallback(
+    (row: SqlValue[]) => {
+      const isView = currentTableSchema?.type === "view";
+      const primaryKey = currentTableSchema?.primaryKey;
+      const primaryValue = primaryKey && !isView ? row[0] : null;
+      return primaryValue != null
+        ? String(primaryValue)
+        : row.map((cell) => String(cell)).join("|");
+    },
+    [currentTableSchema]
+  );
 
   return (
     <section aria-label="Database table data" aria-live="polite">
@@ -116,7 +79,11 @@ function DataTable() {
                       columnSchema={currentTableSchema.schema[index] ?? null}
                     />
                   </div>
-                  {memoizedFilterInput?.[index]}
+                  <FilterInput
+                    column={column}
+                    value={filters?.[column] ?? ""}
+                    onChange={handleQueryFilter}
+                  />
                 </TableHead>
               ))
             ) : (
@@ -128,62 +95,19 @@ function DataTable() {
         </TableHeader>
         <TableBody>
           {data && data.length > 0 ? (
-            data.map((row, i) => {
-              const isView = currentTableSchema?.type === "view";
-              const primaryKey = currentTableSchema?.primaryKey;
-              const primaryValue =
-                primaryKey && !isView ? (row[0] ?? null) : null;
-              const displayData = primaryKey && !isView ? row.slice(1) : row;
-
-              return (
-                <TableRow
-                  key={
-                    primaryValue !== null
-                      ? String(primaryValue)
-                      : row.map((cell) => String(cell)).join("|")
-                  }
-                  onClick={() => handleRowClick(displayData, i, primaryValue)}
-                  className="hover:bg-primary/5 focus:bg-primary/5 data-[state=selected]:bg-primary/5 focus:ring-ring cursor-pointer text-xs focus:ring-2 focus:ring-offset-1 focus:outline-none"
-                  role="row"
-                  data-state={
-                    selectedRowObject?.index === i ? "selected" : undefined
-                  }
-                  tabIndex={0}
-                  aria-label={`Row ${i + 1} of ${data.length}, click to edit`}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      handleRowClick(displayData, i, primaryValue);
-                    }
-                  }}
-                >
-                  {displayData.map((value, j) => (
-                    <TableCell
-                      key={currentTableSchema?.schema[j]?.name ?? String(value)}
-                      className="border-primary/5 border-t p-2"
-                      role="cell"
-                      aria-label={`${columns?.[j] || `Column ${j + 1}`}: ${
-                        value === null
-                          ? "NULL"
-                          : currentTableSchema?.schema[j]?.type === "BLOB"
-                            ? "BLOB data"
-                            : String(value)
-                      }`}
-                    >
-                      {value === null ? (
-                        <Badge aria-label="NULL value">
-                          {value === null ? "NULL" : JSON.stringify(value)}
-                        </Badge>
-                      ) : currentTableSchema?.schema[j]?.type === "BLOB" ? (
-                        <Badge aria-label="Binary data">BLOB</Badge>
-                      ) : (
-                        <Span className="text-xs">{value}</Span>
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              );
-            })
+            data.map((row, index) => (
+              <BrowseTableRow
+                key={getRowKey(row)}
+                row={row}
+                rowKey={getRowKey(row)}
+                rowIndex={index}
+                rowCount={data.length}
+                columns={columns}
+                currentTableSchema={currentTableSchema}
+                selectedRowIndex={selectedRowObject?.index}
+                onSelectRow={handleRowClick}
+              />
+            ))
           ) : (
             <TableRow role="row">
               <TableCell
@@ -192,7 +116,10 @@ function DataTable() {
                 role="cell"
                 aria-label="No data available"
               >
-                {emptyDataContent}
+                <BrowseTableEmptyState
+                  filters={filters}
+                  onClearFilters={handleClearFilters}
+                />
               </TableCell>
             </TableRow>
           )}

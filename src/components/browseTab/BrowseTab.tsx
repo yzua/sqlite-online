@@ -1,4 +1,5 @@
 import { LoaderCircleIcon } from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
 import SchemaTree from "@/components/structureTab/SchemaTree";
 import {
   ResizableHandle,
@@ -7,10 +8,10 @@ import {
 } from "@/components/ui/resizable";
 import usePanelManager from "@/hooks/usePanel";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { usePanelStore } from "@/store/usePanelStore";
+import { selectPanelSizes, usePanelStore } from "@/store/usePanelStore";
 import ActionButtons from "./ActionButtons";
+import BrowseTabEditOverlay from "./BrowseTabEditOverlay";
 import DataTable from "./DataTable";
-import EditSection from "./EditSection";
 import PaginationControls from "./PaginationControls";
 import TableSelector from "./TableSelector";
 
@@ -22,8 +23,9 @@ function BrowseDataTab() {
     (state) => state.isDatabaseLoading
   );
 
-  const dataPanelSize = usePanelStore((state) => state.dataPanelSize);
-  const schemaPanelSize = usePanelStore((state) => state.schemaPanelSize);
+  const { dataPanelSize, schemaPanelSize } = usePanelStore(
+    useShallow(selectPanelSizes)
+  );
   const setDataPanelSize = usePanelStore((state) => state.setDataPanelSize);
   const setSchemaPanelSize = usePanelStore((state) => state.setSchemaPanelSize);
 
@@ -84,14 +86,7 @@ function BrowseDataTab() {
                 <SchemaTree />
               </div>
             </div>
-            {/* TODO: Move this to a separate component as an edit section */}
-            <div
-              className={`bg-background absolute top-0 right-0 z-40 h-full w-full ${isEditing ? "block" : "hidden"}`}
-            >
-              <section className="bg-primary/5 h-full">
-                <EditSection />
-              </section>
-            </div>
+            <BrowseTabEditOverlay isEditing={isEditing} />
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>

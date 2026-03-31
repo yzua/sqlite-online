@@ -6,25 +6,36 @@ import {
   FolderOutputIcon,
   PlusIcon
 } from "lucide-react";
+import { useShallow } from "zustand/react/shallow";
 import { Button } from "@/components/ui/button";
 import usePanelManager from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
 import {
   selectIsCurrentTableView,
+  selectPaginationState,
   useDatabaseStore
 } from "@/store/useDatabaseStore";
+import {
+  getCurrentPage,
+  getTotalPages,
+  getVisibleRange,
+  isAtFirstPage,
+  isAtLastPage
+} from "./paginationUtils";
 
 function PaginationControls() {
   const { handlePageChange, handleExport } = useDatabaseWorker();
   const { isInserting, handleInsert } = usePanelManager();
-  const offset = useDatabaseStore((state) => state.offset);
-  const limit = useDatabaseStore((state) => state.limit);
-  const maxSize = useDatabaseStore((state) => state.maxSize);
-  const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
+  const { offset, limit, maxSize, isDataLoading } = useDatabaseStore(
+    useShallow(selectPaginationState)
+  );
   const isView = useDatabaseStore(selectIsCurrentTableView);
 
-  const currentPage = Math.floor(offset / limit) + 1;
-  const totalPages = Math.ceil(maxSize / limit);
+  const currentPage = getCurrentPage(offset, limit);
+  const totalPages = getTotalPages(maxSize, limit);
+  const visibleRange = getVisibleRange(offset, limit, maxSize);
+  const atFirstPage = isAtFirstPage(offset);
+  const atLastPage = isAtLastPage(offset, limit, maxSize);
 
   return (
     <footer
@@ -40,7 +51,7 @@ function PaginationControls() {
         >
           <Button
             onClick={() => handlePageChange("first")}
-            disabled={offset === 0 || isDataLoading || !maxSize}
+            disabled={atFirstPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
             className="h-8 w-8 rounded-l-md rounded-r-none border-r"
@@ -50,7 +61,7 @@ function PaginationControls() {
           </Button>
           <Button
             onClick={() => handlePageChange("prev")}
-            disabled={offset === 0 || isDataLoading || !maxSize}
+            disabled={atFirstPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
             className="h-8 w-8 rounded-none border-r"
@@ -64,15 +75,15 @@ function PaginationControls() {
             aria-live="polite"
             aria-label={
               maxSize
-                ? `Showing rows ${offset + 1} to ${offset + limit > maxSize ? maxSize : offset + limit} of ${maxSize} total rows, page ${currentPage} of ${totalPages}`
+                ? `Showing rows ${visibleRange.start} to ${visibleRange.end} of ${maxSize} total rows, page ${currentPage} of ${totalPages}`
                 : "No data available"
             }
           >
             {maxSize ? (
               <span aria-hidden="true">
-                {offset + 1}
+                {visibleRange.start}
                 <span className="text-primary/50 mx-1">-</span>
-                {offset + limit > maxSize ? maxSize : offset + limit}
+                {visibleRange.end}
                 <span className="text-primary/50 mx-1">of</span>
                 {maxSize}
               </span>
@@ -82,7 +93,7 @@ function PaginationControls() {
           </div>
           <Button
             onClick={() => handlePageChange("next")}
-            disabled={offset + limit >= maxSize || isDataLoading || !maxSize}
+            disabled={atLastPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
             className="h-8 w-8 rounded-none border-l"
@@ -92,7 +103,7 @@ function PaginationControls() {
           </Button>
           <Button
             onClick={() => handlePageChange("last")}
-            disabled={offset + limit >= maxSize || isDataLoading || !maxSize}
+            disabled={atLastPage || isDataLoading || !maxSize}
             size="icon"
             variant="ghost"
             className="h-8 w-8 rounded-l-none rounded-r-md border-l"
