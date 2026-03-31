@@ -1,5 +1,5 @@
 import showToast from "@/components/common/Toaster/Toast";
-import type { WorkerResponseEvent } from "@/types";
+import type { CustomQueryResult, WorkerResponseEvent } from "@/types";
 
 function triggerDownload(
   data: ArrayBuffer | string,
@@ -28,12 +28,49 @@ interface WorkerMessageActions {
   setSorters: (sorters: import("@/types").Sorters) => void;
   setOffset: (offset: number) => void;
   setCustomQuery: (query: string) => void;
-  setCustomQueryObject: (
-    obj: { data: import("sql.js").SqlValue[][]; columns: string[] } | null
-  ) => void;
+  setCustomQueryObject: (obj: CustomQueryResult | null) => void;
   handleCloseEdit: () => void;
   setSelectedRowObject: (value: null) => void;
   setIsInserting: (value: boolean) => void;
+}
+
+function getResultRows(results?: import("sql.js").QueryExecResult[]) {
+  return results?.[0]?.values || [];
+}
+
+function resetTableViewState(actions: WorkerMessageActions) {
+  actions.setFilters(null);
+  actions.setSorters(null);
+  actions.setSelectedRowObject(null);
+  actions.setIsInserting(false);
+  actions.setCustomQueryObject(null);
+  actions.setCustomQuery("");
+  actions.setOffset(0);
+}
+
+function applyQueryResults(
+  actions: WorkerMessageActions,
+  results?: import("sql.js").QueryExecResult[]
+) {
+  const data = getResultRows(results);
+  actions.setData(data.length > 0 ? data : null);
+}
+
+function applyCustomQueryResults(
+  actions: WorkerMessageActions,
+  results: import("sql.js").QueryExecResult[]
+) {
+  const data = getResultRows(results);
+
+  if (data.length > 0) {
+    actions.setCustomQueryObject({
+      data,
+      columns: results[0]?.columns || []
+    });
+    return;
+  }
+
+  actions.setCustomQueryObject(null);
 }
 
 export function createWorkerMessageHandler(actions: WorkerMessageActions) {
@@ -67,49 +104,20 @@ export function createWorkerMessageHandler(actions: WorkerMessageActions) {
       actions.setColumns(
         currentTableSchema.schema.map((column) => column.name)
       );
-      actions.setFilters(null);
-      actions.setSorters(null);
-      actions.setSelectedRowObject(null);
-      actions.setIsInserting(false);
-      actions.setCustomQueryObject(null);
-      actions.setCustomQuery("");
-      actions.setOffset(0);
+      resetTableViewState(actions);
       actions.setIsDatabaseLoading(false);
     } else if (action === "queryComplete") {
       const { payload } = workerEvent;
 
       actions.setMaxSize(payload.maxSize);
 
-      const results = payload.results;
-      if (!results) {
-        actions.setData(null);
-      } else {
-        const data = results[0]?.values || [];
-        if (data.length !== 0) {
-          actions.setData(data);
-        } else {
-          actions.setData(null);
-        }
-      }
+      applyQueryResults(actions, payload.results);
 
       actions.setIsDataLoading(false);
     } else if (action === "customQueryComplete") {
       const { payload } = workerEvent;
 
-      const results = payload.results;
-      if (!results) {
-        actions.setData(null);
-      } else {
-        const data = results[0]?.values || [];
-        if (data.length !== 0) {
-          actions.setCustomQueryObject({
-            data: data,
-            columns: results[0]?.columns || []
-          });
-        } else {
-          actions.setCustomQueryObject(null);
-        }
-      }
+      applyCustomQueryResults(actions, payload.results);
 
       actions.setIsDataLoading(false);
       actions.setErrorMessage(null);
