@@ -54,7 +54,7 @@ const TablesSection = memo(
       <div className="ml-auto flex">
         {isExpanded ? (
           <Button
-            className="text-primary hover:bg-primary/5 h-7 rounded px-2 py-0.5 text-xs transition-colors"
+            className="text-primary hover:bg-primary/5 rounded px-2 py-0.5 text-xs transition-colors"
             variant="ghost"
             size="icon"
             onClick={handleCollapseAll}
@@ -64,7 +64,7 @@ const TablesSection = memo(
           </Button>
         ) : (
           <Button
-            className="text-primary hover:bg-primary/5 h-7 rounded px-2 py-0.5 text-xs transition-colors"
+            className="text-primary hover:bg-primary/5 rounded px-2 py-0.5 text-xs transition-colors"
             variant="ghost"
             size="icon"
             onClick={handleExpandAll}

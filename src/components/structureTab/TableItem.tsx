@@ -24,8 +24,8 @@ const TableItem = memo(
         <button
           type="button"
           className={cn(
-            "flex cursor-pointer items-center rounded px-1.5 py-1 transition-all hover:ml-2",
-            expanded && "ml-1"
+            "hover:bg-primary/5 flex cursor-pointer items-center rounded px-1.5 py-1 transition-colors",
+            expanded && "bg-primary/5"
           )}
           onClick={handleToggle}
           aria-expanded={expanded}

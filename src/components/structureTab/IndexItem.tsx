@@ -9,7 +9,7 @@ interface IndexItemProps {
 const IndexItem = memo(({ index }: IndexItemProps) => {
   return (
     <article>
-      <div className="flex cursor-pointer items-center rounded px-1.5 py-1 transition-all hover:ml-2">
+      <div className="hover:bg-primary/5 flex items-center rounded px-1.5 py-1 transition-colors">
         <div className="flex w-full items-center justify-between gap-1">
           <span className="text-sm">{index.name}</span>
           <Span className="text-primary/60 text-xs font-medium whitespace-nowrap">
