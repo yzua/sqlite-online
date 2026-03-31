@@ -29,22 +29,23 @@ function ColumnIcon({ columnSchema }: Readonly<ColumnIconProps>) {
   const getTypeIcon = () => {
     if (!type) return null;
 
-    if (isBlob(type)) return <CuboidIcon className="h-4 w-4 text-green-500" />;
-    if (isDate(type)) return <CalendarIcon className="h-4 w-4 text-blue-500" />;
-    if (isText(type)) return <TypeIcon className="h-4 w-4 text-indigo-500" />;
-    if (isNumber(type)) return <HashIcon className="h-4 w-4 text-red-500" />;
+    if (isBlob(type)) return <CuboidIcon className="text-success h-4 w-4" />;
+    if (isDate(type)) return <CalendarIcon className="text-info h-4 w-4" />;
+    if (isText(type)) return <TypeIcon className="text-primary h-4 w-4" />;
+    if (isNumber(type))
+      return <HashIcon className="text-destructive h-4 w-4" />;
     if (isBoolean(type))
-      return <ToggleLeftIcon className="h-4 w-4 text-pink-500" />;
+      return <ToggleLeftIcon className="text-warning h-4 w-4" />;
 
-    return <HelpCircleIcon className="h-4 w-4 text-gray-500" />;
+    return <HelpCircleIcon className="text-muted-foreground h-4 w-4" />;
   };
 
   const typeIcon = getTypeIcon();
 
   return (
     <div className="flex items-center gap-[2px]">
-      {isPrimaryKey && <KeyRoundIcon className="h-4 w-4 text-yellow-500" />}
-      {isForeignKey && <KeySquareIcon className="h-4 w-4 text-purple-500" />}
+      {isPrimaryKey && <KeyRoundIcon className="text-warning h-4 w-4" />}
+      {isForeignKey && <KeySquareIcon className="text-info h-4 w-4" />}
       {typeIcon}
     </div>
   );
