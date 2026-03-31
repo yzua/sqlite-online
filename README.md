@@ -1,7 +1,5 @@
 # SQLite Online
 
-[SQLite Online](https://yzua.github.io/sqlite-online/)
-
 <div align="center">
   <a href="https://yzua.github.io/sqlite-online/">
     <img
@@ -15,9 +13,6 @@
 A client-side SQLite editor built with React, TypeScript, Vite, and `sql.js`.
 It runs in the browser, initializes a demo database by default, and can open
 local SQLite files without a backend.
-
-[![License](https://img.shields.io/github/license/yzua/sqlite-online?label=License)](https://github.com/yzua/sqlite-online/blob/main/LICENSE)
-[![Quality](https://github.com/yzua/sqlite-online/actions/workflows/quality.yml/badge.svg)](https://github.com/yzua/sqlite-online/actions/workflows/quality.yml)
 
 ## Overview
 
