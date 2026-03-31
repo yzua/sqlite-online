@@ -1,8 +1,16 @@
 # SQLite Online
 
-[SQLite Online](https://sqlite3.online/)
+[SQLite Online](https://yzua.github.io/sqlite-online/)
 
-![SQLite Online Logo](https://github.com/user-attachments/assets/aef749bf-df08-4a84-8148-d34b796449d8)
+<div align="center">
+  <a href="https://yzua.github.io/sqlite-online/">
+    <img
+      src="https://github.com/user-attachments/assets/aef749bf-df08-4a84-8148-d34b796449d8"
+      alt="SQLite Online Logo"
+      width="128"
+    />
+  </a>
+</div>
 
 A client-side SQLite editor built with React, TypeScript, Vite, and `sql.js`.
 It runs in the browser, initializes a demo database by default, and can open
