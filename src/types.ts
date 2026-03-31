@@ -25,6 +25,20 @@ export type IndexSchema = {
 
 export type Sorters = Record<string, "asc" | "desc"> | null;
 export type Filters = Record<string, string> | null;
+export type EditResultType = "updated" | "deleted";
+
+export interface CustomQueryResult {
+  data: SqlValue[][];
+  columns: string[];
+}
+
+export interface TableQueryPayload {
+  currentTable: string;
+  limit: number;
+  offset: number;
+  filters: Filters;
+  sorters: Sorters;
+}
 
 export type EditTypes = "insert" | "update" | "delete";
 export type ExportTypes = "table" | "current" | "custom";
@@ -44,48 +58,26 @@ interface OpenFileEvent {
 
 interface RefreshEvent {
   action: "refresh";
-  payload: {
-    currentTable: string;
-    limit: number;
-    offset: number;
-    filters: Filters;
-    sorters: Sorters;
-  };
+  payload: TableQueryPayload;
 }
 
 interface ExecEvent {
   action: "exec";
-  payload: {
+  payload: TableQueryPayload & {
     query: string;
-    currentTable: string;
-    limit: number;
-    offset: number;
-    filters: Filters;
-    sorters: Sorters;
   };
 }
 
 interface ExecBatchEvent {
   action: "execBatch";
-  payload: {
+  payload: TableQueryPayload & {
     queries: string[];
-    currentTable: string;
-    limit: number;
-    offset: number;
-    filters: Filters;
-    sorters: Sorters;
   };
 }
 
 interface GetTableDataEvent {
   action: "getTableData";
-  payload: {
-    currentTable: string;
-    limit: number;
-    offset: number;
-    filters: Filters;
-    sorters: Sorters;
-  };
+  payload: TableQueryPayload;
 }
 
 interface DownloadEvent {
@@ -182,7 +174,7 @@ interface UpdateInstanceResponse {
 interface UpdateCompleteResponse {
   action: "updateComplete";
   payload: {
-    type: EditTypes;
+    type: EditResultType;
   };
 }
 

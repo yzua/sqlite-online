@@ -1,9 +1,15 @@
 import type { SqlValue } from "sql.js";
 import { create } from "zustand";
 import SecureStorage from "@/lib/secureStorage";
-import type { Filters, IndexSchema, Sorters, TableSchema } from "@/types";
+import type {
+  CustomQueryResult,
+  Filters,
+  IndexSchema,
+  Sorters,
+  TableSchema
+} from "@/types";
 
-interface DatabaseState {
+export interface DatabaseState {
   tablesSchema: TableSchema;
   indexesSchema: IndexSchema[];
   currentTable: string | null;
@@ -18,10 +24,7 @@ interface DatabaseState {
   limit: number;
   offset: number;
   customQuery: string;
-  customQueryObject: {
-    data: SqlValue[][];
-    columns: string[];
-  } | null;
+  customQueryObject: CustomQueryResult | null;
   geminiApiKey: string | null;
   isAiLoading: boolean;
 }
@@ -41,9 +44,7 @@ interface DatabaseActions {
   setLimit: (limit: number) => void;
   setOffset: (offset: number | ((currentOffset: number) => number)) => void;
   setCustomQuery: (query: string) => void;
-  setCustomQueryObject: (
-    obj: { data: SqlValue[][]; columns: string[] } | null
-  ) => void;
+  setCustomQueryObject: (obj: CustomQueryResult | null) => void;
   setGeminiApiKey: (key: string | null) => Promise<void>;
   setIsAiLoading: (loading: boolean) => void;
   resetPagination: () => void;
@@ -144,3 +145,33 @@ export const useDatabaseStore = create<DatabaseStore>((set) => ({
 export const selectIsCurrentTableView = (state: DatabaseState): boolean =>
   state.currentTable != null &&
   state.tablesSchema[state.currentTable]?.type === "view";
+
+export const selectBrowseTableState = (state: DatabaseState) => {
+  const currentTableSchema = state.currentTable
+    ? state.tablesSchema[state.currentTable]
+    : undefined;
+
+  return {
+    data: state.data,
+    columns: state.columns,
+    currentTable: state.currentTable,
+    currentTableSchema,
+    filters: state.filters,
+    sorters: state.sorters
+  };
+};
+
+export const selectExecuteViewState = (state: DatabaseState) => ({
+  errorMessage: state.errorMessage,
+  isDataLoading: state.isDataLoading,
+  isDatabaseLoading: state.isDatabaseLoading,
+  customQuery: state.customQuery,
+  customQueryObject: state.customQueryObject
+});
+
+export const selectPaginationState = (state: DatabaseState) => ({
+  offset: state.offset,
+  limit: state.limit,
+  maxSize: state.maxSize,
+  isDataLoading: state.isDataLoading
+});

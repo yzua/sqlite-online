@@ -3,17 +3,15 @@ import type { SqlValue } from "sql.js";
 import useKeyPress from "@/hooks/useKeyPress";
 
 import PanelContext from "./PanelContext";
+import type { SelectedRowObject } from "./types";
 
 interface PanelProviderProps {
   children: React.ReactNode;
 }
 
 const PanelProvider = ({ children }: PanelProviderProps) => {
-  const [selectedRowObject, setSelectedRowObject] = useState<{
-    data: SqlValue[];
-    index: number;
-    primaryValue: SqlValue | null;
-  } | null>(null);
+  const [selectedRowObject, setSelectedRowObject] =
+    useState<SelectedRowObject | null>(null);
   const [isInserting, setIsInserting] = useState(false);
 
   const isEditing = selectedRowObject !== null || isInserting;

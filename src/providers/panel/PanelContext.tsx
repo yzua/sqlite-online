@@ -1,6 +1,7 @@
 import { createContext } from "react";
 
 import type { SqlValue } from "sql.js";
+import type { SelectedRowObject } from "./types";
 
 interface PanelContextProps {
   handleRowClick: (
@@ -10,20 +11,10 @@ interface PanelContextProps {
   ) => void;
   handleInsert: () => void;
   isEditing: boolean;
-  selectedRowObject: {
-    data: SqlValue[];
-    index: number;
-    primaryValue: SqlValue | null;
-  } | null;
+  selectedRowObject: SelectedRowObject | null;
   isInserting: boolean;
   setIsInserting: (value: boolean) => void;
-  setSelectedRowObject: (
-    value: {
-      data: SqlValue[];
-      index: number;
-      primaryValue: SqlValue | null;
-    } | null
-  ) => void;
+  setSelectedRowObject: (value: SelectedRowObject | null) => void;
   handleCloseEdit: () => void;
 }
 
