@@ -1,4 +1,4 @@
-import { DatabaseIcon, GithubIcon, SaveIcon } from "lucide-react";
+import { DatabaseIcon, GitForkIcon, SaveIcon } from "lucide-react";
 import HighContrastToggle from "@/components/accessibility/HighContrastToggle";
 import ModeToggle from "@/components/theme/ModeToggle";
 import { Button } from "@/components/ui/button";
@@ -70,7 +70,7 @@ function TopBar() {
             tabIndex={-1}
             aria-hidden="true"
           >
-            <GithubIcon className="h-4 w-4" />
+            <GitForkIcon className="h-4 w-4" />
           </Button>
         </a>
 
