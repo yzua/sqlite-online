@@ -1,14 +1,19 @@
 import type { Database, QueryExecResult, SqlJsStatic, SqlValue } from "sql.js";
 import initSqlJs from "sql.js";
 import { tableDataCache } from "@/lib/queryCache";
-import type {
-  Filters,
-  IndexSchema,
-  Sorters,
-  TableSchema,
-  TableSchemaRow
-} from "@/types";
+import type { Filters, IndexSchema, Sorters, TableSchema } from "@/types";
 import DEMO_DB from "./demo-db";
+import { readDatabaseSchema } from "./schema";
+import {
+  arrayToCSV,
+  buildOrderByClause,
+  buildWhereClause,
+  isStructureChangeable,
+  normalizeSqlStatement,
+  runPreparedQuery,
+  runPreparedScalar,
+  sanitizeIdentifier
+} from "./sqlUtils";
 
 export default class Sqlite {
   // Static SQL.js instance
@@ -63,7 +68,7 @@ export default class Sqlite {
 
   // Execute a SQL statement
   public exec(sql: string) {
-    sql = sql.replace(/COLLATE\s+unicase/gi, "COLLATE NOCASE");
+    sql = normalizeSqlStatement(sql);
 
     const results = this.db.exec(sql);
     const upperSql = sql.toUpperCase();
@@ -85,97 +90,25 @@ export default class Sqlite {
     return this.db.export();
   }
 
-  // Get the information of a table
-  // This includes the columns, primary key, default values, ...
-  private getTableInfo(tableName: string) {
-    const [pragmaTableInfoResults] = this.exec(
-      `PRAGMA table_info("${tableName}")`
-    );
-    const [pragmaForeignKeysResults] = this.exec(
-      `PRAGMA foreign_key_list("${tableName}")`
-    );
-
-    const foreignKeys: Record<string, boolean> = {};
-    const foreignKeyRows = pragmaForeignKeysResults[0]?.values ?? [];
-    for (const row of foreignKeyRows) {
-      foreignKeys[row[3] as string] = true; // Get the 'from'
-    }
-
-    let primaryKey = "_rowid_";
-    const tableSchema: TableSchemaRow[] = [];
-    const tableInfoRows = pragmaTableInfoResults[0]?.values ?? [];
-    if (tableInfoRows.length > 0) {
-      for (const row of tableInfoRows) {
-        const [cid, name, type, notnull, dflt_value, pk] = row;
-        if (pk === 1) primaryKey = name as string;
-        tableSchema.push({
-          name: (name as string) || "Unknown",
-          cid: cid as number,
-          type: (type as string) || "Unknown",
-          dflt_value: dflt_value as string,
-          IsNullable: (notnull as number) === 0 && pk === 0,
-          isPrimaryKey: (pk as number) === 1,
-          isForeignKey: foreignKeys[name as string] ?? false
-        });
-      }
-    } else {
-      console.error("No table info found");
-    }
-
-    return [tableSchema, primaryKey] as const;
-  }
-
   // Get the schema of the database
   // This includes tables, indexes, and foreign keys
   private getDatabaseSchema() {
-    // Reset the schema
-    this.tablesSchema = {};
-    this.indexesSchema = [];
-    this.firstTable = null;
-
-    const [results] = this.exec(
-      "SELECT type, name, tbl_name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-    );
-
-    const schemaRows = results[0]?.values ?? [];
-    if (schemaRows.length === 0) return;
-
-    for (const row of schemaRows) {
-      const [type, name, tableName] = row;
-      if (type === "table" || type === "view") {
-        const [tableSchema, primaryKey] = this.getTableInfo(
-          tableName as string
-        );
-        this.tablesSchema[tableName as string] = {
-          schema: tableSchema,
-          primaryKey: type === "view" ? null : primaryKey,
-          type: type as "table" | "view"
-        };
-      } else if (type === "index") {
-        this.indexesSchema.push({
-          name: name as string,
-          tableName: tableName as string
-        });
-      }
-    }
-
-    this.firstTable = Object.keys(this.tablesSchema)[0] ?? null;
+    const schemaSnapshot = readDatabaseSchema((sql) => this.exec(sql));
+    this.tablesSchema = schemaSnapshot.tablesSchema;
+    this.indexesSchema = schemaSnapshot.indexesSchema;
+    this.firstTable = schemaSnapshot.firstTable;
   }
 
   // Get the max size of the requested table
   // Used for pagination
   private getMaxSizeOfTable(tableName: string, filters?: Filters) {
     const { clause, params } = buildWhereClause(filters);
-    const quotedTableName = sanitizeColumnName(tableName);
+    const quotedTableName = sanitizeIdentifier(tableName);
 
     const query = `SELECT COUNT(*) FROM ${quotedTableName} ${clause}`;
 
     if (params.length > 0) {
-      const stmt = this.db.prepare(query);
-      stmt.bind(params);
-      stmt.step();
-      const result = stmt.get();
-      stmt.free();
+      const result = runPreparedScalar(this.db, query, params);
       return Math.ceil((result as SqlValue[])[0] as number);
     } else {
       const [results] = this.exec(query);
@@ -215,9 +148,9 @@ export default class Sqlite {
     }
 
     const primaryKey = this.getPrimaryKey(table);
-    const quotedTable = sanitizeColumnName(table);
+    const quotedTable = sanitizeIdentifier(table);
     const selectClause = primaryKey
-      ? `${sanitizeColumnName(primaryKey)}, *`
+      ? `${sanitizeIdentifier(primaryKey)}, *`
       : "*";
 
     const { clause: whereClause, params } = buildWhereClause(filters);
@@ -232,14 +165,7 @@ export default class Sqlite {
 
     let results: QueryExecResult[] = [];
     if (params.length > 0) {
-      const stmt = this.db.prepare(query);
-      stmt.bind(params);
-      const values: SqlValue[][] = [];
-      while (stmt.step()) {
-        values.push(stmt.get());
-      }
-      results = [{ columns: stmt.getColumnNames(), values }];
-      stmt.free();
+      results = runPreparedQuery(this.db, query, params);
     } else {
       [results] = this.exec(query);
     }
@@ -282,10 +208,12 @@ export default class Sqlite {
       }
 
       // Construct the SET clause
-      const setClause = columns.map((column) => `"${column}" = ?`).join(", ");
+      const setClause = columns
+        .map((column) => `${sanitizeIdentifier(column)} = ?`)
+        .join(", ");
 
       // The WHERE clause is based on the primary key
-      const query = `UPDATE "${table}" SET ${setClause} WHERE "${primaryKey}" = ?`;
+      const query = `UPDATE ${sanitizeIdentifier(table)} SET ${setClause} WHERE ${sanitizeIdentifier(primaryKey)} = ?`;
 
       // Update values make '' -> NULL
       values = values.map((value) => (value === "" ? null : value));
@@ -318,7 +246,7 @@ export default class Sqlite {
         );
       }
 
-      const query = `DELETE FROM "${table}" WHERE "${primaryKey}" = ?`;
+      const query = `DELETE FROM ${sanitizeIdentifier(table)} WHERE ${sanitizeIdentifier(primaryKey)} = ?`;
 
       const stmt = this.db.prepare(query);
       stmt.run([id]);
@@ -362,7 +290,7 @@ export default class Sqlite {
       const filteredColumns = filteredEntries.map((entry) => entry.col);
       const filteredValues = filteredEntries.map((entry) => entry.val);
 
-      const query = `INSERT INTO "${table}" (${filteredColumns.join(", ")}) VALUES (${filteredColumns.map(() => "?").join(", ")})`;
+      const query = `INSERT INTO ${sanitizeIdentifier(table)} (${filteredColumns.map((column) => sanitizeIdentifier(column)).join(", ")}) VALUES (${filteredColumns.map(() => "?").join(", ")})`;
 
       const stmt = this.db.prepare(query);
       stmt.run([...filteredValues]);
@@ -400,7 +328,7 @@ export default class Sqlite {
       throw new Error("Table name is required when not using custom query");
     }
 
-    const quotedTable = sanitizeColumnName(table);
+    const quotedTable = sanitizeIdentifier(table);
     const { clause: whereClause, params } = buildWhereClause(filters);
     const orderByClause = buildOrderByClause(sorters);
 
@@ -416,15 +344,7 @@ export default class Sqlite {
     }
 
     if (params.length > 0) {
-      const stmt = this.db.prepare(query);
-      stmt.bind(params);
-      const values: SqlValue[][] = [];
-      while (stmt.step()) {
-        values.push(stmt.get());
-      }
-      const results = [{ columns: stmt.getColumnNames(), values }];
-      stmt.free();
-      return results;
+      return runPreparedQuery(this.db, query, params);
     } else {
       const [results] = this.exec(query);
       return results;
@@ -432,66 +352,7 @@ export default class Sqlite {
   }
 }
 
-// Check if the SQL statement is a structure changeable statement
-function isStructureChangeable(sql: string) {
-  const match = RegExp(/^\s*(CREATE|DROP|ALTER)\s/i).exec(sql);
-  return match !== null;
-}
-
-// Simple column name quoting for SQL
-function sanitizeColumnName(columnName: string): string {
-  return `"${columnName.replace(/"/g, '""')}"`;
-}
-
-// Simple sort order normalization
-function sanitizeSortOrder(order: string): string {
-  const normalizedOrder = order.toUpperCase().trim();
-  return normalizedOrder === "DESC" ? "DESC" : "ASC";
-}
-
-// Build the WHERE clause for a SQL statement with parameterized queries
-function buildWhereClause(filters?: Filters): {
-  clause: string;
-  params: string[];
-} {
-  if (!filters) return { clause: "", params: [] };
-
-  const conditions: string[] = [];
-  const params: string[] = [];
-
-  Object.entries(filters).forEach(([column, value]) => {
-    const quotedColumn = sanitizeColumnName(column);
-    conditions.push(`${quotedColumn} LIKE ? ESCAPE '\\'`);
-    params.push(`%${value}%`);
-  });
-
-  return {
-    clause: conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "",
-    params
-  };
-}
-
-// Build the ORDER BY clause for a SQL statement
-function buildOrderByClause(sorters?: Sorters): string {
-  if (!sorters) return "";
-
-  const sortersArray = Object.entries(sorters).map(([column, order]) => {
-    const quotedColumn = sanitizeColumnName(column);
-    const normalizedOrder = sanitizeSortOrder(order);
-    return `${quotedColumn} ${normalizedOrder}`;
-  });
-
-  return sortersArray.length > 0 ? `ORDER BY ${sortersArray.join(", ")}` : "";
-}
-
-// Convert an array of objects to a CSV string
-export function arrayToCSV(columns: string[], rows: SqlValue[][]) {
-  const header = columns.map((col) => `"${col}"`).join(",");
-  const csvRows = rows.map((row) =>
-    columns.map((col) => `"${row[columns.indexOf(col)] ?? ""}"`).join(",")
-  );
-  return [header, ...csvRows].join("\n");
-}
+export { arrayToCSV };
 
 export class CustomQueryError extends Error {
   constructor(message: string) {
