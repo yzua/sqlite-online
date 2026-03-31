@@ -1,15 +1,17 @@
 import { TableIcon } from "lucide-react";
-import AutoSizer from "react-virtualized-auto-sizer";
-import { VariableSizeGrid as Grid } from "react-window";
+import * as AutoSizerModule from "react-virtualized-auto-sizer";
+import { Grid } from "react-window";
 import { useShallow } from "zustand/react/shallow";
-import Badge from "@/components/ui/badge";
 import { Span } from "@/components/ui/span";
 import {
   selectExecuteViewState,
   useDatabaseStore
 } from "@/store/useDatabaseStore";
+import QueryGridCell, { type QueryGridCellCustomProps } from "./QueryGridCell";
 import QueryResultsEmptyState from "./QueryResultsEmptyState";
 import { useQueryGridMetrics } from "./useQueryGridMetrics";
+
+const AutoSizer = AutoSizerModule.AutoSizer;
 
 function CustomQueryDataTable() {
   const { customQuery, customQueryObject } = useDatabaseStore(
@@ -21,8 +23,6 @@ function CustomQueryDataTable() {
     getColumnWidth,
     getRowHeight,
     getTotalWidth,
-    handleGridScroll,
-    handleResize,
     rowHeight
   } = useQueryGridMetrics(customQueryObject);
 
@@ -61,16 +61,12 @@ function CustomQueryDataTable() {
       </div>
 
       <div className="h-0 min-h-0 flex-grow overflow-hidden">
-        <AutoSizer>
-          {({ height, width }) => {
+        <AutoSizer
+          renderProp={({ height = 0, width = 0 }) => {
             const tableWidth = getTotalWidth(width);
-
-            // Handle resize
-            handleResize(width);
 
             return (
               <div style={{ height, width }} className="flex flex-col">
-                {/* Fixed Header with Horizontal Scroll */}
                 <div
                   ref={headerScrollRef}
                   className="bg-primary/5 scrollbar-hide overflow-x-auto overflow-y-hidden border-b"
@@ -94,44 +90,25 @@ function CustomQueryDataTable() {
                   </div>
                 </div>
 
-                {/* Virtualized Grid Body */}
-                <Grid
-                  ref={gridRef}
-                  height={height - rowHeight}
-                  width={width}
+                <Grid<QueryGridCellCustomProps>
+                  gridRef={gridRef}
+                  style={{
+                    height: height - rowHeight,
+                    width
+                  }}
+                  cellComponent={QueryGridCell}
+                  cellProps={{ data: customQueryObject.data }}
                   columnCount={customQueryObject.columns.length}
                   rowCount={customQueryObject.data.length}
                   columnWidth={(index) => getColumnWidth(index, width)}
                   rowHeight={getRowHeight}
-                  onScroll={handleGridScroll}
-                  overscanColumnCount={2}
-                  overscanRowCount={5}
+                  overscanCount={5}
                   key={`grid-${customQueryObject.columns.join("-")}`}
-                >
-                  {({ columnIndex, rowIndex, style }) => {
-                    const row = customQueryObject.data[rowIndex];
-                    const value = row?.[columnIndex] ?? null;
-
-                    return (
-                      <div
-                        style={style}
-                        className="border-primary/5 hover:bg-primary/5 flex items-center border-t border-r p-2"
-                      >
-                        {value !== null ? (
-                          <Span className="truncate text-xs">
-                            {String(value)}
-                          </Span>
-                        ) : (
-                          <Badge>NULL</Badge>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Grid>
+                />
               </div>
             );
           }}
-        </AutoSizer>
+        />
       </div>
     </div>
   );

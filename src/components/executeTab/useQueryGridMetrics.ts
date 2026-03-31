@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef } from "react";
-import type { VariableSizeGrid as Grid } from "react-window";
+import { useCallback, useEffect, useMemo, useRef } from "react";
+import type { GridImperativeAPI } from "react-window";
 import type { CustomQueryResult } from "@/types";
 
 const ROW_HEIGHT = 36;
@@ -9,8 +9,7 @@ export function useQueryGridMetrics(
   customQueryResult: CustomQueryResult | null
 ) {
   const headerScrollRef = useRef<HTMLDivElement>(null);
-  const gridRef = useRef<Grid>(null);
-  const currentWidthRef = useRef(0);
+  const gridRef = useRef<GridImperativeAPI>(null);
 
   const columnWidths = useMemo(() => {
     if (!customQueryResult) {
@@ -73,23 +72,23 @@ export function useQueryGridMetrics(
     [customQueryResult, columnWidths]
   );
 
-  const handleGridScroll = useCallback(
-    ({ scrollLeft }: { scrollLeft: number }) => {
-      if (headerScrollRef.current) {
-        headerScrollRef.current.scrollLeft = scrollLeft;
-      }
-    },
-    []
-  );
-
-  const handleResize = useCallback((width: number) => {
-    if (currentWidthRef.current !== width && gridRef.current) {
-      currentWidthRef.current = width;
-      setTimeout(() => {
-        gridRef.current?.resetAfterColumnIndex(0);
-      }, 0);
+  useEffect(() => {
+    const element = gridRef.current?.element;
+    if (!element) {
+      return;
     }
-  }, []);
+
+    const handleScroll = () => {
+      if (headerScrollRef.current) {
+        headerScrollRef.current.scrollLeft = element.scrollLeft;
+      }
+    };
+
+    element.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      element.removeEventListener("scroll", handleScroll);
+    };
+  });
 
   return {
     gridRef,
@@ -97,8 +96,6 @@ export function useQueryGridMetrics(
     getColumnWidth,
     getRowHeight: () => ROW_HEIGHT,
     getTotalWidth,
-    handleGridScroll,
-    handleResize,
     rowHeight: ROW_HEIGHT
   };
 }
