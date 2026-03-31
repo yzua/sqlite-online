@@ -9,9 +9,9 @@ function TopBar() {
   const { handleFileChange, handleDownload } = useDatabaseWorker();
 
   return (
-    <header className="flex items-center justify-between gap-2 border-b px-1 py-1.5">
+    <header className="flex flex-wrap items-center justify-between gap-2 border-b px-1 py-1.5 sm:flex-nowrap">
       <section
-        className="flex items-center gap-1"
+        className="flex min-w-0 flex-1 flex-wrap items-center gap-1"
         aria-label="Database file operations"
       >
         <label
@@ -32,7 +32,7 @@ function TopBar() {
           <Button
             size="sm"
             variant="outline"
-            className="border-foreground/25 pointer-events-none h-8 cursor-pointer px-3 text-xs font-medium sm:w-[200px]"
+            className="border-foreground/25 pointer-events-none w-full cursor-pointer text-xs font-medium sm:w-[200px]"
             aria-hidden="true"
             tabIndex={-1}
           >
@@ -43,7 +43,7 @@ function TopBar() {
         <Button
           size="sm"
           variant="outline"
-          className="border-foreground/25 h-8 px-3 text-xs font-medium"
+          className="border-foreground/25 text-xs font-medium"
           onClick={handleDownload}
           aria-label="Save current database to file"
         >
@@ -53,26 +53,24 @@ function TopBar() {
       </section>
 
       <section
-        className="flex items-center gap-1"
+        className="ml-auto flex items-center gap-1"
         aria-label="Application settings and links"
       >
-        <a
-          href="https://github.com/yzua/sqlite-online"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="focus:ring-ring rounded-md transition-opacity hover:opacity-80 focus:ring-2 focus:ring-offset-2 focus:outline-none"
-          aria-label="View source code on GitHub (opens in new tab)"
+        <Button
+          asChild
+          size="icon"
+          variant="ghost"
+          className="hidden sm:inline-flex"
         >
-          <Button
-            size="icon"
-            variant="ghost"
-            className="hidden h-8 w-8 sm:flex"
-            tabIndex={-1}
-            aria-hidden="true"
+          <a
+            href="https://github.com/yzua/sqlite-online"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View source code on GitHub (opens in new tab)"
           >
             <GitForkIcon className="h-4 w-4" />
-          </Button>
-        </a>
+          </a>
+        </Button>
 
         <HighContrastToggle />
         <ModeToggle />

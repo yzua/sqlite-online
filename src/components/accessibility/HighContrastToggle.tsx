@@ -25,7 +25,6 @@ function HighContrastToggle() {
     <Button
       size="icon"
       variant="ghost"
-      className="h-8 w-8"
       onClick={toggleHighContrast}
       aria-label={`${isHighContrast ? "Disable" : "Enable"} high contrast mode`}
       aria-pressed={isHighContrast}

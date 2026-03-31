@@ -163,14 +163,14 @@ function DatabaseURLLoader() {
         <div className="mt-4 space-y-4">
           <p className="text-sm">
             Would you like to try using a CORS proxy?{" "}
-            <span className="font-medium text-yellow-500 dark:text-yellow-400">
+            <span className="text-warning font-medium">
               Note that this will send your database request through a
               third-party service.
             </span>
           </p>
 
           {fetchError && (
-            <div className="bg-destructive/10 dark:bg-destructive/20 rounded-md p-3 text-red-400">
+            <div className="bg-destructive/10 text-destructive rounded-md p-3">
               <p className="text-xs">Error details: {fetchError}</p>
             </div>
           )}
