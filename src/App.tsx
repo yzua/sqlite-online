@@ -4,16 +4,29 @@ import {
   LoaderCircleIcon,
   TableIcon
 } from "lucide-react";
+import { lazy, Suspense } from "react";
 import LiveRegion from "@/components/accessibility/LiveRegion";
 import SkipLinks from "@/components/accessibility/SkipLinks";
 import BrowseTab from "@/components/browseTab/BrowseTab";
-import ExecuteTab from "@/components/executeTab/ExecuteTab";
 import FileDropHandler from "@/components/FileDropHandler";
 import StructureTab from "@/components/structureTab/StructureTab";
 import TopBar from "@/components/TopBar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import DatabaseURLLoader from "./components/DatabaseURLLoader";
 import { useDatabaseStore } from "./store/useDatabaseStore";
+
+const ExecuteTab = lazy(() => import("@/components/executeTab/ExecuteTab"));
+
+function PanelLoadingState() {
+  return (
+    <div className="flex h-full items-center justify-center px-4">
+      <span className="text-muted-foreground flex items-center gap-2 text-sm">
+        <LoaderCircleIcon className="h-4 w-4 animate-spin" aria-hidden="true" />
+        Loading panel
+      </span>
+    </div>
+  );
+}
 
 function App() {
   const isDatabaseLoading = useDatabaseStore(
@@ -32,7 +45,7 @@ function App() {
           <TopBar />
           <Tabs defaultValue="data" className="flex flex-1 flex-col">
             <TabsList
-              className="bg-primary/5 h-9 w-full justify-start rounded-none border-b"
+              className="bg-primary/5 h-auto min-h-11 w-full justify-start rounded-none border-b"
               role="tablist"
               aria-label="Database interface navigation"
             >
@@ -41,7 +54,7 @@ function App() {
                 key="data"
                 disabled={isDatabaseLoading}
                 value="data"
-                className="data-[state=active]: data-[state=active]:border-primary h-8 rounded-none text-xs"
+                className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
                 aria-label="Browse and filter database table data"
                 aria-describedby={
                   isDatabaseLoading ? "loading-status" : undefined
@@ -58,7 +71,7 @@ function App() {
                 id="execute"
                 key="execute"
                 value="execute"
-                className="data-[state=active]: data-[state=active]:border-primary h-8 rounded-none text-xs"
+                className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
                 aria-label="Execute custom SQL queries"
                 aria-describedby={
                   isDatabaseLoading ? "loading-status" : undefined
@@ -75,7 +88,7 @@ function App() {
                 key="structure"
                 disabled={isDatabaseLoading}
                 value="structure"
-                className="data-[state=active]: data-[state=active]:border-primary h-8 rounded-none text-xs"
+                className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
                 aria-label="View database schema and table structure"
                 aria-describedby={
                   isDatabaseLoading ? "loading-status" : undefined
@@ -138,7 +151,9 @@ function App() {
                 role="tabpanel"
                 aria-labelledby="execute"
               >
-                <ExecuteTab />
+                <Suspense fallback={<PanelLoadingState />}>
+                  <ExecuteTab />
+                </Suspense>
               </TabsContent>
             </section>
           </Tabs>
