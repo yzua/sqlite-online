@@ -28,11 +28,11 @@ function ExecuteTabToolbar({
   const isLoading = isDataLoading || isDatabaseLoading;
 
   return (
-    <div className="flex items-center gap-1 border-b px-1 py-2">
+    <div className="flex flex-wrap items-center gap-1 border-b px-1 py-2">
       <Button
         size="sm"
         variant="outline"
-        className="w-[150px] text-xs"
+        className="min-w-[11rem] text-xs"
         onClick={onExecute}
         disabled={isAiLoading}
         title="Execute SQL"
@@ -67,7 +67,7 @@ function ExecuteTabToolbar({
       </Button>
 
       {isLoading && (
-        <span className="ml-2 flex items-center text-xs text-gray-500">
+        <span className="text-muted-foreground ml-2 flex items-center text-sm">
           <LoaderCircleIcon className="mr-1 h-3 w-3 animate-spin" />
           Loading data
         </span>

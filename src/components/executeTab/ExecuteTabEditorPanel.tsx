@@ -21,8 +21,8 @@ function ExecuteTabEditorPanel({
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={25}>
         {errorMessage && (
-          <div className="flex items-center justify-between p-2">
-            <div className="text-sm text-red-400">{errorMessage}</div>
+          <div className="flex items-center justify-between gap-2 p-2">
+            <div className="text-destructive text-sm">{errorMessage}</div>
             <Button
               size="sm"
               variant="outline"
