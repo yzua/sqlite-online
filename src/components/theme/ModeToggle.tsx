@@ -15,7 +15,7 @@ function ModeToggle() {
         theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
       }
       title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-      className="border-foreground/25 relative flex items-center justify-center transition-transform duration-300"
+      className="border-foreground/25 relative flex items-center justify-center"
     >
       {theme === "dark" ? (
         <SunIcon className="h-[1.2rem] w-[1.2rem]" />
