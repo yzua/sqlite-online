@@ -1,29 +1,26 @@
 import path from "node:path";
+import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 
-import react from "@vitejs/plugin-react";
-import babelReactCompiler from "babel-plugin-react-compiler";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import compression from "vite-plugin-compression";
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(async ({ mode }) => {
   const isPages = mode === "pages";
 
   return {
     base: isPages ? "/sqlite-online/" : "/",
     plugins: [
-      react({
-        babel: {
-          plugins: [babelReactCompiler]
-        }
-      }),
+      react(),
+      await babel({ presets: [reactCompilerPreset()] }),
       tailwindcss(),
       compression()
     ],
     build: {
       rollupOptions: {
         output: {
-          manualChunks(id) {
+          manualChunks(id: string) {
             if (id.includes("node_modules")) {
               return id.toString().split("node_modules/")[1]?.split("/")[0];
             }
@@ -32,6 +29,13 @@ export default defineConfig(({ mode }) => {
           }
         }
       }
+    },
+    optimizeDeps: {
+      exclude: [
+        "react-window",
+        "react-virtualized-auto-sizer",
+        "react-resizable-panels"
+      ]
     },
     resolve: {
       alias: {

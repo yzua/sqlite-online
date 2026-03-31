@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import showToast from "@/components/common/Toaster/Toast";
 import usePanelManager from "@/hooks/usePanel";
+import SqliteWorker from "@/sqlite/sqliteWorker.ts?worker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { calculateTableLimit } from "./calculateTableLimit";
 import { createWorkerMessageHandler } from "./handleWorkerMessage";
@@ -58,15 +59,17 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   // Initialize worker and send initial "init" message
   useEffect(() => {
     try {
-      // Create a new worker
-      workerRef.current = new Worker(
-        new URL("@/sqlite/sqliteWorker.ts", import.meta.url),
-        { type: "module" }
-      );
+      workerRef.current = new SqliteWorker();
 
       // Add error handler for worker
       workerRef.current.onerror = (error) => {
-        console.error("Main: Worker error:", error);
+        console.error("Main: Worker error:", {
+          message: error.message,
+          filename: error.filename,
+          lineno: error.lineno,
+          colno: error.colno,
+          error
+        });
         setErrorMessage("Worker failed to initialize");
         setIsDatabaseLoading(false);
       };

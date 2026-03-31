@@ -1,5 +1,6 @@
 import type { Database, QueryExecResult, SqlJsStatic, SqlValue } from "sql.js";
 import initSqlJs from "sql.js";
+import sqlWasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import { tableDataCache } from "@/lib/queryCache";
 import type { Filters, IndexSchema, Sorters, TableSchema } from "@/types";
 import DEMO_DB from "./demo-db";
@@ -41,7 +42,7 @@ export default class Sqlite {
     if (Sqlite.sqlJsStatic) return Sqlite.sqlJsStatic;
     try {
       const SQL = await initSqlJs({
-        locateFile: (file) => `${import.meta.env.BASE_URL}wasm/${file}`
+        locateFile: () => sqlWasmUrl
       });
       return SQL;
     } catch (error) {

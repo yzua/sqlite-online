@@ -25,10 +25,6 @@ function cleanup() {
   instance = cleanupInstance(instance);
 }
 
-// Handle worker termination
-self.addEventListener("beforeunload", cleanup);
-self.addEventListener("unload", cleanup);
-
 self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
   const { action, payload } = event.data;
 
