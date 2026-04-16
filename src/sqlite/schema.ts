@@ -9,7 +9,7 @@ interface SchemaSnapshot {
 
 type ExecSql = (sql: string) => readonly [QueryExecResult[], boolean];
 
-export function readTableInfo(exec: ExecSql, tableName: string) {
+function readTableInfo(exec: ExecSql, tableName: string) {
   const [pragmaTableInfoResults] = exec(`PRAGMA table_info("${tableName}")`);
   const [pragmaForeignKeysResults] = exec(
     `PRAGMA foreign_key_list("${tableName}")`
@@ -41,7 +41,7 @@ export function readTableInfo(exec: ExecSql, tableName: string) {
       cid: cid as number,
       type: (type as string) || "Unknown",
       dflt_value: dflt_value as string,
-      IsNullable: (notnull as number) === 0 && pk === 0,
+      isNullable: (notnull as number) === 0 && pk === 0,
       isPrimaryKey: (pk as number) === 1,
       isForeignKey: foreignKeys[name as string] ?? false
     });

@@ -9,7 +9,7 @@ import type {
   TableSchema
 } from "@/types";
 
-export interface DatabaseState {
+interface DatabaseState {
   tablesSchema: TableSchema;
   indexesSchema: IndexSchema[];
   currentTable: string | null;

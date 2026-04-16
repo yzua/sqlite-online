@@ -13,7 +13,7 @@ export type TableSchemaRow = {
   cid: number;
   type: string | null;
   dflt_value: string;
-  IsNullable: boolean;
+  isNullable: boolean;
   isPrimaryKey: boolean;
   isForeignKey: boolean;
 };

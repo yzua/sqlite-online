@@ -37,7 +37,7 @@ function EditSectionField({
             <ColumnIcon columnSchema={columnSchema} />
             <Span className="text-xs font-medium capitalize">{column}</Span>
           </div>
-          {columnSchema?.IsNullable && (
+          {columnSchema?.isNullable && (
             <span className="text-primary/50 bg-primary/5 rounded-full px-2 py-0.5 text-xs">
               Nullable
             </span>
