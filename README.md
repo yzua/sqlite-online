@@ -57,6 +57,8 @@ Useful project commands:
 - `npm run lint`
 - `npm run format`
 - `npm run format:check`
+- `npm test`
+- `npm run test:watch`
 - `npm run knip`
 
 ## Keyboard Shortcuts (Hotkeys)
@@ -72,7 +74,7 @@ Streamline your workflow with these built-in hotkeys:
 | **Ctrl + ArrowLeft**  | Go to the previous page |
 | **Ctrl + `**          | Close the edit panel    |
 | **Ctrl + i**          | Trigger insert panel    |
-| **Ctrl + I**          | Submit an insert edit   |
+| **Ctrl + Shift + I**  | Submit an insert edit   |
 | **Ctrl + u**          | Submit an update edit   |
 | **Ctrl + d**          | Submit a delete edit    |
 | **Ctrl + q**          | Execute the SQL query   |
