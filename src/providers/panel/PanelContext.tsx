@@ -16,6 +16,8 @@ interface PanelContextProps {
   setIsInserting: (value: boolean) => void;
   setSelectedRowObject: (value: SelectedRowObject | null) => void;
   handleCloseEdit: () => void;
+  editValues: string[];
+  setEditValues: (values: string[]) => void;
 }
 
 const PanelContext = createContext<PanelContextProps | undefined>(undefined);

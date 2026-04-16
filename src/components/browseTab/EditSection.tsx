@@ -5,16 +5,19 @@ import {
   selectIsCurrentTableView,
   useDatabaseStore
 } from "@/store/useDatabaseStore";
-import { selectEditValues, usePanelStore } from "@/store/usePanelStore";
 import EditSectionActions from "./EditSectionActions";
 import EditSectionField from "./EditSectionField";
 import EditSectionHeader from "./EditSectionHeader";
 
 function EditSection() {
   const { handleEditSubmit } = useDatabaseWorker();
-  const { selectedRowObject, isInserting, handleCloseEdit } = usePanelManager();
-  const editValues = usePanelStore(selectEditValues);
-  const setEditValues = usePanelStore((state) => state.setEditValues);
+  const {
+    selectedRowObject,
+    isInserting,
+    handleCloseEdit,
+    editValues,
+    setEditValues
+  } = usePanelManager();
   const tablesSchema = useDatabaseStore((state) => state.tablesSchema);
   const currentTable = useDatabaseStore((state) => state.currentTable);
   const columns = useDatabaseStore((state) => state.columns);
@@ -34,12 +37,11 @@ function EditSection() {
 
   const handleEditInputChange = useCallback(
     (index: number, newValue: string) => {
-      const currentEditValues = usePanelStore.getState().editValues;
       setEditValues(
-        currentEditValues.map((value, i) => (i === index ? newValue : value))
+        editValues.map((value, i) => (i === index ? newValue : value))
       );
     },
-    [setEditValues]
+    [setEditValues, editValues]
   );
 
   const formItems = useMemo(() => {

@@ -4,13 +4,11 @@ import { create } from "zustand";
 interface PanelState {
   schemaPanelSize: number;
   dataPanelSize: number;
-  editValues: string[];
 }
 
 interface PanelActions {
   setSchemaPanelSize: (size: number) => void;
   setDataPanelSize: (size: number) => void;
-  setEditValues: (values: string[]) => void;
 }
 
 type PanelStore = PanelState & PanelActions;
@@ -42,12 +40,10 @@ export const usePanelStore = create<PanelStore>((set) => {
     // --- State ---
     schemaPanelSize: 25,
     dataPanelSize: 75,
-    editValues: [],
 
     // --- Actions ---
     setSchemaPanelSize: debouncedSetSchemaPanelSize,
-    setDataPanelSize: debouncedSetDataPanelSize,
-    setEditValues: (values) => set({ editValues: values })
+    setDataPanelSize: debouncedSetDataPanelSize
   };
 });
 
@@ -55,5 +51,3 @@ export const selectPanelSizes = (state: PanelState) => ({
   schemaPanelSize: state.schemaPanelSize,
   dataPanelSize: state.dataPanelSize
 });
-
-export const selectEditValues = (state: PanelState) => state.editValues;

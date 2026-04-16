@@ -13,6 +13,7 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
   const [selectedRowObject, setSelectedRowObject] =
     useState<SelectedRowObject | null>(null);
   const [isInserting, setIsInserting] = useState(false);
+  const [editValues, setEditValues] = useState<string[]>([]);
 
   const isEditing = selectedRowObject !== null || isInserting;
 
@@ -50,7 +51,9 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
       selectedRowObject,
       isInserting,
       setIsInserting,
-      setSelectedRowObject
+      setSelectedRowObject,
+      editValues,
+      setEditValues
     }),
     [
       handleRowClick,
@@ -58,7 +61,8 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
       handleCloseEdit,
       isEditing,
       selectedRowObject,
-      isInserting
+      isInserting,
+      editValues
     ]
   );
 
