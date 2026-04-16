@@ -9,8 +9,8 @@ import usePanelManager from "@/hooks/usePanel";
 import { usePanelSizing } from "@/hooks/usePanelSizing";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import ActionButtons from "./ActionButtons";
-import BrowseTabEditOverlay from "./BrowseTabEditOverlay";
 import DataTable from "./DataTable";
+import EditSection from "./EditSection";
 import PaginationControls from "./PaginationControls";
 import TableSelector from "./TableSelector";
 
@@ -77,13 +77,25 @@ function BrowseTab() {
               className="relative"
             >
               <SchemaTreePanel />
-              <BrowseTabEditOverlay isEditing={isEditing} />
+              <div
+                className={`bg-background absolute inset-0 z-40 ${isEditing ? "block" : "hidden"}`}
+              >
+                <section className="bg-primary/5 h-full">
+                  <EditSection />
+                </section>
+              </div>
             </ResizablePanel>
           </div>
         </ResizablePanelGroup>
 
         <div className="md:hidden">
-          <BrowseTabEditOverlay isEditing={isEditing} />
+          <div
+            className={`bg-background absolute inset-0 z-40 ${isEditing ? "block" : "hidden"}`}
+          >
+            <section className="bg-primary/5 h-full">
+              <EditSection />
+            </section>
+          </div>
         </div>
       </div>
     </div>

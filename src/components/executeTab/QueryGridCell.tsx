@@ -15,7 +15,6 @@ interface QueryGridCellProps extends QueryGridCellCustomProps {
   columnIndex: number;
   rowIndex: number;
   style: CSSProperties;
-  data: CustomQueryResult["data"];
 }
 
 function QueryGridCell({

@@ -4,7 +4,7 @@ import {
   LoaderCircleIcon,
   TableIcon
 } from "lucide-react";
-import { lazy, Suspense } from "react";
+import { type ElementType, lazy, Suspense } from "react";
 import LiveRegion from "@/components/accessibility/LiveRegion";
 import SkipLinks from "@/components/accessibility/SkipLinks";
 import BrowseTab from "@/components/browseTab/BrowseTab";
@@ -16,6 +16,16 @@ import DatabaseURLLoader from "./components/DatabaseURLLoader";
 import { useDatabaseStore } from "./store/useDatabaseStore";
 
 const ExecuteTab = lazy(() => import("@/components/executeTab/ExecuteTab"));
+
+const TAB_ITEMS: {
+  id: string;
+  label: string;
+  icon: ElementType;
+}[] = [
+  { id: "data", label: "Browse Data", icon: TableIcon },
+  { id: "execute", label: "Execute SQL", icon: CodeIcon },
+  { id: "structure", label: "Database Structure", icon: DatabaseIcon }
+];
 
 function PanelLoadingState() {
   return (
@@ -43,69 +53,37 @@ function App() {
           id="main-content"
         >
           <TopBar />
-          <Tabs defaultValue="data" className="flex flex-1 flex-col">
+          <Tabs defaultValue="data" className="flex min-h-0 flex-1 flex-col">
             <TabsList
               className="bg-primary/5 h-auto min-h-11 w-full justify-start rounded-none border-b"
               role="tablist"
               aria-label="Database interface navigation"
             >
-              <TabsTrigger
-                id="data"
-                key="data"
-                disabled={isDatabaseLoading}
-                value="data"
-                className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
-                aria-label="Browse and filter database table data"
-                aria-describedby={
-                  isDatabaseLoading ? "loading-status" : undefined
-                }
-              >
-                <TableIcon
-                  className="hidden h-4 w-4 md:block"
-                  aria-hidden="true"
-                />
-                <span>Browse Data</span>
-              </TabsTrigger>
-              <TabsTrigger
-                disabled={isDatabaseLoading}
-                id="execute"
-                key="execute"
-                value="execute"
-                className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
-                aria-label="Execute custom SQL queries"
-                aria-describedby={
-                  isDatabaseLoading ? "loading-status" : undefined
-                }
-              >
-                <CodeIcon
-                  className="hidden h-4 w-4 md:block"
-                  aria-hidden="true"
-                />
-                Execute SQL
-              </TabsTrigger>
-              <TabsTrigger
-                id="structure"
-                key="structure"
-                disabled={isDatabaseLoading}
-                value="structure"
-                className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
-                aria-label="View database schema and table structure"
-                aria-describedby={
-                  isDatabaseLoading ? "loading-status" : undefined
-                }
-              >
-                <DatabaseIcon
-                  className="hidden h-4 w-4 md:block"
-                  aria-hidden="true"
-                />
-                Database Structure
-              </TabsTrigger>
+              {TAB_ITEMS.map((tab) => (
+                <TabsTrigger
+                  key={tab.id}
+                  id={tab.id}
+                  value={tab.id}
+                  disabled={isDatabaseLoading}
+                  className="data-[state=active]:border-primary min-h-11 rounded-none text-xs"
+                  aria-label={tab.label}
+                  aria-describedby={
+                    isDatabaseLoading ? "loading-status" : undefined
+                  }
+                >
+                  <tab.icon
+                    className="hidden h-4 w-4 md:block"
+                    aria-hidden="true"
+                  />
+                  <span>{tab.label}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <section className="max-h-custom-dvh flex-1 overflow-hidden">
+            <section className="min-h-0 flex-1 overflow-hidden">
               <TabsContent
                 value="data"
-                className="m-0 h-full border-none p-0"
+                className="m-0 min-h-0 h-full border-none p-0"
                 role="tabpanel"
                 aria-labelledby="data"
               >
@@ -139,7 +117,7 @@ function App() {
               </TabsContent>
               <TabsContent
                 value="structure"
-                className="m-0 h-full border-none p-0"
+                className="m-0 min-h-0 h-full border-none p-0"
                 role="tabpanel"
                 aria-labelledby="structure"
               >
@@ -147,7 +125,7 @@ function App() {
               </TabsContent>
               <TabsContent
                 value="execute"
-                className="m-0 h-full border-none p-0"
+                className="m-0 min-h-0 h-full border-none p-0"
                 role="tabpanel"
                 aria-labelledby="execute"
               >

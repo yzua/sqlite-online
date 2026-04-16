@@ -1,5 +1,3 @@
-import { useCallback } from "react";
-import type { SqlValue } from "sql.js";
 import { useShallow } from "zustand/react/shallow";
 import ColumnIcon from "@/components/table/ColumnIcon";
 import FilterInput from "@/components/table/FilterInput";
@@ -31,16 +29,6 @@ function DataTable() {
   const { handleQueryFilter } = useDatabaseWorker();
   const { handleRowClick, selectedRowObject } = usePanelManager();
   const { handleClearFilters } = useBrowseActions();
-
-  const getRowKey = useCallback(
-    (row: SqlValue[]) => {
-      const { primaryValue, displayData } = getRowMeta(row, currentTableSchema);
-      return primaryValue != null
-        ? String(primaryValue)
-        : displayData.map((cell) => String(cell)).join("|");
-    },
-    [currentTableSchema]
-  );
 
   return (
     <section aria-label="Database table data">
@@ -92,11 +80,20 @@ function DataTable() {
         <TableBody>
           {data && data.length > 0 ? (
             data.map((row, index) => {
-              const rowKey = getRowKey(row) || String(index);
+              const { primaryValue, displayData } = getRowMeta(
+                row,
+                currentTableSchema
+              );
+              const rowKey =
+                primaryValue != null
+                  ? String(primaryValue)
+                  : displayData.map((cell) => String(cell)).join("|") ||
+                    String(index);
               return (
                 <BrowseTableRow
                   key={rowKey}
-                  row={row}
+                  displayData={displayData}
+                  primaryValue={primaryValue}
                   rowKey={rowKey}
                   rowIndex={index}
                   rowCount={data.length}

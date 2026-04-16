@@ -55,7 +55,7 @@ describe("App", () => {
     expect(screen.getByText("Top Bar")).toBeInTheDocument();
     expect(
       screen.getByRole("tab", {
-        name: /browse and filter database table data/i
+        name: /browse data/i
       })
     ).toBeEnabled();
     expect(screen.getByText("Browse Tab Content")).toBeInTheDocument();
@@ -73,15 +73,11 @@ describe("App", () => {
     expect(
       screen.getByText("Please wait while the database is initializing")
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("tab", { name: /browse and filter/i })
-    ).toBeDisabled();
-    expect(
-      screen.getByRole("tab", { name: /execute custom sql queries/i })
-    ).toBeDisabled();
+    expect(screen.getByRole("tab", { name: /browse data/i })).toBeDisabled();
+    expect(screen.getByRole("tab", { name: /execute sql/i })).toBeDisabled();
     expect(
       screen.getByRole("tab", {
-        name: /view database schema and table structure/i
+        name: /database structure/i
       })
     ).toBeDisabled();
   });
@@ -93,14 +89,25 @@ describe("App", () => {
 
     await user.click(
       screen.getByRole("tab", {
-        name: /view database schema and table structure/i
+        name: /database structure/i
       })
     );
     expect(screen.getByText("Structure Tab Content")).toBeInTheDocument();
 
-    await user.click(
-      screen.getByRole("tab", { name: /execute custom sql queries/i })
-    );
+    await user.click(screen.getByRole("tab", { name: /execute sql/i }));
     expect(await screen.findByText("Execute Tab Content")).toBeInTheDocument();
+  });
+
+  it("keeps the active panel constrained to the remaining viewport height", () => {
+    const { container } = render(<App />);
+
+    const panelSection = container.querySelector(
+      'main > [data-slot="tabs"] > section'
+    );
+    const browsePanel = screen.getByRole("tabpanel", { name: /browse data/i });
+
+    expect(panelSection).toHaveClass("min-h-0", "flex-1", "overflow-hidden");
+    expect(panelSection).not.toHaveClass("max-h-custom-dvh");
+    expect(browsePanel).toHaveClass("min-h-0", "h-full");
   });
 });

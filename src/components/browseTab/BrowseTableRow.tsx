@@ -3,10 +3,10 @@ import Badge from "@/components/ui/badge";
 import { Span } from "@/components/ui/span";
 import { TableCell, TableRow } from "@/components/ui/table";
 import type { TableSchema } from "@/types";
-import { getRowMeta } from "./rowMeta";
 
 interface BrowseTableRowProps {
-  row: SqlValue[];
+  displayData: SqlValue[];
+  primaryValue: SqlValue | null;
   rowKey: string;
   rowIndex: number;
   rowCount: number;
@@ -21,7 +21,8 @@ interface BrowseTableRowProps {
 }
 
 function BrowseTableRow({
-  row,
+  displayData,
+  primaryValue,
   rowKey,
   rowIndex,
   rowCount,
@@ -30,8 +31,6 @@ function BrowseTableRow({
   selectedRowIndex,
   onSelectRow
 }: BrowseTableRowProps) {
-  const { primaryValue, displayData } = getRowMeta(row, currentTableSchema);
-
   const handleSelect = () => {
     onSelectRow(displayData, rowIndex, primaryValue);
   };
