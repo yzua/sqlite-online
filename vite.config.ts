@@ -1,3 +1,5 @@
+/// <reference types="vitest/config" />
+
 import path from "node:path";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
@@ -47,6 +49,12 @@ export default defineConfig(async ({ mode }) => {
         allow: [path.resolve(__dirname), path.resolve(__dirname, "..")],
         strict: false
       }
+    },
+    test: {
+      environment: "jsdom",
+      setupFiles: ["./src/test/setup.ts"],
+      clearMocks: true,
+      restoreMocks: true
     }
   };
 });

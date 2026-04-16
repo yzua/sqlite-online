@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "typecheck": "tsc -b",
     "build": "npm run typecheck && vite build",
     "preview": "vite preview",
@@ -21,7 +23,6 @@
   },
   "knip": {
     "entry": [
-      "src/main.tsx",
       "src/sqlite/sqliteWorker.ts"
     ],
     "ignore": [
@@ -59,7 +60,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
-    "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@rolldown/plugin-babel": "^0.2.2",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
@@ -67,9 +70,11 @@
     "@types/sql.js": "^1.4.11",
     "@vitejs/plugin-react": "^6.0.1",
     "babel-plugin-react-compiler": "^1.0.0",
+    "jsdom": "^27.0.1",
     "knip": "^6.1.0",
     "react-doctor": "^0.0.30",
     "typescript": "^6.0.2",
-    "vite": "^8.0.3"
+    "vite": "^8.0.3",
+    "vitest": "^3.2.4"
   }
 }
