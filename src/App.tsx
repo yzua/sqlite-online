@@ -147,7 +147,7 @@ function App() {
               </TabsContent>
               <TabsContent
                 value="execute"
-                className="m-0 h-full border border-none p-0"
+                className="m-0 h-full border-none p-0"
                 role="tabpanel"
                 aria-labelledby="execute"
               >

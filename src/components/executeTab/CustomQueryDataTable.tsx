@@ -39,8 +39,6 @@ function CustomQueryDataTable() {
     );
   }
 
-  const headerColumnKeyCounts = new Map<string, number>();
-
   return (
     <div className="flex h-full w-full flex-col shadow-sm">
       <div className="bg-primary/5 flex-shrink-0 border-b p-3">
@@ -80,13 +78,11 @@ function CustomQueryDataTable() {
                   <div className="flex" style={{ width: tableWidth }}>
                     {customQueryObject.columns.map((column, columnIndex) => {
                       const keyBase = String(column ?? "column");
-                      const duplicateCount =
-                        headerColumnKeyCounts.get(keyBase) ?? 0;
-                      headerColumnKeyCounts.set(keyBase, duplicateCount + 1);
+                      const key = `${keyBase}-${columnIndex}`;
 
                       return (
                         <div
-                          key={`${keyBase}-${duplicateCount}`}
+                          key={key}
                           className="border-primary/10 flex flex-shrink-0 items-center border-r p-2 text-xs font-medium"
                           style={{ width: getColumnWidth(columnIndex, width) }}
                         >

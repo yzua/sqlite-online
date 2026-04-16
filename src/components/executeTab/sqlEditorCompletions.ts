@@ -1,7 +1,7 @@
 import type { Completion } from "@codemirror/autocomplete";
 import type { TableSchema } from "@/types";
 
-export const SQLITE_KEYWORDS = [
+const SQLITE_KEYWORDS = [
   "ABORT",
   "ACTION",
   "ADD",
@@ -128,7 +128,7 @@ export const SQLITE_KEYWORDS = [
   "WITHOUT"
 ];
 
-export const BUILT_IN_FUNCTIONS = [
+const BUILT_IN_FUNCTIONS = [
   "ABS",
   "ACOS",
   "ASIN",
@@ -154,7 +154,7 @@ export const BUILT_IN_FUNCTIONS = [
   "UPPER"
 ];
 
-export function getSchemaCompletionNames(tablesSchema: TableSchema) {
+function getSchemaCompletionNames(tablesSchema: TableSchema) {
   const tableNames = Object.keys(tablesSchema);
   const columnNames = tableNames.flatMap(
     (table) => tablesSchema[table]?.schema.map((column) => column.name) ?? []

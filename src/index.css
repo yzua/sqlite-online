@@ -44,7 +44,6 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-/* High Contrast Mode */
 .high-contrast {
   --background: oklch(100% 0 0);
   --foreground: oklch(0% 0 0);
@@ -95,7 +94,6 @@
   --ring: oklch(100% 0 0);
 }
 
-/* Hide scrollbar for synchronized header */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -199,12 +197,10 @@
     @apply bg-background text-foreground;
   }
 
-  /* Base scrollbar styling */
   * {
-    scrollbar-width: thin; /* Firefox */
+    scrollbar-width: thin;
   }
 
-  /* Webkit scrollbar styling (Chrome, Safari, Edge) */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -229,7 +225,6 @@
     background: var(--muted);
   }
 
-  /* Firefox specific styling */
   * {
     scrollbar-color: var(--muted-foreground) var(--muted);
   }
@@ -237,7 +232,7 @@
   .scrollable {
     overflow: auto;
     height: 100%;
-    padding-right: 2px; /* Prevent content from bumping against scrollbar */
+    padding-right: 2px;
   }
 
   html,
@@ -256,12 +251,12 @@
   }
 
   .scroll-hidden {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   .scroll-hidden::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
+    display: none;
   }
 }
 
@@ -278,9 +273,13 @@ body {
   *,
   ::before,
   ::after {
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must beat component-level animation styles. */
     animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must beat component-level animation styles. */
     animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must beat component-level animation styles. */
     scroll-behavior: auto !important;
+    /* biome-ignore lint/complexity/noImportantStyles: reduced-motion overrides must beat component-level animation styles. */
     transition-duration: 0.01ms !important;
   }
 }

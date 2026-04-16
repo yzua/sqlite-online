@@ -117,7 +117,6 @@ function DatabaseURLLoader() {
     }
 
     initialCheckDone.current = true;
-    const abortController = new AbortController();
 
     const checkURLParam = async () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -134,10 +133,6 @@ function DatabaseURLLoader() {
     };
 
     checkURLParam();
-
-    return () => {
-      abortController.abort();
-    };
   }, [fetchDatabase]);
 
   const handleRetryWithProxy = useCallback(() => {
