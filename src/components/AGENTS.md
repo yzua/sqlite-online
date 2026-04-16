@@ -20,7 +20,7 @@ loading. Subdirectories contain tab features, UI primitives, and shared componen
 | `structureTab/`  | Database Structure tab (schema tree)                                |
 | `ui/`            | shadcn/ui primitives                                                |
 | `table/`         | Shared table sub-components (ColumnIcon, FilterInput, SorterButton) |
-| `common/`        | ErrorBoundary, Toaster/Toast                                        |
+| `common/`        | ErrorBoundary, Toaster (sonner wrapper)                             |
 | `accessibility/` | HighContrastToggle, LiveRegion, SkipLinks                           |
 | `theme/`         | ModeToggle (dark/light)                                             |
 

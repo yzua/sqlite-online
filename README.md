@@ -60,6 +60,7 @@ Useful project commands:
 - `npm test`
 - `npm run test:watch`
 - `npm run knip`
+- `npm run deploy`
 
 ## Keyboard Shortcuts (Hotkeys)
 

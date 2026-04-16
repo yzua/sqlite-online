@@ -5,18 +5,17 @@ worker-side utilities. The bridge between the React UI and the SQLite web worker
 
 ## Files
 
-| File                     | Export                            | Role                                                                                                       |
-| ------------------------ | --------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `types.ts`               | `PageChange`, `DatabaseWorkerApi` | Public contract: 10 action methods exposed via context.                                                    |
-| `WorkerContext.tsx`      | `DatabaseWorkerContext`           | React context. Value is `DatabaseWorkerApi \| undefined`.                                                  |
-| `WorkerProvider.tsx`     | `DatabaseWorkerProvider`          | Root provider. Creates worker, wires message handler, reactive data-fetch effect, iframe bridge.           |
-| `handleWorkerMessage.ts` | `createWorkerMessageHandler`      | Factory returning the `onmessage` handler. Maps worker responses to Zustand store mutations.               |
-| `useWorkerActions.ts`    | `useWorkerActions`                | Hook returning all 10 `DatabaseWorkerApi` methods as `useCallback`-memoized functions.                     |
-| `useWorkerHotkeys.ts`    | `useWorkerHotkeys`                | Binds Ctrl+S/I/U/D/Q/Arrow hotkeys to worker actions.                                                      |
-| `workerActionUtils.ts`   | pure functions                    | `getSelectedTableColumns`, `createNextFilters`, `createNextSorters`, `getNextPageOffset`. No React deps.   |
-| `postWorkerMessage.ts`   | `postWorkerMessage`               | Thin wrapper around `worker.postMessage()`. Null-guard + toast on failure. Returns type-narrowing boolean. |
-| `parseSqlStatements.ts`  | `parseSqlStatements`              | Strips SQL comments, splits on `;`, filters empty strings.                                                 |
-| `calculateTableLimit.ts` | `calculateTableLimit`             | Measures DOM element heights to compute rows-per-page. Falls back to 50.                                   |
+| File                     | Export                            | Role                                                                                                                             |
+| ------------------------ | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `types.ts`               | `PageChange`, `DatabaseWorkerApi` | Public contract: 10 action methods exposed via context.                                                                          |
+| `WorkerContext.tsx`      | `DatabaseWorkerContext`           | React context. Value is `DatabaseWorkerApi \| undefined`.                                                                        |
+| `WorkerProvider.tsx`     | `DatabaseWorkerProvider`          | Root provider. Creates worker, wires message handler, reactive data-fetch effect, iframe bridge.                                 |
+| `handleWorkerMessage.ts` | `createWorkerMessageHandler`      | Factory returning the `onmessage` handler. Maps worker responses to Zustand store mutations.                                     |
+| `useWorkerActions.ts`    | `useWorkerActions`                | Hook returning all 10 `DatabaseWorkerApi` methods as `useCallback`-memoized functions.                                           |
+| `useWorkerHotkeys.ts`    | `useWorkerHotkeys`                | Binds Ctrl+S/I/U/D/Q/Arrow hotkeys to worker actions.                                                                            |
+| `workerActionUtils.ts`   | pure functions                    | `getSelectedTableColumns`, `createNextFilters`, `createNextSorters`, `getNextPageOffset`. No React deps.                         |
+| `postWorkerMessage.ts`   | `postWorkerMessage`               | Thin wrapper around `worker.postMessage()`. Null-guard + toast on failure. Returns type-narrowing boolean.                       |
+| `useIframeBridge.ts`     | `useIframeBridge`                 | Wires cross-frame database loading. Exposes `window.loadDatabaseBuffer` and listens for `postMessage` events from parent frames. |
 
 ## Architecture
 
@@ -61,13 +60,13 @@ interface DatabaseWorkerApi {
   (queries, CRUD).
 - **iframe bridge**: `window.loadDatabaseBuffer` and `postMessage` events enable
   cross-frame database loading.
-- **Row limit**: Dynamically calculated from DOM heights via `calculateTableLimit`.
+- **Row limit**: Dynamically calculated from DOM heights via `@/lib/calculateTableLimit`.
 
 ## Guidelines
 
 - New worker actions must: add a type to `@/types` (WorkerEvent/WorkerResponseEvent),
   add a handler in `workerRuntime.ts`, add a response case in `handleWorkerMessage.ts`,
   and expose an action in `useWorkerActions.ts`.
-- Keep action utilities pure in `workerActionUtils.ts`. Only `calculateTableLimit`
-  touches the DOM.
+- Keep action utilities pure in `workerActionUtils.ts`. `parseSqlStatements` and
+  `calculateTableLimit` live in `@/lib/` as they have no worker/provider dependency.
 - Do not call `worker.postMessage` directly; use `postWorkerMessage` for the null guard.
