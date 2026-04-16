@@ -1,65 +1,32 @@
 import { useCallback } from "react";
 import showToast from "@/components/common/Toaster/Toast";
-import type { SelectedRowObject } from "@/providers/panel/types";
+import usePanelManager from "@/hooks/usePanel";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { usePanelStore } from "@/store/usePanelStore";
-import type { EditTypes, ExportTypes, Filters, Sorters } from "@/types";
+import type { EditTypes, ExportTypes } from "@/types";
 import { parseSqlStatements } from "./parseSqlStatements";
 import { postWorkerMessage } from "./postWorkerMessage";
 import type { DatabaseWorkerApi, PageChange } from "./types";
 import {
   createNextFilters,
   createNextSorters,
-  createTableQueryPayload,
   getNextPageOffset,
   getSelectedTableColumns
 } from "./workerActionUtils";
 
 interface UseWorkerActionsProps {
   workerRef: React.RefObject<Worker | null>;
-  currentTable: string | null;
-  tablesSchema: import("@/types").TableSchema;
-  filters: Filters;
-  sorters: Sorters;
-  limit: number;
-  offset: number;
-  maxSize: number;
-  customQuery: string;
-  selectedRowObject: SelectedRowObject | null;
-  setCurrentTable: (table: string | null) => void;
-  setColumns: (columns: string[] | null) => void;
-  setFilters: (filters: Filters) => void;
-  setSorters: (sorters: Sorters) => void;
-  setOffset: (offset: number | ((currentOffset: number) => number)) => void;
-  setMaxSize: (size: number) => void;
-  setIsDataLoading: (loading: boolean) => void;
-  resetPagination: () => void;
-  setSelectedRowObject: (value: SelectedRowObject | null) => void;
-  setIsInserting: (value: boolean) => void;
 }
 
 export function useWorkerActions({
-  workerRef,
-  currentTable,
-  tablesSchema,
-  filters,
-  sorters,
-  limit,
-  offset,
-  maxSize,
-  customQuery,
-  selectedRowObject,
-  setCurrentTable,
-  setColumns,
-  setFilters,
-  setSorters,
-  setOffset,
-  setMaxSize,
-  setIsDataLoading,
-  resetPagination,
-  setSelectedRowObject,
-  setIsInserting
+  workerRef
 }: UseWorkerActionsProps): DatabaseWorkerApi {
+  const {
+    selectedRowObject,
+    setSelectedRowObject,
+    setIsInserting,
+    editValues
+  } = usePanelManager();
+
   const handleFileUpload = useCallback(
     (file: File) => {
       showToast("Opening database", "info");
@@ -97,71 +64,63 @@ export function useWorkerActions({
 
   const handleTableChange = useCallback(
     (selectedTable: string) => {
+      const { tablesSchema, ...store } = useDatabaseStore.getState();
       const selectedTableSchema = tablesSchema[selectedTable];
       if (!selectedTableSchema) {
         showToast("Selected table schema not found", "error");
         return;
       }
 
-      setFilters(null);
-      setSorters(null);
-      resetPagination();
-      setMaxSize(0);
+      store.setFilters(null);
+      store.setSorters(null);
+      store.resetPagination();
+      store.setMaxSize(0);
       setSelectedRowObject(null);
       setIsInserting(false);
-      setCurrentTable(selectedTable);
-      setColumns(getSelectedTableColumns(tablesSchema, selectedTable));
+      store.setCurrentTable(selectedTable);
+      store.setColumns(getSelectedTableColumns(tablesSchema, selectedTable));
     },
-    [
-      tablesSchema,
-      setFilters,
-      setSorters,
-      resetPagination,
-      setMaxSize,
-      setSelectedRowObject,
-      setIsInserting,
-      setCurrentTable,
-      setColumns
-    ]
+    [setSelectedRowObject, setIsInserting]
   );
 
   const handleQueryFilter = useCallback(
     (column: string, value: string) => {
-      setFilters(
-        createNextFilters(useDatabaseStore.getState().filters, column, value)
-      );
+      const { filters, ...store } = useDatabaseStore.getState();
+      store.setFilters(createNextFilters(filters, column, value));
       setSelectedRowObject(null);
-      resetPagination();
+      store.resetPagination();
     },
-    [setFilters, setSelectedRowObject, resetPagination]
+    [setSelectedRowObject]
   );
 
   const handleQuerySorter = useCallback(
     (column: string) => {
-      setSorters(
-        createNextSorters(useDatabaseStore.getState().sorters, column)
-      );
+      const store = useDatabaseStore.getState();
+      store.setSorters(createNextSorters(store.sorters, column));
       setSelectedRowObject(null);
     },
-    [setSorters, setSelectedRowObject]
+    [setSelectedRowObject]
   );
 
   const handlePageChange = useCallback(
     (type: PageChange) => {
+      const { maxSize, limit, ...store } = useDatabaseStore.getState();
       if (!maxSize) {
         return;
       }
 
-      setOffset((previousOffset) =>
+      store.setOffset((previousOffset) =>
         getNextPageOffset(type, previousOffset, limit, maxSize)
       );
       setSelectedRowObject(null);
     },
-    [maxSize, limit, setOffset, setSelectedRowObject]
+    [setSelectedRowObject]
   );
 
   const handleExport = useCallback(
     (exportType: ExportTypes) => {
+      const { currentTable, offset, limit, filters, sorters, customQuery } =
+        useDatabaseStore.getState();
       if (!currentTable && exportType !== "custom") {
         showToast("No table selected", "error");
         return;
@@ -180,7 +139,7 @@ export function useWorkerActions({
         }
       });
     },
-    [workerRef, currentTable, offset, limit, filters, sorters, customQuery]
+    [workerRef]
   );
 
   const handleQueryExecute = useCallback(() => {
@@ -189,6 +148,8 @@ export function useWorkerActions({
       return;
     }
 
+    const { currentTable, customQuery, filters, sorters, limit, offset } =
+      useDatabaseStore.getState();
     if (!currentTable) {
       showToast("No table selected", "error");
       return;
@@ -203,15 +164,15 @@ export function useWorkerActions({
       return;
     }
 
-    setIsDataLoading(true);
+    useDatabaseStore.getState().setIsDataLoading(true);
 
-    const basePayload = createTableQueryPayload({
+    const basePayload = {
       currentTable,
       filters,
       sorters,
       limit,
       offset
-    });
+    };
 
     if (statements.length === 1) {
       postWorkerMessage(workerRef.current, {
@@ -225,19 +186,11 @@ export function useWorkerActions({
       action: "execBatch",
       payload: { queries: statements, ...basePayload }
     });
-  }, [
-    workerRef,
-    currentTable,
-    customQuery,
-    setIsDataLoading,
-    filters,
-    sorters,
-    limit,
-    offset
-  ]);
+  }, [workerRef]);
 
   const handleEditSubmit = useCallback(
     (type: EditTypes) => {
+      const { currentTable, ...store } = useDatabaseStore.getState();
       if (!currentTable) {
         showToast("No table selected", "error");
         return;
@@ -253,44 +206,35 @@ export function useWorkerActions({
         return;
       }
 
-      setIsDataLoading(true);
+      store.setIsDataLoading(true);
 
       const didPost = postWorkerMessage(workerRef.current, {
         action: type,
         payload: {
           table: currentTable,
-          columns: useDatabaseStore.getState().columns,
-          values: usePanelStore.getState().editValues,
+          columns: store.columns,
+          values: editValues,
           primaryValue: selectedRowObject?.primaryValue
         }
       });
 
       if (!didPost) {
-        setIsDataLoading(false);
+        store.setIsDataLoading(false);
         return;
       }
 
       postWorkerMessage(workerRef.current, {
         action: "refresh",
-        payload: createTableQueryPayload({
+        payload: {
           currentTable,
-          offset,
-          limit,
-          filters,
-          sorters
-        })
+          offset: store.offset,
+          limit: store.limit,
+          filters: store.filters,
+          sorters: store.sorters
+        }
       });
     },
-    [
-      workerRef,
-      currentTable,
-      selectedRowObject,
-      setIsDataLoading,
-      offset,
-      limit,
-      filters,
-      sorters
-    ]
+    [workerRef, selectedRowObject, editValues]
   );
 
   return {

@@ -1,5 +1,8 @@
+import type { QueryExecResult } from "sql.js";
 import showToast from "@/components/common/Toaster/Toast";
-import type { CustomQueryResult, WorkerResponseEvent } from "@/types";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
+import type { WorkerResponseEvent } from "@/types";
+import { getSelectedTableColumns } from "./workerActionUtils";
 
 function triggerDownload(
   data: ArrayBuffer | string,
@@ -15,162 +18,172 @@ function triggerDownload(
 }
 
 interface WorkerMessageActions {
-  setTablesSchema: (schema: import("@/types").TableSchema) => void;
-  setIndexesSchema: (schema: import("@/types").IndexSchema[]) => void;
-  setCurrentTable: (table: string | null) => void;
-  setData: (data: import("sql.js").SqlValue[][] | null) => void;
-  setColumns: (columns: string[] | null) => void;
-  setMaxSize: (size: number) => void;
-  setIsDatabaseLoading: (loading: boolean) => void;
-  setIsDataLoading: (loading: boolean) => void;
-  setErrorMessage: (message: string | null) => void;
-  setFilters: (filters: import("@/types").Filters) => void;
-  setSorters: (sorters: import("@/types").Sorters) => void;
-  setOffset: (offset: number) => void;
-  setCustomQuery: (query: string) => void;
-  setCustomQueryObject: (obj: CustomQueryResult | null) => void;
   handleCloseEdit: () => void;
   setSelectedRowObject: (value: null) => void;
   setIsInserting: (value: boolean) => void;
 }
 
-function getResultRows(results?: import("sql.js").QueryExecResult[]) {
+function getResultRows(results?: QueryExecResult[]) {
   return results?.[0]?.values || [];
 }
 
 function resetTableViewState(actions: WorkerMessageActions) {
-  actions.setFilters(null);
-  actions.setSorters(null);
+  const store = useDatabaseStore.getState();
+  store.setFilters(null);
+  store.setSorters(null);
+  store.setCustomQueryObject(null);
+  store.setCustomQuery("");
+  store.setOffset(0);
   actions.setSelectedRowObject(null);
   actions.setIsInserting(false);
-  actions.setCustomQueryObject(null);
-  actions.setCustomQuery("");
-  actions.setOffset(0);
 }
 
-function applyQueryResults(
-  actions: WorkerMessageActions,
-  results?: import("sql.js").QueryExecResult[]
-) {
+function applyQueryResults(results?: QueryExecResult[]) {
   const data = getResultRows(results);
-  actions.setData(data.length > 0 ? data : null);
+  useDatabaseStore.getState().setData(data.length > 0 ? data : null);
 }
 
-function applyCustomQueryResults(
-  actions: WorkerMessageActions,
-  results: import("sql.js").QueryExecResult[]
-) {
+function applyCustomQueryResults(results: QueryExecResult[]) {
   const data = getResultRows(results);
 
   if (data.length > 0) {
-    actions.setCustomQueryObject({
+    useDatabaseStore.getState().setCustomQueryObject({
       data,
       columns: results[0]?.columns || []
     });
     return;
   }
 
-  actions.setCustomQueryObject(null);
+  useDatabaseStore.getState().setCustomQueryObject(null);
 }
 
 export function createWorkerMessageHandler(actions: WorkerMessageActions) {
   return (event: MessageEvent<WorkerResponseEvent>) => {
     const workerEvent = event.data;
     const { action } = workerEvent;
+    const store = useDatabaseStore.getState();
 
-    if (action === "initComplete") {
-      window.parent.postMessage({ type: "loadDatabaseBufferReady" }, "*");
+    switch (action) {
+      case "initComplete": {
+        window.parent.postMessage({ type: "loadDatabaseBufferReady" }, "*");
 
-      const { payload } = workerEvent;
+        const { payload } = workerEvent;
 
-      if (!payload.currentTable) {
-        console.error("Main: No current table found in payload");
-        actions.setErrorMessage("No tables found in database");
-        actions.setIsDatabaseLoading(false);
-        return;
+        if (!payload.currentTable) {
+          console.error("Main: No current table found in payload");
+          store.setErrorMessage("No tables found in database");
+          store.setIsDatabaseLoading(false);
+          return;
+        }
+
+        const currentTableSchema = payload.tableSchema[payload.currentTable];
+        if (!currentTableSchema) {
+          console.error("Main: Current table schema not found in payload");
+          store.setErrorMessage("Unable to load the current table schema");
+          store.setIsDatabaseLoading(false);
+          return;
+        }
+
+        store.setTablesSchema(payload.tableSchema);
+        store.setIndexesSchema(payload.indexSchema);
+        store.setCurrentTable(payload.currentTable);
+        store.setColumns(
+          getSelectedTableColumns(payload.tableSchema, payload.currentTable)
+        );
+        resetTableViewState(actions);
+        store.setIsDatabaseLoading(false);
+        break;
       }
 
-      const currentTableSchema = payload.tableSchema[payload.currentTable];
-      if (!currentTableSchema) {
-        console.error("Main: Current table schema not found in payload");
-        actions.setErrorMessage("Unable to load the current table schema");
-        actions.setIsDatabaseLoading(false);
-        return;
+      case "queryComplete": {
+        const { payload } = workerEvent;
+
+        store.setMaxSize(payload.maxSize);
+
+        applyQueryResults(payload.results);
+
+        store.setIsDataLoading(false);
+        break;
       }
 
-      actions.setTablesSchema(payload.tableSchema);
-      actions.setIndexesSchema(payload.indexSchema);
-      actions.setCurrentTable(payload.currentTable);
-      actions.setColumns(
-        currentTableSchema.schema.map((column) => column.name)
-      );
-      resetTableViewState(actions);
-      actions.setIsDatabaseLoading(false);
-    } else if (action === "queryComplete") {
-      const { payload } = workerEvent;
+      case "customQueryComplete": {
+        const { payload } = workerEvent;
 
-      actions.setMaxSize(payload.maxSize);
+        applyCustomQueryResults(payload.results);
 
-      applyQueryResults(actions, payload.results);
-
-      actions.setIsDataLoading(false);
-    } else if (action === "customQueryComplete") {
-      const { payload } = workerEvent;
-
-      applyCustomQueryResults(actions, payload.results);
-
-      actions.setIsDataLoading(false);
-      actions.setErrorMessage(null);
-    } else if (action === "updateInstance") {
-      const { payload } = workerEvent;
-
-      actions.setTablesSchema(payload.tableSchema);
-      actions.setIndexesSchema(payload.indexSchema);
-      actions.setIsDataLoading(false);
-      actions.setErrorMessage(null);
-
-      showToast("Database schema updated successfully", "success");
-    } else if (action === "updateComplete") {
-      const { payload } = workerEvent;
-
-      actions.setErrorMessage(null);
-      actions.handleCloseEdit();
-
-      showToast(`Row ${payload.type} successfully`, "success");
-    } else if (action === "insertComplete") {
-      actions.setErrorMessage(null);
-      actions.handleCloseEdit();
-
-      showToast("Row inserted successfully", "success");
-    } else if (action === "downloadComplete") {
-      const { payload } = workerEvent;
-
-      triggerDownload(
-        payload.bytes,
-        "database.sqlite",
-        "application/octet-stream"
-      );
-
-      showToast("Database downloaded successfully", "success");
-    } else if (action === "exportComplete") {
-      const { payload } = workerEvent;
-
-      triggerDownload(payload.results, "export.csv", "text/csv");
-
-      showToast("Database exported successfully", "success");
-    } else if (action === "queryError") {
-      const { payload } = workerEvent;
-
-      console.error("Worker error:", payload.error);
-
-      actions.setIsDataLoading(false);
-
-      if (payload.error.isCustomQueryError) {
-        actions.setErrorMessage(payload.error.message);
+        store.setIsDataLoading(false);
+        store.setErrorMessage(null);
+        break;
       }
-      showToast(payload.error.message, "error");
-    } else {
-      console.warn("Unknown action:", action);
+
+      case "updateInstance": {
+        const { payload } = workerEvent;
+
+        store.setTablesSchema(payload.tableSchema);
+        store.setIndexesSchema(payload.indexSchema);
+        store.setIsDataLoading(false);
+        store.setErrorMessage(null);
+
+        showToast("Database schema updated successfully", "success");
+        break;
+      }
+
+      case "updateComplete": {
+        const { payload } = workerEvent;
+
+        store.setErrorMessage(null);
+        actions.handleCloseEdit();
+
+        showToast(`Row ${payload.type} successfully`, "success");
+        break;
+      }
+
+      case "insertComplete": {
+        store.setErrorMessage(null);
+        actions.handleCloseEdit();
+
+        showToast("Row inserted successfully", "success");
+        break;
+      }
+
+      case "downloadComplete": {
+        const { payload } = workerEvent;
+
+        triggerDownload(
+          payload.bytes,
+          "database.sqlite",
+          "application/octet-stream"
+        );
+
+        showToast("Database downloaded successfully", "success");
+        break;
+      }
+
+      case "exportComplete": {
+        const { payload } = workerEvent;
+
+        triggerDownload(payload.results, "export.csv", "text/csv");
+
+        showToast("Database exported successfully", "success");
+        break;
+      }
+
+      case "queryError": {
+        const { payload } = workerEvent;
+
+        console.error("Worker error:", payload.error);
+
+        store.setIsDataLoading(false);
+
+        if (payload.error.isCustomQueryError) {
+          store.setErrorMessage(payload.error.message);
+        }
+        showToast(payload.error.message, "error");
+        break;
+      }
+
+      default:
+        console.warn("Unknown action:", action);
     }
   };
 }

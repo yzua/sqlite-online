@@ -1,10 +1,4 @@
-import type { Sorters, TableQueryPayload, TableSchema } from "@/types";
-
-export function createTableQueryPayload(
-  payload: TableQueryPayload
-): TableQueryPayload {
-  return payload;
-}
+import type { Filters, Sorters, TableSchema } from "@/types";
 
 export function getSelectedTableColumns(
   tablesSchema: TableSchema,
@@ -16,7 +10,7 @@ export function getSelectedTableColumns(
 }
 
 export function createNextFilters(
-  currentFilters: Record<string, string> | null,
+  currentFilters: Filters,
   column: string,
   value: string
 ) {

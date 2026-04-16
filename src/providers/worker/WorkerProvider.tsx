@@ -9,7 +9,6 @@ import { postWorkerMessage } from "./postWorkerMessage";
 import { useWorkerActions } from "./useWorkerActions";
 import { useWorkerHotkeys } from "./useWorkerHotkeys";
 import DatabaseWorkerContext from "./WorkerContext";
-import { createTableQueryPayload } from "./workerActionUtils";
 
 interface DatabaseWorkerProviderProps {
   children: React.ReactNode;
@@ -18,43 +17,16 @@ interface DatabaseWorkerProviderProps {
 const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   const workerRef = useRef<Worker | null>(null);
 
-  const setTablesSchema = useDatabaseStore((state) => state.setTablesSchema);
-  const setIndexesSchema = useDatabaseStore((state) => state.setIndexesSchema);
-  const setCurrentTable = useDatabaseStore((state) => state.setCurrentTable);
-  const setData = useDatabaseStore((state) => state.setData);
-  const setCustomQuery = useDatabaseStore((state) => state.setCustomQuery);
-  const setColumns = useDatabaseStore((state) => state.setColumns);
-  const setMaxSize = useDatabaseStore((state) => state.setMaxSize);
-  const setIsDatabaseLoading = useDatabaseStore(
-    (state) => state.setIsDatabaseLoading
-  );
-  const setIsDataLoading = useDatabaseStore((state) => state.setIsDataLoading);
-  const setErrorMessage = useDatabaseStore((state) => state.setErrorMessage);
+  const currentTable = useDatabaseStore((state) => state.currentTable);
   const filters = useDatabaseStore((state) => state.filters);
   const sorters = useDatabaseStore((state) => state.sorters);
-  const limit = useDatabaseStore((state) => state.limit);
   const offset = useDatabaseStore((state) => state.offset);
-  const currentTable = useDatabaseStore((state) => state.currentTable);
-  const maxSize = useDatabaseStore((state) => state.maxSize);
-  const setOffset = useDatabaseStore((state) => state.setOffset);
-  const setFilters = useDatabaseStore((state) => state.setFilters);
-  const setSorters = useDatabaseStore((state) => state.setSorters);
   const setLimit = useDatabaseStore((state) => state.setLimit);
-  const resetPagination = useDatabaseStore((state) => state.resetPagination);
-  const setCustomQueryObject = useDatabaseStore(
-    (state) => state.setCustomQueryObject
-  );
-  const customQuery = useDatabaseStore((state) => state.customQuery);
-  const tablesSchema = useDatabaseStore((state) => state.tablesSchema);
-
-  const {
-    selectedRowObject,
-    setSelectedRowObject,
-    setIsInserting,
-    handleCloseEdit
-  } = usePanelManager();
 
   const [isFirstTimeLoading, setIsFirstTimeLoading] = useState(true);
+
+  const { handleCloseEdit, setSelectedRowObject, setIsInserting } =
+    usePanelManager();
 
   // Initialize worker and send initial "init" message
   useEffect(() => {
@@ -70,8 +42,10 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
           colno: error.colno,
           error
         });
-        setErrorMessage("Worker failed to initialize");
-        setIsDatabaseLoading(false);
+        useDatabaseStore
+          .getState()
+          .setErrorMessage("Worker failed to initialize");
+        useDatabaseStore.getState().setIsDatabaseLoading(false);
       };
 
       workerRef.current.onmessageerror = (error) => {
@@ -79,33 +53,19 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
       };
     } catch (error) {
       console.error("Main: Failed to create worker:", error);
-      setErrorMessage("Failed to create worker");
-      setIsDatabaseLoading(false);
+      useDatabaseStore.getState().setErrorMessage("Failed to create worker");
+      useDatabaseStore.getState().setIsDatabaseLoading(false);
       return;
     }
 
     // Listen for messages from the worker
     workerRef.current.onmessage = createWorkerMessageHandler({
-      setTablesSchema,
-      setIndexesSchema,
-      setCurrentTable,
-      setData,
-      setColumns,
-      setMaxSize,
-      setIsDatabaseLoading,
-      setIsDataLoading,
-      setErrorMessage,
-      setFilters,
-      setSorters,
-      setOffset,
-      setCustomQuery,
-      setCustomQueryObject,
       handleCloseEdit,
       setSelectedRowObject,
       setIsInserting
     });
 
-    setIsDatabaseLoading(true);
+    useDatabaseStore.getState().setIsDatabaseLoading(true);
 
     // Request the worker to initialize the demo database
     workerRef.current.postMessage({ action: "init" });
@@ -116,25 +76,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
         workerRef.current.terminate();
       }
     };
-  }, [
-    setColumns,
-    setOffset,
-    setIsDatabaseLoading,
-    setTablesSchema,
-    setCurrentTable,
-    setIndexesSchema,
-    setCustomQueryObject,
-    setData,
-    setMaxSize,
-    setIsDataLoading,
-    setErrorMessage,
-    setFilters,
-    setSorters,
-    setSelectedRowObject,
-    handleCloseEdit,
-    setIsInserting,
-    setCustomQuery
-  ]);
+  }, [handleCloseEdit, setSelectedRowObject, setIsInserting]);
 
   // When fetching data, ask the worker for new data
   useEffect(() => {
@@ -147,7 +89,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
         return;
       }
 
-      setIsDataLoading(true);
+      useDatabaseStore.getState().setIsDataLoading(true);
 
       const limit = calculateTableLimit(isFirstTimeLoading);
       if (isFirstTimeLoading) {
@@ -158,26 +100,18 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
       postWorkerMessage(workerRef.current, {
         action: "getTableData",
-        payload: createTableQueryPayload({
+        payload: {
           currentTable,
           filters,
           sorters,
           limit,
           offset
-        })
+        }
       });
     }, 100);
 
     return () => clearTimeout(handler);
-  }, [
-    currentTable,
-    filters,
-    sorters,
-    isFirstTimeLoading,
-    offset,
-    setLimit,
-    setIsDataLoading
-  ]);
+  }, [currentTable, filters, sorters, isFirstTimeLoading, offset, setLimit]);
 
   const loadDatabaseBuffer = useCallback(async (buffer: ArrayBuffer) => {
     workerRef.current?.postMessage({
@@ -226,28 +160,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
     handleExport,
     handleQueryExecute,
     handleEditSubmit
-  } = useWorkerActions({
-    workerRef,
-    currentTable,
-    tablesSchema,
-    filters,
-    sorters,
-    limit,
-    offset,
-    maxSize,
-    customQuery,
-    selectedRowObject,
-    setCurrentTable,
-    setColumns,
-    setFilters,
-    setSorters,
-    setOffset,
-    setMaxSize,
-    setIsDataLoading,
-    resetPagination,
-    setSelectedRowObject,
-    setIsInserting
-  });
+  } = useWorkerActions({ workerRef });
 
   useWorkerHotkeys({
     handleDownload,
