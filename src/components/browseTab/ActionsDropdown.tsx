@@ -17,25 +17,19 @@ import {
   selectIsCurrentTableView,
   useDatabaseStore
 } from "@/store/useDatabaseStore";
-import type { ExportTypes, Filters, Sorters } from "@/types";
+import type { Filters, Sorters } from "@/types";
+import { useBrowseActions } from "./useBrowseActions";
 
 interface ActionDropdownProps {
-  setFilters: (filters: Filters) => void;
-  setSorters: (sorters: Sorters) => void;
   filters: Filters;
   sorters: Sorters;
-  handleExport: (exportType: ExportTypes) => void;
 }
 
-function ActionsDropdown({
-  setFilters,
-  setSorters,
-  filters,
-  sorters,
-  handleExport
-}: Readonly<ActionDropdownProps>) {
-  const { isInserting, handleInsert, setSelectedRowObject } = usePanelManager();
+function ActionsDropdown({ filters, sorters }: Readonly<ActionDropdownProps>) {
+  const { isInserting, handleInsert } = usePanelManager();
   const isView = useDatabaseStore(selectIsCurrentTableView);
+  const { handleClearFilters, handleResetSorters, handleExport } =
+    useBrowseActions();
 
   return (
     <DropdownMenu>
@@ -50,10 +44,7 @@ function ActionsDropdown({
             variant="ghost"
             size="sm"
             className="w-full justify-start text-xs"
-            onClick={() => {
-              setFilters(null);
-              setSelectedRowObject(null);
-            }}
+            onClick={handleClearFilters}
             disabled={filters == null}
             title="Clear applied filters"
           >
@@ -66,10 +57,7 @@ function ActionsDropdown({
             variant="ghost"
             size="sm"
             className="w-full justify-start text-xs"
-            onClick={() => {
-              setSorters(null);
-              setSelectedRowObject(null);
-            }}
+            onClick={handleResetSorters}
             disabled={sorters == null}
             title="Reset sorting"
           >

@@ -3,7 +3,7 @@ import {
   ChevronsUpDownIcon,
   DatabaseIcon
 } from "lucide-react";
-import { memo, useCallback, useState } from "react";
+import { memo, useCallback, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { TableSchema } from "@/types";
@@ -30,13 +30,15 @@ const TablesSection = memo(
     expandedTables,
     toggleTable
   }: TablesSectionProps) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const tableNames = useMemo(() => Object.keys(tablesSchema), [tablesSchema]);
+    const isExpanded =
+      tableNames.length > 0 &&
+      tableNames.every((t) => expandedTables.includes(t));
 
     const handleExpandAll = useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         expandAllTables(tablesSchema);
-        setIsExpanded(true);
       },
       [expandAllTables, tablesSchema]
     );
@@ -45,7 +47,6 @@ const TablesSection = memo(
       (e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
         collapseAllTables();
-        setIsExpanded(false);
       },
       [collapseAllTables]
     );

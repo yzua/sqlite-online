@@ -21,27 +21,23 @@ import {
 import SorterButton from "../table/SorterButton";
 import BrowseTableEmptyState from "./BrowseTableEmptyState";
 import BrowseTableRow from "./BrowseTableRow";
+import { getRowMeta } from "./rowMeta";
+import { useBrowseActions } from "./useBrowseActions";
 
 function DataTable() {
   const { data, columns, currentTable, currentTableSchema, filters, sorters } =
     useDatabaseStore(useShallow(selectBrowseTableState));
-  const setFilters = useDatabaseStore((state) => state.setFilters);
 
   const { handleQueryFilter } = useDatabaseWorker();
   const { handleRowClick, selectedRowObject } = usePanelManager();
-
-  const handleClearFilters = useCallback(() => {
-    setFilters(null);
-  }, [setFilters]);
+  const { handleClearFilters } = useBrowseActions();
 
   const getRowKey = useCallback(
     (row: SqlValue[]) => {
-      const isView = currentTableSchema?.type === "view";
-      const primaryKey = currentTableSchema?.primaryKey;
-      const primaryValue = primaryKey && !isView ? row[0] : null;
+      const { primaryValue, displayData } = getRowMeta(row, currentTableSchema);
       return primaryValue != null
         ? String(primaryValue)
-        : row.map((cell) => String(cell)).join("|");
+        : displayData.map((cell) => String(cell)).join("|");
     },
     [currentTableSchema]
   );
@@ -59,7 +55,7 @@ function DataTable() {
             {columns && currentTableSchema ? (
               columns.map((column, index) => (
                 <TableHead
-                  key={`${column ?? "column"}-${index}`}
+                  key={column ?? `column-${index}`}
                   className="p-1 text-xs"
                   role="columnheader"
                   aria-sort={
@@ -95,19 +91,22 @@ function DataTable() {
         </TableHeader>
         <TableBody>
           {data && data.length > 0 ? (
-            data.map((row, index) => (
-              <BrowseTableRow
-                key={`${getRowKey(row)}-${index}`}
-                row={row}
-                rowKey={getRowKey(row)}
-                rowIndex={index}
-                rowCount={data.length}
-                columns={columns}
-                currentTableSchema={currentTableSchema}
-                selectedRowIndex={selectedRowObject?.index}
-                onSelectRow={handleRowClick}
-              />
-            ))
+            data.map((row, index) => {
+              const rowKey = getRowKey(row) || String(index);
+              return (
+                <BrowseTableRow
+                  key={rowKey}
+                  row={row}
+                  rowKey={rowKey}
+                  rowIndex={index}
+                  rowCount={data.length}
+                  columns={columns}
+                  currentTableSchema={currentTableSchema}
+                  selectedRowIndex={selectedRowObject?.index}
+                  onSelectRow={handleRowClick}
+                />
+              );
+            })
           ) : (
             <TableRow role="row">
               <TableCell

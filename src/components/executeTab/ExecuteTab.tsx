@@ -1,15 +1,14 @@
 import { useCallback, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
-import SchemaTree from "@/components/structureTab/SchemaTree";
+import SchemaTreePanel from "@/components/structureTab/SchemaTreePanel";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from "@/components/ui/resizable";
 import { useGeminiAI } from "@/hooks/useGeminiAI";
+import { usePanelSizing } from "@/hooks/usePanelSizing";
 import useDatabaseWorker from "@/hooks/useWorker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { selectPanelSizes, usePanelStore } from "@/store/usePanelStore";
 import ApiKeyModal from "./ApiKeyModal";
 import ExecuteTabEditorPanel from "./ExecuteTabEditorPanel";
 import ExecuteTabToolbar from "./ExecuteTabToolbar";
@@ -22,11 +21,12 @@ function ExecuteTab() {
     (state) => state.isDatabaseLoading
   );
 
-  const { dataPanelSize, schemaPanelSize } = usePanelStore(
-    useShallow(selectPanelSizes)
-  );
-  const setDataPanelSize = usePanelStore((state) => state.setDataPanelSize);
-  const setSchemaPanelSize = usePanelStore((state) => state.setSchemaPanelSize);
+  const {
+    dataPanelSize,
+    schemaPanelSize,
+    setDataPanelSize,
+    setSchemaPanelSize
+  } = usePanelSizing();
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
   const customQueryObject = useDatabaseStore(
@@ -84,11 +84,7 @@ function ExecuteTab() {
             onResize={setSchemaPanelSize}
             className="hidden md:block"
           >
-            <div className="h-full overflow-hidden">
-              <div className="h-full overflow-y-auto">
-                <SchemaTree />
-              </div>
-            </div>
+            <SchemaTreePanel />
           </ResizablePanel>
         </ResizablePanelGroup>
         <ApiKeyModal

@@ -3,6 +3,7 @@ import Badge from "@/components/ui/badge";
 import { Span } from "@/components/ui/span";
 import { TableCell, TableRow } from "@/components/ui/table";
 import type { TableSchema } from "@/types";
+import { getRowMeta } from "./rowMeta";
 
 interface BrowseTableRowProps {
   row: SqlValue[];
@@ -29,10 +30,7 @@ function BrowseTableRow({
   selectedRowIndex,
   onSelectRow
 }: BrowseTableRowProps) {
-  const isView = currentTableSchema?.type === "view";
-  const primaryKey = currentTableSchema?.primaryKey;
-  const primaryValue = primaryKey && !isView ? (row[0] ?? null) : null;
-  const displayData = primaryKey && !isView ? row.slice(1) : row;
+  const { primaryValue, displayData } = getRowMeta(row, currentTableSchema);
 
   const handleSelect = () => {
     onSelectRow(displayData, rowIndex, primaryValue);
@@ -56,12 +54,7 @@ function BrowseTableRow({
     >
       {displayData.map((value, columnIndex) => (
         <TableCell
-          key={JSON.stringify({
-            column: columns?.[columnIndex] ?? null,
-            schemaName: currentTableSchema?.schema[columnIndex]?.name ?? null,
-            schemaType: currentTableSchema?.schema[columnIndex]?.type ?? null,
-            value
-          })}
+          key={columns?.[columnIndex] ?? columnIndex}
           className="border-primary/5 border-t p-2"
           role="cell"
           aria-label={`${columns?.[columnIndex] || `Column ${columnIndex + 1}`}: ${

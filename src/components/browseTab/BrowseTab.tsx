@@ -1,21 +1,20 @@
 import { LoaderCircleIcon } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
-import SchemaTree from "@/components/structureTab/SchemaTree";
+import SchemaTreePanel from "@/components/structureTab/SchemaTreePanel";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from "@/components/ui/resizable";
 import usePanelManager from "@/hooks/usePanel";
+import { usePanelSizing } from "@/hooks/usePanelSizing";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { selectPanelSizes, usePanelStore } from "@/store/usePanelStore";
 import ActionButtons from "./ActionButtons";
 import BrowseTabEditOverlay from "./BrowseTabEditOverlay";
 import DataTable from "./DataTable";
 import PaginationControls from "./PaginationControls";
 import TableSelector from "./TableSelector";
 
-function BrowseDataTab() {
+function BrowseTab() {
   const filters = useDatabaseStore((state) => state.filters);
   const sorters = useDatabaseStore((state) => state.sorters);
   const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
@@ -23,11 +22,12 @@ function BrowseDataTab() {
     (state) => state.isDatabaseLoading
   );
 
-  const { dataPanelSize, schemaPanelSize } = usePanelStore(
-    useShallow(selectPanelSizes)
-  );
-  const setDataPanelSize = usePanelStore((state) => state.setDataPanelSize);
-  const setSchemaPanelSize = usePanelStore((state) => state.setSchemaPanelSize);
+  const {
+    dataPanelSize,
+    schemaPanelSize,
+    setDataPanelSize,
+    setSchemaPanelSize
+  } = usePanelSizing();
 
   const { isEditing } = usePanelManager();
 
@@ -76,11 +76,7 @@ function BrowseDataTab() {
               onResize={setSchemaPanelSize}
               className="relative"
             >
-              <div className="h-full overflow-hidden">
-                <div className="h-full overflow-y-auto">
-                  <SchemaTree />
-                </div>
-              </div>
+              <SchemaTreePanel />
               <BrowseTabEditOverlay isEditing={isEditing} />
             </ResizablePanel>
           </div>
@@ -94,4 +90,4 @@ function BrowseDataTab() {
   );
 }
 
-export default BrowseDataTab;
+export default BrowseTab;

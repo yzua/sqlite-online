@@ -1,13 +1,17 @@
+import { useShallow } from "zustand/react/shallow";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 function LiveRegion() {
-  const isDatabaseLoading = useDatabaseStore(
-    (state) => state.isDatabaseLoading
-  );
-  const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
-  const currentTable = useDatabaseStore((state) => state.currentTable);
-  const data = useDatabaseStore((state) => state.data);
-  const maxSize = useDatabaseStore((state) => state.maxSize);
+  const { isDatabaseLoading, isDataLoading, currentTable, data, maxSize } =
+    useDatabaseStore(
+      useShallow((state) => ({
+        isDatabaseLoading: state.isDatabaseLoading,
+        isDataLoading: state.isDataLoading,
+        currentTable: state.currentTable,
+        data: state.data,
+        maxSize: state.maxSize
+      }))
+    );
 
   let message = "";
 
@@ -15,7 +19,7 @@ function LiveRegion() {
     message = "Loading database, please wait...";
   } else if (isDataLoading) {
     message = "Loading table data...";
-  } else if (currentTable && data) {
+  } else if (currentTable && data?.length) {
     const rowCount = data.length;
     const totalRows = maxSize || 0;
     message = `Loaded ${rowCount} rows from ${currentTable} table. Total rows: ${totalRows}`;
