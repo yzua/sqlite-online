@@ -7,7 +7,7 @@ export function isAiPrompt(query: string) {
   return query.startsWith("/ai ");
 }
 
-export function buildGeminiPrompt(query: string, tablesSchema: TableSchema) {
+function buildGeminiPrompt(query: string, tablesSchema: TableSchema) {
   const schemaJson = JSON.stringify(tablesSchema, null, 2);
 
   return `You are an expert SQLite assistant. Your role is to generate a single, valid SQLite query based on the provided database schema and user prompt.
@@ -50,44 +50,40 @@ export async function requestGeminiSql(
   return parseGeminiSqlResponse(data);
 }
 
-export function parseGeminiSqlResponse(data: unknown) {
+function parseGeminiSqlResponse(data: unknown) {
   const rawText = extractCandidateText(data);
   const sqlMatch = rawText.match(/```(?:sql|sqlite)\n([\s\S]*?)\n```/);
   return sqlMatch?.[1] ? sqlMatch[1].trim() : rawText.trim();
 }
 
-function extractCandidateText(data: unknown) {
-  if (
-    typeof data === "object" &&
-    data !== null &&
-    "candidates" in data &&
-    Array.isArray(data.candidates)
-  ) {
-    const firstCandidate = data.candidates[0];
-    if (
-      typeof firstCandidate === "object" &&
-      firstCandidate !== null &&
-      "content" in firstCandidate
-    ) {
-      const content = firstCandidate.content;
-      if (
-        typeof content === "object" &&
-        content !== null &&
-        "parts" in content &&
-        Array.isArray(content.parts)
-      ) {
-        const firstPart = content.parts[0];
-        if (
-          typeof firstPart === "object" &&
-          firstPart !== null &&
-          "text" in firstPart &&
-          typeof firstPart.text === "string"
-        ) {
-          return firstPart.text;
-        }
-      }
-    }
+function extractCandidateText(data: unknown): string {
+  if (typeof data !== "object" || data === null || !("candidates" in data)) {
+    throw new Error("Unexpected Gemini response format");
   }
 
-  throw new Error("Unexpected Gemini response format");
+  const candidates = (data as { candidates: unknown[] }).candidates;
+  if (!Array.isArray(candidates) || candidates.length === 0) {
+    throw new Error("Unexpected Gemini response format");
+  }
+
+  const content = (candidates[0] as Record<string, unknown>)?.content;
+  if (
+    typeof content !== "object" ||
+    content === null ||
+    !("parts" in content)
+  ) {
+    throw new Error("Unexpected Gemini response format");
+  }
+
+  const parts = (content as { parts: unknown[] }).parts;
+  if (!Array.isArray(parts) || parts.length === 0) {
+    throw new Error("Unexpected Gemini response format");
+  }
+
+  const text = (parts[0] as Record<string, unknown>)?.text;
+  if (typeof text !== "string") {
+    throw new Error("Unexpected Gemini response format");
+  }
+
+  return text;
 }

@@ -3,11 +3,11 @@
  * Helps improve performance by caching frequently accessed data
  */
 
+import type { Filters, Sorters } from "@/types";
+
 interface CacheEntry<T> {
   data: T;
   timestamp: number;
-  accessCount: number;
-  lastAccessed: number;
 }
 
 class QueryCache<T = unknown> {
@@ -28,8 +28,8 @@ class QueryCache<T = unknown> {
     table: string,
     limit: number,
     offset: number,
-    filters?: Record<string, string> | null,
-    sorters?: Record<string, string> | null
+    filters?: Filters,
+    sorters?: Sorters
   ): string {
     const filterStr = filters ? JSON.stringify(filters) : "";
     const sorterStr = sorters ? JSON.stringify(sorters) : "";
@@ -43,8 +43,8 @@ class QueryCache<T = unknown> {
     table: string,
     limit: number,
     offset: number,
-    filters?: Record<string, string> | null,
-    sorters?: Record<string, string> | null
+    filters?: Filters,
+    sorters?: Sorters
   ): T | null {
     const key = this.generateKey(table, limit, offset, filters, sorters);
     const entry = this.cache.get(key);
@@ -53,17 +53,15 @@ class QueryCache<T = unknown> {
       return null;
     }
 
-    const now = Date.now();
-
     // Check if entry is expired
-    if (now - entry.timestamp > this.maxAge) {
+    if (Date.now() - entry.timestamp > this.maxAge) {
       this.cache.delete(key);
       return null;
     }
 
-    // Update access statistics
-    entry.accessCount++;
-    entry.lastAccessed = now;
+    // Promote to most-recently-used by reinserting at the end
+    this.cache.delete(key);
+    this.cache.set(key, entry);
 
     return entry.data;
   }
@@ -76,22 +74,22 @@ class QueryCache<T = unknown> {
     limit: number,
     offset: number,
     data: T,
-    filters?: Record<string, string> | null,
-    sorters?: Record<string, string> | null
+    filters?: Filters,
+    sorters?: Sorters
   ): void {
     const key = this.generateKey(table, limit, offset, filters, sorters);
-    const now = Date.now();
 
-    // If cache is full, remove least recently used entry
+    // If cache is full, evict least-recently-used (first in Map order)
     if (this.cache.size >= this.maxSize) {
-      this.evictLRU();
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey !== undefined) {
+        this.cache.delete(oldestKey);
+      }
     }
 
     this.cache.set(key, {
       data,
-      timestamp: now,
-      accessCount: 1,
-      lastAccessed: now
+      timestamp: Date.now()
     });
   }
 
@@ -99,17 +97,12 @@ class QueryCache<T = unknown> {
    * Invalidate cache entries for a specific table
    */
   invalidateTable(table: string): void {
-    const keysToDelete: string[] = [];
-
+    const prefix = `${table}:`;
     for (const key of this.cache.keys()) {
-      if (key.startsWith(`${table}:`)) {
-        keysToDelete.push(key);
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key);
       }
     }
-
-    keysToDelete.forEach((key) => {
-      this.cache.delete(key);
-    });
   }
 
   /**
@@ -120,75 +113,10 @@ class QueryCache<T = unknown> {
   }
 
   /**
-   * Remove expired entries
+   * Current number of entries in the cache
    */
-  cleanup(): void {
-    const now = Date.now();
-    const keysToDelete: string[] = [];
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (now - entry.timestamp > this.maxAge) {
-        keysToDelete.push(key);
-      }
-    }
-
-    keysToDelete.forEach((key) => {
-      this.cache.delete(key);
-    });
-  }
-
-  /**
-   * Evict least recently used entry
-   */
-  private evictLRU(): void {
-    let oldestKey: string | null = null;
-    let oldestTime = Date.now();
-
-    for (const [key, entry] of this.cache.entries()) {
-      if (entry.lastAccessed < oldestTime) {
-        oldestTime = entry.lastAccessed;
-        oldestKey = key;
-      }
-    }
-
-    if (oldestKey) {
-      this.cache.delete(oldestKey);
-    }
-  }
-
-  /**
-   * Get cache statistics
-   */
-  getStats(): {
-    size: number;
-    maxSize: number;
-    hitRate: number;
-    entries: Array<{
-      key: string;
-      accessCount: number;
-      age: number;
-    }>;
-  } {
-    const now = Date.now();
-    const entries = Array.from(this.cache.entries()).map(([key, entry]) => ({
-      key,
-      accessCount: entry.accessCount,
-      age: now - entry.timestamp
-    }));
-
-    // Calculate hit rate (simplified - would need request tracking for accurate rate)
-    const totalAccesses = entries.reduce(
-      (sum, entry) => sum + entry.accessCount,
-      0
-    );
-    const hitRate = entries.length > 0 ? totalAccesses / entries.length : 0;
-
-    return {
-      size: this.cache.size,
-      maxSize: this.maxSize,
-      hitRate,
-      entries
-    };
+  get size(): number {
+    return this.cache.size;
   }
 }
 
