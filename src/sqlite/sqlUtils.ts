@@ -13,7 +13,7 @@ export function sanitizeIdentifier(name: string): string {
   return `"${name.replace(/"/g, '""')}"`;
 }
 
-export function sanitizeSortOrder(order: string): string {
+function sanitizeSortOrder(order: string): string {
   const normalizedOrder = order.toUpperCase().trim();
   return normalizedOrder === "DESC" ? "DESC" : "ASC";
 }
@@ -86,7 +86,7 @@ export function runPreparedScalar(
 export function arrayToCSV(columns: string[], rows: SqlValue[][]) {
   const header = columns.map((column) => `"${column}"`).join(",");
   const csvRows = rows.map((row) =>
-    columns.map((column) => `"${row[columns.indexOf(column)] ?? ""}"`).join(",")
+    columns.map((_, i) => `"${row[i] ?? ""}"`).join(",")
   );
   return [header, ...csvRows].join("\n");
 }

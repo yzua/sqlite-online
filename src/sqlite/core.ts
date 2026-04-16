@@ -6,7 +6,6 @@ import type { Filters, IndexSchema, Sorters, TableSchema } from "@/types";
 import DEMO_DB from "./demo-db";
 import { readDatabaseSchema } from "./schema";
 import {
-  arrayToCSV,
   buildOrderByClause,
   buildWhereClause,
   isStructureChangeable,
@@ -100,6 +99,15 @@ export default class Sqlite {
     this.firstTable = schemaSnapshot.firstTable;
   }
 
+  // Run a query, using prepared statement when params are provided
+  private runQuery(query: string, params: string[] = []) {
+    if (params.length > 0) {
+      return runPreparedQuery(this.db, query, params);
+    }
+    const [results] = this.exec(query);
+    return results;
+  }
+
   // Get the max size of the requested table
   // Used for pagination
   private getMaxSizeOfTable(tableName: string, filters?: Filters) {
@@ -111,12 +119,12 @@ export default class Sqlite {
     if (params.length > 0) {
       const result = runPreparedScalar(this.db, query, params);
       return Math.ceil((result as SqlValue[])[0] as number);
-    } else {
-      const [results] = this.exec(query);
-      if (results.length === 0) return 0;
-      const count = results[0]?.values[0]?.[0];
-      return Math.ceil(Number(count ?? 0));
     }
+
+    const results = this.runQuery(query);
+    if (results.length === 0) return 0;
+    const count = results[0]?.values[0]?.[0];
+    return Math.ceil(Number(count ?? 0));
   }
 
   // Get the data for the requested table
@@ -164,12 +172,7 @@ export default class Sqlite {
       LIMIT ${safeLimit} OFFSET ${safeOffset}
     `;
 
-    let results: QueryExecResult[] = [];
-    if (params.length > 0) {
-      results = runPreparedQuery(this.db, query, params);
-    } else {
-      [results] = this.exec(query);
-    }
+    const results = this.runQuery(query, params);
 
     // If the table is empty return empty results with zero count
     if (results.length === 0) return [[], 0] as const;
@@ -193,6 +196,21 @@ export default class Sqlite {
     return tableSchema.primaryKey;
   }
 
+  // Execute a mutation (insert/update/delete) with cache invalidation
+  private withCacheInvalidation(
+    table: string,
+    operation: string,
+    fn: () => void
+  ) {
+    try {
+      fn();
+      tableDataCache.invalidateTable(table);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Error while ${operation} table ${table}: ${message}`);
+    }
+  }
+
   // Update a row in a table
   public update(
     table: string,
@@ -200,7 +218,7 @@ export default class Sqlite {
     values: SqlValue[],
     id: SqlValue
   ) {
-    try {
+    this.withCacheInvalidation(table, "updating", () => {
       const primaryKey = this.getPrimaryKey(table);
       if (!primaryKey) {
         throw new Error(
@@ -208,38 +226,25 @@ export default class Sqlite {
         );
       }
 
-      // Construct the SET clause
       const setClause = columns
         .map((column) => `${sanitizeIdentifier(column)} = ?`)
         .join(", ");
 
-      // The WHERE clause is based on the primary key
       const query = `UPDATE ${sanitizeIdentifier(table)} SET ${setClause} WHERE ${sanitizeIdentifier(primaryKey)} = ?`;
 
-      // Update values make '' -> NULL
-      values = values.map((value) => (value === "" ? null : value));
+      const normalizedValues = values.map((value) =>
+        value === "" ? null : value
+      );
 
-      // Prepare and execute the query
       const stmt = this.db.prepare(query);
-      stmt.run([...values, id]); // Primary key is the last parameter
+      stmt.run([...normalizedValues, id]);
       stmt.free();
-
-      // Invalidate cache for this table
-      tableDataCache.invalidateTable(table);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Error while updating table ${table}: ${error.message}`
-        );
-      } else {
-        throw new Error(`Error while updating table ${table}: ${error}`);
-      }
-    }
+    });
   }
 
   // Delete a row from a table
   public delete(table: string, id: SqlValue) {
-    try {
+    this.withCacheInvalidation(table, "deleting from", () => {
       const primaryKey = this.getPrimaryKey(table);
       if (!primaryKey) {
         throw new Error(
@@ -252,24 +257,12 @@ export default class Sqlite {
       const stmt = this.db.prepare(query);
       stmt.run([id]);
       stmt.free();
-
-      // Invalidate cache for this table
-      tableDataCache.invalidateTable(table);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(
-          `Error while deleting from table ${table}: ${error.message}`
-        );
-      } else {
-        throw new Error(`Error while deleting from table ${table}: ${error}`);
-      }
-    }
+    });
   }
 
   // Insert a row into a table
   public insert(table: string, columns: string[], values: SqlValue[]) {
-    try {
-      // Filter out empty values and their corresponding columns
+    this.withCacheInvalidation(table, "inserting into", () => {
       const filteredEntries = columns
         .map((col, index) => {
           const value = values[index];
@@ -283,7 +276,6 @@ export default class Sqlite {
           (entry): entry is { col: string; val: SqlValue } => entry !== null
         );
 
-      // If there are no valid columns/values, avoid executing an empty INSERT
       if (filteredEntries.length === 0) {
         throw new Error("No valid values provided for insertion.");
       }
@@ -296,12 +288,7 @@ export default class Sqlite {
       const stmt = this.db.prepare(query);
       stmt.run([...filteredValues]);
       stmt.free();
-
-      // Invalidate cache for this table
-      tableDataCache.invalidateTable(table);
-    } catch (error) {
-      throw new Error(`Error while inserting into table ${table}: ${error}`);
-    }
+    });
   }
 
   // Used for exporting data as CSV
@@ -344,16 +331,9 @@ export default class Sqlite {
       query += ` LIMIT ${safeLimit} OFFSET ${safeOffset}`;
     }
 
-    if (params.length > 0) {
-      return runPreparedQuery(this.db, query, params);
-    } else {
-      const [results] = this.exec(query);
-      return results;
-    }
+    return this.runQuery(query, params);
   }
 }
-
-export { arrayToCSV };
 
 export class CustomQueryError extends Error {
   constructor(message: string) {

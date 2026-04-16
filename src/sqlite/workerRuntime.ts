@@ -1,34 +1,15 @@
-import type { QueryExecResult, SqlValue } from "sql.js";
-import type {
-  EditResultType,
-  Filters,
-  Sorters,
-  TableQueryPayload
-} from "@/types";
+import type { QueryExecResult } from "sql.js";
+import type { EditResultType, TableQueryPayload, WorkerEvent } from "@/types";
 import type Sqlite from "./core";
-import { arrayToCSV, CustomQueryError } from "./core";
+import { CustomQueryError } from "./core";
+import { arrayToCSV } from "./sqlUtils";
 
 type WorkerPostMessage = (message: unknown) => void;
 
-interface ExportPayload {
-  table: string;
-  filters: Filters;
-  sorters: Sorters;
-  limit: number;
-  offset: number;
-  customQuery: string;
-  exportType: "table" | "current" | "custom";
-}
-
-interface RowMutationPayload {
-  table: string;
-  columns: string[];
-  values: SqlValue[];
-  primaryValue: SqlValue;
-}
-
-type DeletePayload = Pick<RowMutationPayload, "table" | "primaryValue">;
-type InsertPayload = Pick<RowMutationPayload, "table" | "columns" | "values">;
+type ExportPayload = Extract<WorkerEvent, { action: "export" }>["payload"];
+type RowMutationPayload = Extract<WorkerEvent, { action: "update" }>["payload"];
+type DeletePayload = Extract<WorkerEvent, { action: "delete" }>["payload"];
+type InsertPayload = Extract<WorkerEvent, { action: "insert" }>["payload"];
 
 function emit(
   postMessage: WorkerPostMessage,
@@ -73,10 +54,7 @@ export function emitQueryComplete(
   emit(postMessage, "queryComplete", { results, maxSize });
 }
 
-export function emitSchemaUpdate(
-  postMessage: WorkerPostMessage,
-  instance: Sqlite
-) {
+function emitSchemaUpdate(postMessage: WorkerPostMessage, instance: Sqlite) {
   emit(postMessage, "updateInstance", {
     tableSchema: instance.tablesSchema,
     indexSchema: instance.indexesSchema
@@ -133,6 +111,27 @@ export function loadCurrentTable(instance: Sqlite, payload: TableQueryPayload) {
   );
 }
 
+function handleExecutionResults(
+  instance: Sqlite,
+  results: readonly QueryExecResult[],
+  hasTablesChanged: boolean,
+  payload: TableQueryPayload,
+  postMessage: WorkerPostMessage
+) {
+  if (hasTablesChanged) {
+    emitSchemaUpdate(postMessage, instance);
+    return;
+  }
+
+  if (results.length > 0) {
+    emit(postMessage, "customQueryComplete", { results });
+    return;
+  }
+
+  const [tableResults, maxSize] = loadCurrentTable(instance, payload);
+  emitQueryComplete(postMessage, tableResults, maxSize);
+}
+
 export function executeStatement(
   instance: Sqlite,
   query: string,
@@ -141,18 +140,13 @@ export function executeStatement(
 ) {
   try {
     const [results, doTablesChanged] = instance.exec(query);
-    if (doTablesChanged) {
-      emitSchemaUpdate(postMessage, instance);
-      return;
-    }
-
-    if (results.length > 0) {
-      emit(postMessage, "customQueryComplete", { results });
-      return;
-    }
-
-    const [tableResults, maxSize] = loadCurrentTable(instance, payload);
-    emitQueryComplete(postMessage, tableResults, maxSize);
+    handleExecutionResults(
+      instance,
+      results,
+      doTablesChanged,
+      payload,
+      postMessage
+    );
   } catch (error) {
     if (error instanceof Error) {
       throw new CustomQueryError(error.message);
@@ -168,7 +162,7 @@ export function executeBatchStatements(
 ) {
   try {
     let hasTablesChanged = false;
-    let lastResults: QueryExecResult[] | null = null;
+    let lastResults: QueryExecResult[] = [];
 
     for (const query of queries) {
       const [results, doTablesChanged] = instance.exec(query);
@@ -178,18 +172,13 @@ export function executeBatchStatements(
       }
     }
 
-    if (hasTablesChanged) {
-      emitSchemaUpdate(postMessage, instance);
-      return;
-    }
-
-    if (lastResults && lastResults.length > 0) {
-      emit(postMessage, "customQueryComplete", { results: lastResults });
-      return;
-    }
-
-    const [tableResults, maxSize] = loadCurrentTable(instance, payload);
-    emitQueryComplete(postMessage, tableResults, maxSize);
+    handleExecutionResults(
+      instance,
+      lastResults,
+      hasTablesChanged,
+      payload,
+      postMessage
+    );
   } catch (error) {
     if (error instanceof Error) {
       throw new CustomQueryError(error.message);
