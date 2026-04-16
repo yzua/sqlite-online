@@ -1,5 +1,5 @@
 import type { QueryExecResult } from "sql.js";
-import showToast from "@/components/common/Toaster/Toast";
+import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import type { WorkerResponseEvent } from "@/types";
 import { getSelectedTableColumns } from "./workerActionUtils";
@@ -15,6 +15,7 @@ function triggerDownload(
   link.href = url;
   link.download = filename;
   link.click();
+  URL.revokeObjectURL(url);
 }
 
 interface WorkerMessageActions {
@@ -28,33 +29,8 @@ function getResultRows(results?: QueryExecResult[]) {
 }
 
 function resetTableViewState(actions: WorkerMessageActions) {
-  const store = useDatabaseStore.getState();
-  store.setFilters(null);
-  store.setSorters(null);
-  store.setCustomQueryObject(null);
-  store.setCustomQuery("");
-  store.setOffset(0);
   actions.setSelectedRowObject(null);
   actions.setIsInserting(false);
-}
-
-function applyQueryResults(results?: QueryExecResult[]) {
-  const data = getResultRows(results);
-  useDatabaseStore.getState().setData(data.length > 0 ? data : null);
-}
-
-function applyCustomQueryResults(results: QueryExecResult[]) {
-  const data = getResultRows(results);
-
-  if (data.length > 0) {
-    useDatabaseStore.getState().setCustomQueryObject({
-      data,
-      columns: results[0]?.columns || []
-    });
-    return;
-  }
-
-  useDatabaseStore.getState().setCustomQueryObject(null);
 }
 
 export function createWorkerMessageHandler(actions: WorkerMessageActions) {
@@ -84,97 +60,78 @@ export function createWorkerMessageHandler(actions: WorkerMessageActions) {
           return;
         }
 
-        store.setTablesSchema(payload.tableSchema);
-        store.setIndexesSchema(payload.indexSchema);
-        store.setCurrentTable(payload.currentTable);
-        store.setColumns(
+        store.applyInit(
+          payload.tableSchema,
+          payload.indexSchema,
+          payload.currentTable,
           getSelectedTableColumns(payload.tableSchema, payload.currentTable)
         );
         resetTableViewState(actions);
-        store.setIsDatabaseLoading(false);
         break;
       }
 
       case "queryComplete": {
         const { payload } = workerEvent;
-
-        store.setMaxSize(payload.maxSize);
-
-        applyQueryResults(payload.results);
-
-        store.setIsDataLoading(false);
+        const data = getResultRows(payload.results);
+        store.applyQueryResults(data.length > 0 ? data : null, payload.maxSize);
         break;
       }
 
       case "customQueryComplete": {
         const { payload } = workerEvent;
-
-        applyCustomQueryResults(payload.results);
-
-        store.setIsDataLoading(false);
-        store.setErrorMessage(null);
+        const data = getResultRows(payload.results);
+        store.applyCustomQueryResults(
+          data.length > 0
+            ? { data, columns: payload.results[0]?.columns || [] }
+            : null
+        );
         break;
       }
 
       case "updateInstance": {
         const { payload } = workerEvent;
-
-        store.setTablesSchema(payload.tableSchema);
-        store.setIndexesSchema(payload.indexSchema);
-        store.setIsDataLoading(false);
-        store.setErrorMessage(null);
-
+        store.applySchemaUpdate(payload.tableSchema, payload.indexSchema);
         showToast("Database schema updated successfully", "success");
         break;
       }
 
       case "updateComplete": {
         const { payload } = workerEvent;
-
-        store.setErrorMessage(null);
+        store.clearDataLoadingAndError();
         actions.handleCloseEdit();
-
         showToast(`Row ${payload.type} successfully`, "success");
         break;
       }
 
       case "insertComplete": {
-        store.setErrorMessage(null);
+        store.clearDataLoadingAndError();
         actions.handleCloseEdit();
-
         showToast("Row inserted successfully", "success");
         break;
       }
 
       case "downloadComplete": {
         const { payload } = workerEvent;
-
         triggerDownload(
           payload.bytes,
           "database.sqlite",
           "application/octet-stream"
         );
-
         showToast("Database downloaded successfully", "success");
         break;
       }
 
       case "exportComplete": {
         const { payload } = workerEvent;
-
         triggerDownload(payload.results, "export.csv", "text/csv");
-
         showToast("Database exported successfully", "success");
         break;
       }
 
       case "queryError": {
         const { payload } = workerEvent;
-
         console.error("Worker error:", payload.error);
-
-        store.setIsDataLoading(false);
-
+        store.clearDataLoading();
         if (payload.error.isCustomQueryError) {
           store.setErrorMessage(payload.error.message);
         }
@@ -182,8 +139,13 @@ export function createWorkerMessageHandler(actions: WorkerMessageActions) {
         break;
       }
 
-      default:
-        console.warn("Unknown action:", action);
+      default: {
+        const _exhaustive: never = workerEvent;
+        console.warn(
+          "Unknown action:",
+          (_exhaustive as { action: string }).action
+        );
+      }
     }
   };
 }

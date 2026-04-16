@@ -7,18 +7,25 @@ interface SchemaSnapshot {
   firstTable: string | null;
 }
 
-type ExecSql = (sql: string) => readonly [QueryExecResult[], boolean];
+type ExecSql = (sql: string) => QueryExecResult[];
 
-function readTableInfo(exec: ExecSql, tableName: string) {
-  const [pragmaTableInfoResults] = exec(`PRAGMA table_info("${tableName}")`);
-  const [pragmaForeignKeysResults] = exec(
-    `PRAGMA foreign_key_list("${tableName}")`
-  );
+function readTableInfo(
+  exec: ExecSql,
+  tableName: string,
+  type: "table" | "view"
+) {
+  const pragmaTableInfoResults = exec(`PRAGMA table_info("${tableName}")`);
 
+  // Views don't have foreign keys — skip the PRAGMA for them
   const foreignKeys: Record<string, boolean> = {};
-  const foreignKeyRows = pragmaForeignKeysResults[0]?.values ?? [];
-  for (const row of foreignKeyRows) {
-    foreignKeys[row[3] as string] = true;
+  if (type === "table") {
+    const pragmaForeignKeysResults = exec(
+      `PRAGMA foreign_key_list("${tableName}")`
+    );
+    const foreignKeyRows = pragmaForeignKeysResults[0]?.values ?? [];
+    for (const row of foreignKeyRows) {
+      foreignKeys[row[3] as string] = true;
+    }
   }
 
   let primaryKey = "_rowid_";
@@ -54,7 +61,7 @@ export function readDatabaseSchema(exec: ExecSql): SchemaSnapshot {
   const tablesSchema: TableSchema = {};
   const indexesSchema: IndexSchema[] = [];
 
-  const [results] = exec(
+  const results = exec(
     "SELECT type, name, tbl_name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
   );
 
@@ -64,7 +71,8 @@ export function readDatabaseSchema(exec: ExecSql): SchemaSnapshot {
     if (type === "table" || type === "view") {
       const [tableSchema, primaryKey] = readTableInfo(
         exec,
-        tableName as string
+        tableName as string,
+        type as "table" | "view"
       );
       tablesSchema[tableName as string] = {
         schema: tableSchema,

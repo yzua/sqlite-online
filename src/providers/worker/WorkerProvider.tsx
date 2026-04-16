@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import showToast from "@/components/common/Toaster/Toast";
 import usePanelManager from "@/hooks/usePanel";
+import { calculateTableLimit } from "@/lib/calculateTableLimit";
+import showToast from "@/lib/toast";
 import SqliteWorker from "@/sqlite/sqliteWorker.ts?worker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { calculateTableLimit } from "./calculateTableLimit";
 import { createWorkerMessageHandler } from "./handleWorkerMessage";
 import { postWorkerMessage } from "./postWorkerMessage";
+import { useIframeBridge } from "./useIframeBridge";
 import { useWorkerActions } from "./useWorkerActions";
 import { useWorkerHotkeys } from "./useWorkerHotkeys";
 import DatabaseWorkerContext from "./WorkerContext";
@@ -24,6 +25,9 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   const setLimit = useDatabaseStore((state) => state.setLimit);
 
   const [isFirstTimeLoading, setIsFirstTimeLoading] = useState(true);
+  const [viewportHeight, setViewportHeight] = useState(
+    () => window.innerHeight
+  );
 
   const { handleCloseEdit, setSelectedRowObject, setIsInserting } =
     usePanelManager();
@@ -68,7 +72,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
     useDatabaseStore.getState().setIsDatabaseLoading(true);
 
     // Request the worker to initialize the demo database
-    workerRef.current.postMessage({ action: "init" });
+    postWorkerMessage(workerRef.current, { action: "init" });
 
     return () => {
       // Simple cleanup - just terminate the worker
@@ -79,6 +83,21 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   }, [handleCloseEdit, setSelectedRowObject, setIsInserting]);
 
   // When fetching data, ask the worker for new data
+  useEffect(() => {
+    const handleResize = () => {
+      const nextViewportHeight = window.innerHeight;
+      setViewportHeight((currentValue) =>
+        currentValue === nextViewportHeight ? currentValue : nextViewportHeight
+      );
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
   useEffect(() => {
     if (!currentTable) {
       return;
@@ -91,7 +110,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
       useDatabaseStore.getState().setIsDataLoading(true);
 
-      const limit = calculateTableLimit(isFirstTimeLoading);
+      const limit = calculateTableLimit(isFirstTimeLoading, viewportHeight);
       if (isFirstTimeLoading) {
         setIsFirstTimeLoading(false);
       }
@@ -111,43 +130,28 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
     }, 100);
 
     return () => clearTimeout(handler);
-  }, [currentTable, filters, sorters, isFirstTimeLoading, offset, setLimit]);
+  }, [
+    currentTable,
+    filters,
+    sorters,
+    isFirstTimeLoading,
+    offset,
+    viewportHeight,
+    setLimit
+  ]);
 
-  const loadDatabaseBuffer = useCallback(async (buffer: ArrayBuffer) => {
-    workerRef.current?.postMessage({
-      action: "openFile",
-      payload: { file: buffer }
-    });
+  const loadDatabaseBuffer = useCallback((buffer: ArrayBuffer) => {
+    postWorkerMessage(
+      workerRef.current,
+      {
+        action: "openFile",
+        payload: { file: buffer }
+      },
+      [buffer]
+    );
   }, []);
 
-  useEffect(() => {
-    window.loadDatabaseBuffer = loadDatabaseBuffer;
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === "invokeLoadDatabaseBuffer") {
-        const buffer = event.data.buffer;
-        void loadDatabaseBuffer(buffer)
-          .then(() => {
-            event.source?.postMessage(
-              { type: "loadDatabaseBufferSuccess" },
-              event.origin as WindowPostMessageOptions
-            );
-          })
-          .catch((error: unknown) => {
-            event.source?.postMessage(
-              {
-                type: "loadDatabaseBufferError",
-                error: error instanceof Error ? error.message : String(error)
-              },
-              event.origin as WindowPostMessageOptions
-            );
-          });
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, [loadDatabaseBuffer]);
+  useIframeBridge(loadDatabaseBuffer);
 
   const {
     handleFileUpload,

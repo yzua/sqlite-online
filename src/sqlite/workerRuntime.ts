@@ -4,7 +4,10 @@ import type Sqlite from "./core";
 import { CustomQueryError } from "./core";
 import { arrayToCSV } from "./sqlUtils";
 
-type WorkerPostMessage = (message: unknown) => void;
+type WorkerPostMessage = (
+  message: unknown,
+  transfer?: Transferable[] | undefined
+) => void;
 
 type ExportPayload = Extract<WorkerEvent, { action: "export" }>["payload"];
 type RowMutationPayload = Extract<WorkerEvent, { action: "update" }>["payload"];
@@ -76,7 +79,10 @@ export function emitDownloadComplete(
   postMessage: WorkerPostMessage,
   instance: Sqlite
 ) {
-  emit(postMessage, "downloadComplete", { bytes: instance.download() });
+  const bytes = instance.download();
+  postMessage({ action: "downloadComplete", payload: { bytes } }, [
+    bytes.buffer
+  ]);
 }
 
 export function emitExportComplete(

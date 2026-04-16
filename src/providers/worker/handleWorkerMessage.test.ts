@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import showToast from "@/components/common/Toaster/Toast";
+import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { createWorkerMessageHandler } from "./handleWorkerMessage";
 
-vi.mock("@/components/common/Toaster/Toast", () => ({
+vi.mock("@/lib/toast", () => ({
   default: vi.fn()
 }));
 
@@ -13,20 +13,14 @@ vi.mock("@/store/useDatabaseStore", () => ({
 
 function createStoreMock() {
   return {
-    setTablesSchema: vi.fn(),
-    setIndexesSchema: vi.fn(),
-    setCurrentTable: vi.fn(),
-    setData: vi.fn(),
-    setColumns: vi.fn(),
-    setMaxSize: vi.fn(),
+    applyInit: vi.fn(),
+    applySchemaUpdate: vi.fn(),
+    applyQueryResults: vi.fn(),
+    applyCustomQueryResults: vi.fn(),
+    clearDataLoading: vi.fn(),
+    clearDataLoadingAndError: vi.fn(),
     setIsDatabaseLoading: vi.fn(),
-    setIsDataLoading: vi.fn(),
-    setErrorMessage: vi.fn(),
-    setFilters: vi.fn(),
-    setSorters: vi.fn(),
-    setOffset: vi.fn(),
-    setCustomQuery: vi.fn(),
-    setCustomQueryObject: vi.fn()
+    setErrorMessage: vi.fn()
   };
 }
 
@@ -86,12 +80,28 @@ describe("createWorkerMessageHandler", () => {
       { type: "loadDatabaseBufferReady" },
       "*"
     );
-    expect(store.setCurrentTable).toHaveBeenCalledWith("users");
-    expect(store.setColumns).toHaveBeenCalledWith(["id"]);
-    expect(store.setFilters).toHaveBeenCalledWith(null);
-    expect(store.setSorters).toHaveBeenCalledWith(null);
-    expect(store.setOffset).toHaveBeenCalledWith(0);
-    expect(store.setIsDatabaseLoading).toHaveBeenCalledWith(false);
+    expect(store.applyInit).toHaveBeenCalledWith(
+      {
+        users: {
+          primaryKey: "id",
+          type: "table",
+          schema: [
+            {
+              name: "id",
+              cid: 0,
+              type: "INTEGER",
+              dflt_value: "",
+              isNullable: false,
+              isPrimaryKey: true,
+              isForeignKey: false
+            }
+          ]
+        }
+      },
+      [],
+      "users",
+      ["id"]
+    );
   });
 
   it("stores query results and clears data loading", () => {
@@ -111,9 +121,7 @@ describe("createWorkerMessageHandler", () => {
       }
     } as MessageEvent);
 
-    expect(store.setMaxSize).toHaveBeenCalledWith(20);
-    expect(store.setData).toHaveBeenCalledWith([[1, "Ada"]]);
-    expect(store.setIsDataLoading).toHaveBeenCalledWith(false);
+    expect(store.applyQueryResults).toHaveBeenCalledWith([[1, "Ada"]], 20);
   });
 
   it("stores custom query results and clears error state", () => {
@@ -132,12 +140,10 @@ describe("createWorkerMessageHandler", () => {
       }
     } as MessageEvent);
 
-    expect(store.setCustomQueryObject).toHaveBeenCalledWith({
+    expect(store.applyCustomQueryResults).toHaveBeenCalledWith({
       data: [[1]],
       columns: ["id"]
     });
-    expect(store.setErrorMessage).toHaveBeenCalledWith(null);
-    expect(store.setIsDataLoading).toHaveBeenCalledWith(false);
   });
 
   it("shows download/export success toasts and triggers downloads", () => {
@@ -153,9 +159,14 @@ describe("createWorkerMessageHandler", () => {
       download: ""
     } as unknown as HTMLAnchorElement);
     const createObjectURL = vi.fn().mockReturnValue("blob:url");
+    const revokeObjectURL = vi.fn();
     Object.defineProperty(URL, "createObjectURL", {
       configurable: true,
       value: createObjectURL
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: revokeObjectURL
     });
 
     handler({
@@ -203,7 +214,7 @@ describe("createWorkerMessageHandler", () => {
     } as MessageEvent);
 
     expect(store.setErrorMessage).toHaveBeenCalledWith("Bad SQL");
-    expect(store.setIsDataLoading).toHaveBeenCalledWith(false);
+    expect(store.clearDataLoading).toHaveBeenCalled();
     expect(showToast).toHaveBeenCalledWith("Bad SQL", "error");
   });
 });

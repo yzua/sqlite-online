@@ -46,7 +46,7 @@ export type ExportTypes = "table" | "current" | "custom";
 // --- WORKER MESSAGES --- //
 interface InitEvent {
   action: "init";
-  payload: undefined;
+  payload?: undefined;
 }
 
 interface OpenFileEvent {
@@ -82,7 +82,7 @@ interface GetTableDataEvent {
 
 interface DownloadEvent {
   action: "download";
-  payload: undefined;
+  payload?: undefined;
 }
 
 interface UpdateEvent {

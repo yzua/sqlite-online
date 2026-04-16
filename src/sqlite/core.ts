@@ -16,8 +16,8 @@ import {
 } from "./sqlUtils";
 
 export default class Sqlite {
-  // Static SQL.js instance
-  static readonly sqlJsStatic?: SqlJsStatic;
+  // Static SQL.js instance — cached after first initialization
+  static sqlJsStatic?: SqlJsStatic;
   // Database instance
   public readonly db: Database;
 
@@ -43,6 +43,7 @@ export default class Sqlite {
       const SQL = await initSqlJs({
         locateFile: () => sqlWasmUrl
       });
+      Sqlite.sqlJsStatic = SQL;
       return SQL;
     } catch (error) {
       console.error("Core: Failed to initialize SQL.js:", error);
@@ -93,7 +94,7 @@ export default class Sqlite {
   // Get the schema of the database
   // This includes tables, indexes, and foreign keys
   private getDatabaseSchema() {
-    const schemaSnapshot = readDatabaseSchema((sql) => this.exec(sql));
+    const schemaSnapshot = readDatabaseSchema((sql) => this.db.exec(sql));
     this.tablesSchema = schemaSnapshot.tablesSchema;
     this.indexesSchema = schemaSnapshot.indexesSchema;
     this.firstTable = schemaSnapshot.firstTable;
@@ -118,13 +119,13 @@ export default class Sqlite {
 
     if (params.length > 0) {
       const result = runPreparedScalar(this.db, query, params);
-      return Math.ceil((result as SqlValue[])[0] as number);
+      return (result as SqlValue[])[0] as number;
     }
 
     const results = this.runQuery(query);
     if (results.length === 0) return 0;
     const count = results[0]?.values[0]?.[0];
-    return Math.ceil(Number(count ?? 0));
+    return Number(count ?? 0);
   }
 
   // Get the data for the requested table

@@ -1,3 +1,4 @@
+import { tableDataCache } from "@/lib/queryCache";
 import type { WorkerEvent } from "@/types";
 import Sqlite from "./core";
 import {
@@ -25,23 +26,34 @@ function cleanup() {
   instance = cleanupInstance(instance);
 }
 
+function assertNever(action: never): never {
+  throw new Error(`Unknown worker action: ${action}`);
+}
+
 self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
   const { action, payload } = event.data;
+  // DedicatedWorkerGlobalScope.postMessage accepts (message, transfer?) but
+  // TypeScript resolves self.postMessage to the Window overload in this file.
+  const post = self.postMessage.bind(self) as (
+    message: unknown,
+    transfer?: Transferable[]
+  ) => void;
 
   // Create a new database instance
   if (action === "init") {
     try {
       // Clean up existing instance first
       cleanup();
+      tableDataCache.clear();
 
       instance = await Sqlite.create();
-      emitInitComplete(self.postMessage.bind(self), instance);
+      emitInitComplete(post, instance);
 
       return;
     } catch (error) {
       console.error("Worker: Failed to initialize database:", error);
       emitQueryError(
-        self.postMessage.bind(self),
+        post,
         new Error(
           `Failed to initialize database: ${error instanceof Error ? error.message : String(error)}`
         )
@@ -52,19 +64,16 @@ self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
 
   // Check if the database instance is initialized
   if (instance === null) {
-    emitQueryError(
-      self.postMessage.bind(self),
-      new Error("Database is not initialized")
-    );
+    emitQueryError(post, new Error("Database is not initialized"));
     return;
   }
 
   try {
-    // Updates the instance from user-uploaded file
     switch (action) {
+      // Updates the instance from user-uploaded file
       case "openFile": {
-        // Clean up existing instance first
         cleanup();
+        tableDataCache.clear();
 
         instance = await Sqlite.open(new Uint8Array(payload.file));
 
@@ -72,102 +81,69 @@ self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
           throw new Error("Database is empty");
         }
 
-        emitInitComplete(self.postMessage.bind(self), instance);
+        emitInitComplete(post, instance);
 
         break;
       }
       // Refreshes the current table data
-      // Gets the table data for the current table/table-options
       case "refresh":
       case "getTableData": {
         const [results, maxSize] = loadCurrentTable(instance, payload);
-        emitQueryComplete(self.postMessage.bind(self), results, maxSize);
+        emitQueryComplete(post, results, maxSize);
 
         break;
       }
       // Executes a custom query
-      // User for user-typed queries
       case "exec": {
-        executeStatement(
-          instance,
-          payload.query,
-          payload,
-          self.postMessage.bind(self)
-        );
+        executeStatement(instance, payload.query, payload, post);
 
         break;
       }
       // Executes multiple SQL statements as a batch
       case "execBatch": {
-        executeBatchStatements(
-          instance,
-          payload.queries,
-          payload,
-          self.postMessage.bind(self)
-        );
+        executeBatchStatements(instance, payload.queries, payload, post);
 
         break;
       }
       // Downloads the database as bytes
       case "download": {
-        emitDownloadComplete(self.postMessage.bind(self), instance);
+        emitDownloadComplete(post, instance);
 
         break;
       }
       // Updates the values of a row in a table
       case "update": {
         updateRow(instance, payload);
-        emitRowMutationComplete(self.postMessage.bind(self), "updated");
+        emitRowMutationComplete(post, "updated");
 
         break;
       }
       // Deletes a row from a table
       case "delete": {
         deleteRow(instance, payload);
-        emitRowMutationComplete(self.postMessage.bind(self), "deleted");
+        emitRowMutationComplete(post, "deleted");
 
         break;
       }
       // Inserts a row into a table
       case "insert": {
         insertRow(instance, payload);
-        emitInsertComplete(self.postMessage.bind(self));
+        emitInsertComplete(post);
 
         break;
       }
       // Exports as CSV
-      // It have 2 types of exports (table, current data)
-      // Current data is the current page of data
+      // Has 2 types of exports: table data and current page data
       case "export": {
-        const {
-          table,
-          filters,
-          sorters,
-          limit,
-          offset,
-          exportType,
-          customQuery
-        } = payload;
-
-        const results = exportResults(instance, {
-          table,
-          filters,
-          sorters,
-          limit,
-          offset,
-          exportType,
-          customQuery
-        });
-
-        emitExportComplete(self.postMessage.bind(self), results);
+        const results = exportResults(instance, payload);
+        emitExportComplete(post, results);
 
         break;
       }
-      // Other unhandled actions
       default:
-        console.warn("Unknown worker action:", action);
+        assertNever(action);
     }
   } catch (error) {
-    emitQueryError(self.postMessage.bind(self), error);
+    emitQueryError(post, error);
   }
 };
