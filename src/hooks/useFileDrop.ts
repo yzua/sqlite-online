@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import showToast from "@/components/common/Toaster/Toast";
 import useDatabaseWorker from "@/hooks/useWorker";
+import showToast from "@/lib/toast";
 
 const useFileDrop = () => {
   const { handleFileUpload } = useDatabaseWorker();

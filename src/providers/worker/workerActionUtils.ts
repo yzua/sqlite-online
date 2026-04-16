@@ -1,5 +1,21 @@
 import type { Filters, Sorters, TableSchema } from "@/types";
 
+interface BrowseStateActions {
+  setFilters: (f: Filters) => void;
+  setSorters: (s: Sorters) => void;
+  resetPagination: () => void;
+}
+
+/**
+ * Reset all browse-navigation state (filters, sorters, pagination).
+ * Used both when the worker sends initComplete and when the user switches tables.
+ */
+export function resetBrowseState(store: BrowseStateActions) {
+  store.setFilters(null);
+  store.setSorters(null);
+  store.resetPagination();
+}
+
 export function getSelectedTableColumns(
   tablesSchema: TableSchema,
   selectedTable: string

@@ -1,31 +1,68 @@
-import { useCallback } from "react";
-import showToast from "@/components/common/Toaster/Toast";
+import { useCallback, useRef } from "react";
+import type { SqlValue } from "sql.js";
 import usePanelManager from "@/hooks/usePanel";
+import { parseSqlStatements } from "@/lib/parseSqlStatements";
+import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import type { EditTypes, ExportTypes } from "@/types";
-import { parseSqlStatements } from "./parseSqlStatements";
+import type { EditTypes, ExportTypes, WorkerEvent } from "@/types";
 import { postWorkerMessage } from "./postWorkerMessage";
 import type { DatabaseWorkerApi, PageChange } from "./types";
 import {
   createNextFilters,
   createNextSorters,
   getNextPageOffset,
-  getSelectedTableColumns
+  getSelectedTableColumns,
+  resetBrowseState
 } from "./workerActionUtils";
 
 interface UseWorkerActionsProps {
   workerRef: React.RefObject<Worker | null>;
 }
 
+function buildDeleteMessage(
+  table: string,
+  primaryValue: SqlValue
+): WorkerEvent {
+  return { action: "delete", payload: { table, primaryValue } };
+}
+
+function buildUpdateMessage(
+  table: string,
+  columns: string[],
+  values: string[],
+  primaryValue: SqlValue
+): WorkerEvent {
+  return {
+    action: "update",
+    payload: { table, columns, values, primaryValue }
+  };
+}
+
+function buildInsertMessage(
+  table: string,
+  columns: string[],
+  values: string[]
+): WorkerEvent {
+  return { action: "insert", payload: { table, columns, values } };
+}
+
 export function useWorkerActions({
   workerRef
 }: UseWorkerActionsProps): DatabaseWorkerApi {
   const {
-    selectedRowObject,
     setSelectedRowObject,
     setIsInserting,
+    selectedRowObject,
     editValues
   } = usePanelManager();
+
+  // Keep latest values in refs so handleEditSubmit can remain stable
+  // and avoid invalidating the entire DatabaseWorkerContext on every
+  // row selection or edit keystroke.
+  const selectedRowObjectRef = useRef(selectedRowObject);
+  selectedRowObjectRef.current = selectedRowObject;
+  const editValuesRef = useRef(editValues);
+  editValuesRef.current = editValues;
 
   const handleFileUpload = useCallback(
     (file: File) => {
@@ -35,10 +72,14 @@ export function useWorkerActions({
       reader.onload = (event) => {
         const arrayBuffer = event.target?.result as ArrayBuffer;
 
-        postWorkerMessage(workerRef.current, {
-          action: "openFile",
-          payload: { file: arrayBuffer }
-        });
+        postWorkerMessage(
+          workerRef.current,
+          {
+            action: "openFile",
+            payload: { file: arrayBuffer }
+          },
+          [arrayBuffer]
+        );
       };
       reader.readAsArrayBuffer(file);
     },
@@ -71,9 +112,7 @@ export function useWorkerActions({
         return;
       }
 
-      store.setFilters(null);
-      store.setSorters(null);
-      store.resetPagination();
+      resetBrowseState(store);
       store.setMaxSize(0);
       setSelectedRowObject(null);
       setIsInserting(false);
@@ -129,7 +168,7 @@ export function useWorkerActions({
       postWorkerMessage(workerRef.current, {
         action: "export",
         payload: {
-          table: currentTable,
+          table: currentTable ?? "",
           offset,
           limit,
           filters,
@@ -175,9 +214,10 @@ export function useWorkerActions({
     };
 
     if (statements.length === 1) {
+      const [query] = statements;
       postWorkerMessage(workerRef.current, {
         action: "exec",
-        payload: { query: statements[0], ...basePayload }
+        payload: { query: query as string, ...basePayload }
       });
       return;
     }
@@ -196,6 +236,9 @@ export function useWorkerActions({
         return;
       }
 
+      const selectedRowObject = selectedRowObjectRef.current;
+      const editValues = editValuesRef.current;
+
       if (selectedRowObject?.primaryValue == null && type !== "insert") {
         showToast(
           type === "delete"
@@ -206,18 +249,37 @@ export function useWorkerActions({
         return;
       }
 
+      const needsColumns = type === "update" || type === "insert";
+      if (needsColumns && !store.columns) {
+        showToast("No columns found", "error");
+        return;
+      }
+
       store.setIsDataLoading(true);
 
-      const didPost = postWorkerMessage(workerRef.current, {
-        action: type,
-        payload: {
-          table: currentTable,
-          columns: store.columns,
-          values: editValues,
-          primaryValue: selectedRowObject?.primaryValue
-        }
-      });
+      const primaryValue = selectedRowObject?.primaryValue;
+      let mutationMessage: WorkerEvent;
+      if (type === "delete") {
+        mutationMessage = buildDeleteMessage(
+          currentTable,
+          primaryValue as SqlValue
+        );
+      } else if (type === "update") {
+        mutationMessage = buildUpdateMessage(
+          currentTable,
+          store.columns as string[],
+          editValues,
+          primaryValue as SqlValue
+        );
+      } else {
+        mutationMessage = buildInsertMessage(
+          currentTable,
+          store.columns as string[],
+          editValues
+        );
+      }
 
+      const didPost = postWorkerMessage(workerRef.current, mutationMessage);
       if (!didPost) {
         store.setIsDataLoading(false);
         return;
@@ -234,7 +296,7 @@ export function useWorkerActions({
         }
       });
     },
-    [workerRef, selectedRowObject, editValues]
+    [workerRef]
   );
 
   return {

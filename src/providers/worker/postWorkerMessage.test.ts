@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import showToast from "@/components/common/Toaster/Toast";
+import showToast from "@/lib/toast";
 import { postWorkerMessage } from "./postWorkerMessage";
 
-vi.mock("@/components/common/Toaster/Toast", () => ({
+vi.mock("@/lib/toast", () => ({
   default: vi.fn()
 }));
 
@@ -11,7 +11,7 @@ describe("postWorkerMessage", () => {
     const worker = { postMessage: vi.fn() } as unknown as Worker;
 
     expect(postWorkerMessage(worker, { action: "download" })).toBe(true);
-    expect(worker.postMessage).toHaveBeenCalledWith({ action: "download" });
+    expect(worker.postMessage).toHaveBeenCalledWith({ action: "download" }, []);
   });
 
   it("shows an error and returns false when the worker is missing", () => {

@@ -8,7 +8,7 @@ const borderColorMap = {
   success: "var(--success)",
   error: "var(--destructive)",
   info: "var(--info)"
-};
+} as const;
 
 const iconWrapperClassMap = {
   success: "bg-success/12 text-success",
@@ -22,6 +22,8 @@ const iconMap = {
   info: <InfoIcon className="h-4 w-4" />
 };
 
+// sonner requires deferred scheduling to avoid batching conflicts
+// with React state updates during event handling.
 function showToast(
   message: string | React.ReactNode,
   type: ToastType = "info",

@@ -1,6 +1,6 @@
-import debounce from "lodash/debounce";
 import { useCallback, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
+import { debounce } from "@/lib/debounce";
 
 interface FilterInputProps {
   column: string;

@@ -1,5 +1,5 @@
-import { debounce } from "lodash";
 import { create } from "zustand";
+import { debounce } from "@/lib/debounce";
 
 interface PanelState {
   schemaPanelSize: number;

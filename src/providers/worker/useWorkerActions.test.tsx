@@ -1,13 +1,13 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import showToast from "@/components/common/Toaster/Toast";
 import usePanelManager from "@/hooks/usePanel";
+import { parseSqlStatements } from "@/lib/parseSqlStatements";
+import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { parseSqlStatements } from "./parseSqlStatements";
 import { postWorkerMessage } from "./postWorkerMessage";
 import { useWorkerActions } from "./useWorkerActions";
 
-vi.mock("@/components/common/Toaster/Toast", () => ({
+vi.mock("@/lib/toast", () => ({
   default: vi.fn()
 }));
 
@@ -19,7 +19,7 @@ vi.mock("@/hooks/usePanel", () => ({
   default: vi.fn()
 }));
 
-vi.mock("./parseSqlStatements", () => ({
+vi.mock("@/lib/parseSqlStatements", () => ({
   parseSqlStatements: vi.fn()
 }));
 

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import showToast from "@/components/common/Toaster/Toast";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,7 @@ import {
   DialogTitle
 } from "@/components/ui/dialog";
 import useDatabaseWorker from "@/hooks/useWorker";
+import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { Button } from "./ui/button";
 
