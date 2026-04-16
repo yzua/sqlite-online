@@ -1,6 +1,6 @@
 import type { SqlValue } from "sql.js";
 import { create } from "zustand";
-import SecureStorage from "@/lib/secureStorage";
+import { loadApiKey, storeApiKey } from "@/lib/apiKeyStorage";
 import type {
   CustomQueryResult,
   Filters,
@@ -49,6 +49,21 @@ interface DatabaseActions {
   setIsAiLoading: (loading: boolean) => void;
   resetPagination: () => void;
   initializeApiKey: () => Promise<void>;
+  // Compound actions for grouped state transitions
+  applyInit: (
+    tableSchema: TableSchema,
+    indexSchema: IndexSchema[],
+    currentTable: string,
+    columns: string[] | null
+  ) => void;
+  applySchemaUpdate: (
+    tableSchema: TableSchema,
+    indexSchema: IndexSchema[]
+  ) => void;
+  applyQueryResults: (data: SqlValue[][] | null, maxSize: number) => void;
+  applyCustomQueryResults: (obj: CustomQueryResult | null) => void;
+  clearDataLoading: () => void;
+  clearDataLoadingAndError: () => void;
 }
 
 type DatabaseStore = DatabaseState & DatabaseActions;
@@ -94,52 +109,43 @@ export const useDatabaseStore = create<DatabaseStore>((set) => ({
   setCustomQueryObject: (obj) => set({ customQueryObject: obj }),
   setGeminiApiKey: async (key) => {
     set({ geminiApiKey: key });
-    try {
-      if (key) {
-        await SecureStorage.setItem("geminiApiKey", key);
-      } else {
-        SecureStorage.removeItem("geminiApiKey");
-      }
-    } catch (error) {
-      console.error("Failed to store API key securely:", error);
-      // Fallback to regular localStorage with warning
-      console.warn("Falling back to localStorage for API key storage");
-      if (key) {
-        localStorage.setItem("geminiApiKey", key);
-      } else {
-        localStorage.removeItem("geminiApiKey");
-      }
-    }
+    await storeApiKey(key);
   },
   setIsAiLoading: (loading) => set({ isAiLoading: loading }),
   resetPagination: () => set({ offset: 0 }),
   initializeApiKey: async () => {
-    try {
-      const key = await SecureStorage.getItem("geminiApiKey");
-      if (key) {
-        set({ geminiApiKey: key });
-      } else {
-        // Check for legacy localStorage key and migrate
-        const legacyKey =
-          typeof window !== "undefined"
-            ? localStorage.getItem("geminiApiKey")
-            : null;
-        if (legacyKey) {
-          await SecureStorage.setItem("geminiApiKey", legacyKey);
-          localStorage.removeItem("geminiApiKey");
-          set({ geminiApiKey: legacyKey });
-        }
-      }
-    } catch (error) {
-      console.error("Failed to initialize API key:", error);
-      // Fallback to localStorage
-      const key =
-        typeof window !== "undefined"
-          ? localStorage.getItem("geminiApiKey")
-          : null;
-      set({ geminiApiKey: key });
-    }
-  }
+    const key = await loadApiKey();
+    set({ geminiApiKey: key });
+  },
+
+  // --- Compound actions ---
+  applyInit: (tableSchema, indexSchema, currentTable, columns) =>
+    set({
+      tablesSchema: tableSchema,
+      indexesSchema: indexSchema,
+      currentTable,
+      columns,
+      filters: null,
+      sorters: null,
+      offset: 0,
+      customQueryObject: null,
+      customQuery: "",
+      isDatabaseLoading: false
+    }),
+  applySchemaUpdate: (tableSchema, indexSchema) =>
+    set({
+      tablesSchema: tableSchema,
+      indexesSchema: indexSchema,
+      isDataLoading: false,
+      errorMessage: null
+    }),
+  applyQueryResults: (data, maxSize) =>
+    set({ data, maxSize, isDataLoading: false }),
+  applyCustomQueryResults: (obj) =>
+    set({ customQueryObject: obj, errorMessage: null, isDataLoading: false }),
+  clearDataLoading: () => set({ isDataLoading: false }),
+  clearDataLoadingAndError: () =>
+    set({ isDataLoading: false, errorMessage: null })
 }));
 
 export const selectIsCurrentTableView = (state: DatabaseState): boolean =>
