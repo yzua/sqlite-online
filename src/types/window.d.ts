@@ -4,7 +4,7 @@
 
 declare global {
   interface Window {
-    loadDatabaseBuffer?: (buffer: ArrayBuffer) => Promise<void>;
+    loadDatabaseBuffer?: (buffer: ArrayBuffer) => void;
   }
 }
 

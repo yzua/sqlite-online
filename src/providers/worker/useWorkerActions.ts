@@ -1,6 +1,6 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type { SqlValue } from "sql.js";
-import usePanelManager from "@/hooks/usePanel";
+import usePanelManager, { useEditValues } from "@/hooks/usePanel";
 import { parseSqlStatements } from "@/lib/parseSqlStatements";
 import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
@@ -8,6 +8,9 @@ import type { EditTypes, ExportTypes, WorkerEvent } from "@/types";
 import { postWorkerMessage } from "./postWorkerMessage";
 import type { DatabaseWorkerApi, PageChange } from "./types";
 import {
+  buildDeleteMessage,
+  buildInsertMessage,
+  buildUpdateMessage,
   createNextFilters,
   createNextSorters,
   getNextPageOffset,
@@ -19,42 +22,13 @@ interface UseWorkerActionsProps {
   workerRef: React.RefObject<Worker | null>;
 }
 
-function buildDeleteMessage(
-  table: string,
-  primaryValue: SqlValue
-): WorkerEvent {
-  return { action: "delete", payload: { table, primaryValue } };
-}
-
-function buildUpdateMessage(
-  table: string,
-  columns: string[],
-  values: string[],
-  primaryValue: SqlValue
-): WorkerEvent {
-  return {
-    action: "update",
-    payload: { table, columns, values, primaryValue }
-  };
-}
-
-function buildInsertMessage(
-  table: string,
-  columns: string[],
-  values: string[]
-): WorkerEvent {
-  return { action: "insert", payload: { table, columns, values } };
-}
-
 export function useWorkerActions({
   workerRef
 }: UseWorkerActionsProps): DatabaseWorkerApi {
-  const {
-    setSelectedRowObject,
-    setIsInserting,
-    selectedRowObject,
-    editValues
-  } = usePanelManager();
+  const { setSelectedRowObject, setIsInserting, selectedRowObject } =
+    usePanelManager();
+
+  const { editValues } = useEditValues();
 
   // Keep latest values in refs so handleEditSubmit can remain stable
   // and avoid invalidating the entire DatabaseWorkerContext on every
@@ -258,24 +232,34 @@ export function useWorkerActions({
       store.setIsDataLoading(true);
 
       const primaryValue = selectedRowObject?.primaryValue;
+      const queryPayload = {
+        limit: store.limit,
+        offset: store.offset,
+        filters: store.filters,
+        sorters: store.sorters
+      };
+
       let mutationMessage: WorkerEvent;
       if (type === "delete") {
         mutationMessage = buildDeleteMessage(
           currentTable,
-          primaryValue as SqlValue
+          primaryValue as SqlValue,
+          queryPayload
         );
       } else if (type === "update") {
         mutationMessage = buildUpdateMessage(
           currentTable,
           store.columns as string[],
           editValues,
-          primaryValue as SqlValue
+          primaryValue as SqlValue,
+          queryPayload
         );
       } else {
         mutationMessage = buildInsertMessage(
           currentTable,
           store.columns as string[],
-          editValues
+          editValues,
+          queryPayload
         );
       }
 
@@ -284,31 +268,34 @@ export function useWorkerActions({
         store.setIsDataLoading(false);
         return;
       }
-
-      postWorkerMessage(workerRef.current, {
-        action: "refresh",
-        payload: {
-          currentTable,
-          offset: store.offset,
-          limit: store.limit,
-          filters: store.filters,
-          sorters: store.sorters
-        }
-      });
     },
     [workerRef]
   );
 
-  return {
-    handleFileUpload,
-    handleFileChange,
-    handleDownload,
-    handleTableChange,
-    handleQueryFilter,
-    handleQuerySorter,
-    handlePageChange,
-    handleExport,
-    handleQueryExecute,
-    handleEditSubmit
-  };
+  return useMemo(
+    () => ({
+      handleFileUpload,
+      handleFileChange,
+      handleDownload,
+      handleTableChange,
+      handleQueryFilter,
+      handleQuerySorter,
+      handlePageChange,
+      handleExport,
+      handleQueryExecute,
+      handleEditSubmit
+    }),
+    [
+      handleFileUpload,
+      handleFileChange,
+      handleDownload,
+      handleTableChange,
+      handleQueryFilter,
+      handleQuerySorter,
+      handlePageChange,
+      handleExport,
+      handleQueryExecute,
+      handleEditSubmit
+    ]
+  );
 }

@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import usePanelManager from "@/hooks/usePanel";
+import usePanelManager, { useEditValues } from "@/hooks/usePanel";
 import { parseSqlStatements } from "@/lib/parseSqlStatements";
 import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
@@ -16,7 +16,8 @@ vi.mock("@/store/useDatabaseStore", () => ({
 }));
 
 vi.mock("@/hooks/usePanel", () => ({
-  default: vi.fn()
+  default: vi.fn(),
+  useEditValues: vi.fn()
 }));
 
 vi.mock("@/lib/parseSqlStatements", () => ({
@@ -80,9 +81,12 @@ describe("useWorkerActions", () => {
       selectedRowObject: { data: [1], index: 0, primaryValue: 1 },
       setSelectedRowObject: mockSetSelectedRowObject,
       setIsInserting: mockSetIsInserting,
-      editValues: ["1", "Ada"],
       setEditValues: vi.fn()
     } as never);
+
+    vi.mocked(useEditValues).mockReturnValue({
+      editValues: ["1", "Ada"]
+    });
     vi.mocked(parseSqlStatements).mockReturnValue(["SELECT * FROM users"]);
     vi.mocked(postWorkerMessage).mockReturnValue(true);
   });
@@ -168,9 +172,12 @@ describe("useWorkerActions", () => {
       selectedRowObject: { data: [], index: 0, primaryValue: null },
       setSelectedRowObject: mockSetSelectedRowObject,
       setIsInserting: mockSetIsInserting,
-      editValues: [],
       setEditValues: vi.fn()
     } as never);
+
+    vi.mocked(useEditValues).mockReturnValue({
+      editValues: []
+    });
 
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
@@ -185,7 +192,7 @@ describe("useWorkerActions", () => {
     );
   });
 
-  it("posts edit and refresh messages when an edit submission succeeds", () => {
+  it("posts a single mutation message with refresh context when an edit submission succeeds", () => {
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
@@ -196,21 +203,17 @@ describe("useWorkerActions", () => {
     expect(useDatabaseStore.getState().setIsDataLoading).toHaveBeenCalledWith(
       true
     );
-    expect(postWorkerMessage).toHaveBeenNthCalledWith(1, workerRef.current, {
+    expect(postWorkerMessage).toHaveBeenCalledTimes(1);
+    expect(postWorkerMessage).toHaveBeenCalledWith(workerRef.current, {
       action: "update",
       payload: {
         table: "users",
         columns: ["id", "name"],
         values: ["1", "Ada"],
-        primaryValue: 1
-      }
-    });
-    expect(postWorkerMessage).toHaveBeenNthCalledWith(2, workerRef.current, {
-      action: "refresh",
-      payload: {
+        primaryValue: 1,
         currentTable: "users",
-        offset: 0,
         limit: 25,
+        offset: 0,
         filters: null,
         sorters: null
       }

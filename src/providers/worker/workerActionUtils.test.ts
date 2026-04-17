@@ -55,13 +55,6 @@ describe("workerActionUtils", () => {
     });
   });
 
-  it("keeps existing sorters when mutable columns are enabled", () => {
-    expect(createNextSorters({ createdAt: "desc" }, "name", true)).toEqual({
-      createdAt: "desc",
-      name: "desc"
-    });
-  });
-
   it("clamps page navigation at the collection bounds", () => {
     expect(getNextPageOffset("prev", 0, 25, 90)).toBe(0);
     expect(getNextPageOffset("next", 75, 25, 90)).toBe(75);

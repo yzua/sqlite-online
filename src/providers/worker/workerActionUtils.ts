@@ -1,4 +1,11 @@
-import type { Filters, Sorters, TableSchema } from "@/types";
+import type { SqlValue } from "sql.js";
+import type {
+  Filters,
+  Sorters,
+  TableQueryPayload,
+  TableSchema,
+  WorkerEvent
+} from "@/types";
 
 interface BrowseStateActions {
   setFilters: (f: Filters) => void;
@@ -35,15 +42,12 @@ export function createNextFilters(
 
 export function createNextSorters(
   currentSorters: Sorters,
-  column: string,
-  isMutableColumns = false
+  column: string
 ): Sorters {
   const nextOrder =
     (currentSorters?.[column] || "asc") === "asc" ? "desc" : "asc";
 
-  return isMutableColumns
-    ? { ...(currentSorters || {}), [column]: nextOrder }
-    : { [column]: nextOrder };
+  return { [column]: nextOrder };
 }
 
 export function getNextPageOffset(
@@ -74,4 +78,56 @@ export function getNextPageOffset(
   }
 
   return maxSize - limit < 0 ? 0 : maxSize - limit;
+}
+
+export function buildDeleteMessage(
+  table: string,
+  primaryValue: SqlValue,
+  queryPayload: Pick<
+    TableQueryPayload,
+    "limit" | "offset" | "filters" | "sorters"
+  >
+): WorkerEvent {
+  return {
+    action: "delete",
+    payload: { table, primaryValue, currentTable: table, ...queryPayload }
+  };
+}
+
+export function buildUpdateMessage(
+  table: string,
+  columns: string[],
+  values: string[],
+  primaryValue: SqlValue,
+  queryPayload: Pick<
+    TableQueryPayload,
+    "limit" | "offset" | "filters" | "sorters"
+  >
+): WorkerEvent {
+  return {
+    action: "update",
+    payload: {
+      table,
+      columns,
+      values,
+      primaryValue,
+      currentTable: table,
+      ...queryPayload
+    }
+  };
+}
+
+export function buildInsertMessage(
+  table: string,
+  columns: string[],
+  values: string[],
+  queryPayload: Pick<
+    TableQueryPayload,
+    "limit" | "offset" | "filters" | "sorters"
+  >
+): WorkerEvent {
+  return {
+    action: "insert",
+    payload: { table, columns, values, currentTable: table, ...queryPayload }
+  };
 }

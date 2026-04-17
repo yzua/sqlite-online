@@ -68,7 +68,7 @@ export default class Sqlite {
   }
 
   // Execute a SQL statement
-  public exec(sql: string) {
+  public exec(sql: string, options?: { skipSchemaUpdate?: boolean }) {
     sql = normalizeSqlStatement(sql);
 
     const results = this.db.exec(sql);
@@ -78,11 +78,18 @@ export default class Sqlite {
 
     // Update tables if the SQL statement is a CREATE TABLE statement.
     if (isStructureChangeable(upperSql)) {
-      this.getDatabaseSchema(); // Update schema after creating a new table.
+      if (!options?.skipSchemaUpdate) {
+        this.getDatabaseSchema();
+      }
       doTablesChanged = true;
     }
 
     return [results, doTablesChanged] as const;
+  }
+
+  // Refresh the cached schema — call after batch DDL to avoid N re-reads
+  public refreshSchema() {
+    this.getDatabaseSchema();
   }
 
   // Return the database as bytes
@@ -149,12 +156,8 @@ export default class Sqlite {
       filters,
       sorters
     );
-    if (
-      cachedResult &&
-      Array.isArray(cachedResult) &&
-      cachedResult.length === 2
-    ) {
-      return cachedResult as unknown as readonly [QueryExecResult[], number];
+    if (cachedResult) {
+      return cachedResult as readonly [QueryExecResult[], number];
     }
 
     const primaryKey = this.getPrimaryKey(table);

@@ -1,8 +1,11 @@
 import type { Database, QueryExecResult, SqlValue } from "sql.js";
 import type { Filters, Sorters } from "@/types";
 
+const COLLATE_UNICASE_RE = /COLLATE\s+unicase/gi;
+
 export function normalizeSqlStatement(sql: string) {
-  return sql.replace(/COLLATE\s+unicase/gi, "COLLATE NOCASE");
+  COLLATE_UNICASE_RE.lastIndex = 0;
+  return sql.replace(COLLATE_UNICASE_RE, "COLLATE NOCASE");
 }
 
 export function isStructureChangeable(sql: string) {

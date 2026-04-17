@@ -92,7 +92,7 @@ interface UpdateEvent {
     columns: string[];
     values: SqlValue[];
     primaryValue: SqlValue;
-  };
+  } & TableQueryPayload;
 }
 
 interface DeleteEvent {
@@ -100,7 +100,7 @@ interface DeleteEvent {
   payload: {
     table: string;
     primaryValue: SqlValue;
-  };
+  } & TableQueryPayload;
 }
 
 interface InsertEvent {
@@ -109,7 +109,7 @@ interface InsertEvent {
     table: string;
     columns: string[];
     values: SqlValue[];
-  };
+  } & TableQueryPayload;
 }
 
 interface ExportEvent {

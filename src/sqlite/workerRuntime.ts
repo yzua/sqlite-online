@@ -64,14 +64,14 @@ function emitSchemaUpdate(postMessage: WorkerPostMessage, instance: Sqlite) {
   });
 }
 
-export function emitRowMutationComplete(
+function emitRowMutationComplete(
   postMessage: WorkerPostMessage,
   type: EditResultType
 ) {
   emit(postMessage, "updateComplete", { type });
 }
 
-export function emitInsertComplete(postMessage: WorkerPostMessage) {
+function emitInsertComplete(postMessage: WorkerPostMessage) {
   emit(postMessage, "insertComplete");
 }
 
@@ -171,11 +171,18 @@ export function executeBatchStatements(
     let lastResults: QueryExecResult[] = [];
 
     for (const query of queries) {
-      const [results, doTablesChanged] = instance.exec(query);
+      const [results, doTablesChanged] = instance.exec(query, {
+        skipSchemaUpdate: true
+      });
       hasTablesChanged ||= doTablesChanged;
       if (results.length > 0) {
         lastResults = results;
       }
+    }
+
+    // Single schema read after all DDL statements instead of one per statement
+    if (hasTablesChanged) {
+      instance.refreshSchema();
     }
 
     handleExecutionResults(
@@ -214,19 +221,63 @@ export function exportResults(instance: Sqlite, payload: ExportPayload) {
   throw new Error("Unknown export type");
 }
 
-export function updateRow(instance: Sqlite, payload: RowMutationPayload) {
-  instance.update(
-    payload.table,
-    payload.columns,
-    payload.values,
-    payload.primaryValue
+function mutateAndRefresh(
+  instance: Sqlite,
+  payload: TableQueryPayload,
+  postMessage: WorkerPostMessage,
+  mutation: () => void,
+  emitCompletion: () => void
+) {
+  mutation();
+  emitCompletion();
+  const [results, maxSize] = loadCurrentTable(instance, payload);
+  emitQueryComplete(postMessage, results, maxSize);
+}
+
+export function updateRow(
+  instance: Sqlite,
+  payload: RowMutationPayload,
+  postMessage: WorkerPostMessage
+) {
+  mutateAndRefresh(
+    instance,
+    payload,
+    postMessage,
+    () =>
+      instance.update(
+        payload.table,
+        payload.columns,
+        payload.values,
+        payload.primaryValue
+      ),
+    () => emitRowMutationComplete(postMessage, "updated")
   );
 }
 
-export function deleteRow(instance: Sqlite, payload: DeletePayload) {
-  instance.delete(payload.table, payload.primaryValue);
+export function deleteRow(
+  instance: Sqlite,
+  payload: DeletePayload,
+  postMessage: WorkerPostMessage
+) {
+  mutateAndRefresh(
+    instance,
+    payload,
+    postMessage,
+    () => instance.delete(payload.table, payload.primaryValue),
+    () => emitRowMutationComplete(postMessage, "deleted")
+  );
 }
 
-export function insertRow(instance: Sqlite, payload: InsertPayload) {
-  instance.insert(payload.table, payload.columns, payload.values);
+export function insertRow(
+  instance: Sqlite,
+  payload: InsertPayload,
+  postMessage: WorkerPostMessage
+) {
+  mutateAndRefresh(
+    instance,
+    payload,
+    postMessage,
+    () => instance.insert(payload.table, payload.columns, payload.values),
+    () => emitInsertComplete(postMessage)
+  );
 }

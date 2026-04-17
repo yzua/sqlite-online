@@ -7,10 +7,8 @@ import {
   emitDownloadComplete,
   emitExportComplete,
   emitInitComplete,
-  emitInsertComplete,
   emitQueryComplete,
   emitQueryError,
-  emitRowMutationComplete,
   executeBatchStatements,
   executeStatement,
   exportResults,
@@ -113,22 +111,19 @@ self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
       }
       // Updates the values of a row in a table
       case "update": {
-        updateRow(instance, payload);
-        emitRowMutationComplete(post, "updated");
+        updateRow(instance, payload, post);
 
         break;
       }
       // Deletes a row from a table
       case "delete": {
-        deleteRow(instance, payload);
-        emitRowMutationComplete(post, "deleted");
+        deleteRow(instance, payload, post);
 
         break;
       }
       // Inserts a row into a table
       case "insert": {
-        insertRow(instance, payload);
-        emitInsertComplete(post);
+        insertRow(instance, payload, post);
 
         break;
       }
