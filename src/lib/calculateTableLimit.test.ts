@@ -51,14 +51,14 @@ describe("calculateTableLimit", () => {
   });
 
   it("falls back to the default when required elements are missing", () => {
-    expect(calculateTableLimit(true)).toBe(50);
+    expect(calculateTableLimit()).toBe(50);
   });
 
   it("uses the initial header size on first load", () => {
     addSizedElement({ id: "dataSection", height: 500 });
     addSizedElement({ id: "paginationControls", height: 50 });
 
-    expect(calculateTableLimit(true)).toBe(12);
+    expect(calculateTableLimit()).toBe(12);
   });
 
   it("uses the measured header size after the first load", () => {
@@ -66,7 +66,7 @@ describe("calculateTableLimit", () => {
     addSizedElement({ id: "paginationControls", height: 50 });
     addSizedElement({ id: "tableHeader", height: 60 });
 
-    expect(calculateTableLimit(false)).toBe(11);
+    expect(calculateTableLimit()).toBe(11);
   });
 
   it("uses the measured row height when table rows are rendered", () => {
@@ -75,7 +75,7 @@ describe("calculateTableLimit", () => {
     addSizedElement({ id: "tableHeader", height: 60 });
     addMeasuredTableRow(40);
 
-    expect(calculateTableLimit(false)).toBe(9);
+    expect(calculateTableLimit()).toBe(9);
   });
 
   it("keeps at least one row visible when space is tight", () => {
@@ -84,7 +84,7 @@ describe("calculateTableLimit", () => {
     addSizedElement({ id: "tableHeader", height: 60 });
     addMeasuredTableRow(40);
 
-    expect(calculateTableLimit(false)).toBe(1);
+    expect(calculateTableLimit()).toBe(1);
   });
 
   it("caps the row limit to the visible viewport when the panel extends below it", () => {
@@ -92,6 +92,6 @@ describe("calculateTableLimit", () => {
     addSizedElement({ id: "paginationControls", height: 50 });
     addSizedElement({ id: "tableHeader", height: 50 });
 
-    expect(calculateTableLimit(false, 894)).toBe(19);
+    expect(calculateTableLimit(894)).toBe(19);
   });
 });

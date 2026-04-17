@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import usePanelManager from "@/hooks/usePanel";
+import { useTableLimit } from "@/hooks/useTableLimit";
 import { calculateTableLimit } from "@/lib/calculateTableLimit";
 import showToast from "@/lib/toast";
 import SqliteWorker from "@/sqlite/sqliteWorker.ts?worker";
@@ -23,11 +24,6 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   const sorters = useDatabaseStore((state) => state.sorters);
   const offset = useDatabaseStore((state) => state.offset);
   const setLimit = useDatabaseStore((state) => state.setLimit);
-
-  const [isFirstTimeLoading, setIsFirstTimeLoading] = useState(true);
-  const [viewportHeight, setViewportHeight] = useState(
-    () => window.innerHeight
-  );
 
   const { handleCloseEdit, setSelectedRowObject, setIsInserting } =
     usePanelManager();
@@ -82,40 +78,28 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
     };
   }, [handleCloseEdit, setSelectedRowObject, setIsInserting]);
 
-  // When fetching data, ask the worker for new data
-  useEffect(() => {
-    const handleResize = () => {
-      const nextViewportHeight = window.innerHeight;
-      setViewportHeight((currentValue) =>
-        currentValue === nextViewportHeight ? currentValue : nextViewportHeight
-      );
-    };
+  const tableLimit = useTableLimit(currentTable);
 
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
+  // Debounced fetch — only filter typing needs a delay to avoid
+  // firing a query on every keystroke. Pagination, table switches,
+  // sorters, and resize should fetch immediately.
   useEffect(() => {
     if (!currentTable) {
       return;
     }
-    const handler = setTimeout(() => {
+
+    void tableLimit;
+    const fetchData = (limitOverride?: number) => {
       if (!workerRef.current) {
         showToast("Worker is not initialized", "error");
         return;
       }
 
+      const nextLimit = limitOverride ?? calculateTableLimit();
+
       useDatabaseStore.getState().setIsDataLoading(true);
 
-      const limit = calculateTableLimit(isFirstTimeLoading, viewportHeight);
-      if (isFirstTimeLoading) {
-        setIsFirstTimeLoading(false);
-      }
-
-      setLimit(limit);
+      setLimit(nextLimit);
 
       postWorkerMessage(workerRef.current, {
         action: "getTableData",
@@ -123,22 +107,35 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
           currentTable,
           filters,
           sorters,
-          limit,
+          limit: nextLimit,
           offset
         }
       });
-    }, 100);
+    };
 
-    return () => clearTimeout(handler);
-  }, [
-    currentTable,
-    filters,
-    sorters,
-    isFirstTimeLoading,
-    offset,
-    viewportHeight,
-    setLimit
-  ]);
+    const correctionHandler =
+      !filters && offset === 0
+        ? setTimeout(() => {
+            const correctedLimit = calculateTableLimit();
+
+            if (correctedLimit !== useDatabaseStore.getState().limit) {
+              fetchData(correctedLimit);
+            }
+          }, 50)
+        : null;
+
+    // Debounce only filter changes (rapid typing). Everything else
+    // (pagination, table switch, sorter toggle, resize) fetches
+    // immediately to avoid adding perceived latency.
+    const handler = setTimeout(fetchData, filters ? 100 : 0);
+
+    return () => {
+      clearTimeout(handler);
+      if (correctionHandler != null) {
+        clearTimeout(correctionHandler);
+      }
+    };
+  }, [currentTable, filters, sorters, offset, tableLimit, setLimit]);
 
   const loadDatabaseBuffer = useCallback((buffer: ArrayBuffer) => {
     postWorkerMessage(
@@ -153,55 +150,17 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
   useIframeBridge(loadDatabaseBuffer);
 
-  const {
-    handleFileUpload,
-    handleFileChange,
-    handleDownload,
-    handleTableChange,
-    handleQueryFilter,
-    handleQuerySorter,
-    handlePageChange,
-    handleExport,
-    handleQueryExecute,
-    handleEditSubmit
-  } = useWorkerActions({ workerRef });
+  const workerApi = useWorkerActions({ workerRef });
 
   useWorkerHotkeys({
-    handleDownload,
-    handleEditSubmit,
-    handleQueryExecute,
-    handlePageChange
+    handleDownload: workerApi.handleDownload,
+    handleEditSubmit: workerApi.handleEditSubmit,
+    handleQueryExecute: workerApi.handleQueryExecute,
+    handlePageChange: workerApi.handlePageChange
   });
 
-  const value = useMemo(
-    () => ({
-      handleFileUpload,
-      handleFileChange,
-      handleDownload,
-      handleTableChange,
-      handleQueryFilter,
-      handleQuerySorter,
-      handlePageChange,
-      handleExport,
-      handleQueryExecute,
-      handleEditSubmit
-    }),
-    [
-      handleFileUpload,
-      handleFileChange,
-      handleDownload,
-      handleTableChange,
-      handleQueryFilter,
-      handleQuerySorter,
-      handlePageChange,
-      handleExport,
-      handleQueryExecute,
-      handleEditSubmit
-    ]
-  );
-
   return (
-    <DatabaseWorkerContext.Provider value={value}>
+    <DatabaseWorkerContext.Provider value={workerApi}>
       {children}
     </DatabaseWorkerContext.Provider>
   );

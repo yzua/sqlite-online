@@ -49,6 +49,7 @@ vi.mock("./useWorkerHotkeys", () => ({
 
 const initialStoreState = useDatabaseStore.getState();
 const initialInnerHeight = window.innerHeight;
+const initialResizeObserver = globalThis.ResizeObserver;
 
 describe("WorkerProvider", () => {
   beforeEach(() => {
@@ -73,7 +74,6 @@ describe("WorkerProvider", () => {
       isEditing: false,
       isInserting: false,
       selectedRowObject: null,
-      editValues: [],
       setEditValues: vi.fn()
     } as never);
 
@@ -97,6 +97,7 @@ describe("WorkerProvider", () => {
 
   afterEach(() => {
     useDatabaseStore.setState(initialStoreState, true);
+    globalThis.ResizeObserver = initialResizeObserver;
     Object.defineProperty(window, "innerHeight", {
       configurable: true,
       writable: true,
@@ -106,10 +107,9 @@ describe("WorkerProvider", () => {
   });
 
   it("re-fetches table data with a recalculated limit on window resize", () => {
-    vi.mocked(calculateTableLimit)
-      .mockReturnValueOnce(12)
-      .mockReturnValueOnce(11)
-      .mockReturnValueOnce(8);
+    vi.mocked(calculateTableLimit).mockImplementation(() =>
+      window.innerHeight === 700 ? 8 : 12
+    );
 
     render(
       <DatabaseWorkerProvider>
@@ -118,7 +118,7 @@ describe("WorkerProvider", () => {
     );
 
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(0);
     });
 
     const initialFetchCalls = vi
@@ -132,20 +132,6 @@ describe("WorkerProvider", () => {
     });
 
     act(() => {
-      vi.advanceTimersByTime(100);
-    });
-
-    const settledFetchCalls = vi
-      .mocked(postWorkerMessage)
-      .mock.calls.filter(([, message]) => message.action === "getTableData");
-
-    expect(settledFetchCalls).toHaveLength(2);
-    expect(settledFetchCalls[1]?.[1]).toMatchObject({
-      action: "getTableData",
-      payload: { currentTable: "users", limit: 11, offset: 0 }
-    });
-
-    act(() => {
       Object.defineProperty(window, "innerHeight", {
         configurable: true,
         writable: true,
@@ -155,18 +141,143 @@ describe("WorkerProvider", () => {
     });
 
     act(() => {
-      vi.advanceTimersByTime(100);
+      vi.advanceTimersByTime(0);
     });
 
     const resizedFetchCalls = vi
       .mocked(postWorkerMessage)
       .mock.calls.filter(([, message]) => message.action === "getTableData");
 
-    expect(resizedFetchCalls).toHaveLength(3);
-    expect(resizedFetchCalls[2]?.[1]).toMatchObject({
+    expect(resizedFetchCalls).toHaveLength(2);
+    expect(resizedFetchCalls[1]?.[1]).toMatchObject({
       action: "getTableData",
       payload: { currentTable: "users", limit: 8, offset: 0 }
     });
     expect(useDatabaseStore.getState().limit).toBe(8);
+  });
+
+  it("recalculates the table limit when the current table becomes available", () => {
+    useDatabaseStore.setState({
+      currentTable: null,
+      filters: null,
+      sorters: null,
+      offset: 0,
+      limit: 50,
+      isDataLoading: false
+    });
+
+    let currentLimit = 3;
+    vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
+
+    render(
+      <DatabaseWorkerProvider>
+        <div>child</div>
+      </DatabaseWorkerProvider>
+    );
+
+    act(() => {
+      currentLimit = 12;
+      useDatabaseStore.getState().setCurrentTable("users");
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const fetchCalls = vi
+      .mocked(postWorkerMessage)
+      .mock.calls.filter(([, message]) => message.action === "getTableData");
+
+    expect(fetchCalls).toHaveLength(1);
+    expect(fetchCalls[0]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 12, offset: 0 }
+    });
+  });
+
+  it("re-fetches table data when the data section resizes without a window resize", () => {
+    let resizeCallback: ResizeObserverCallback | undefined;
+    let currentLimit = 3;
+
+    globalThis.ResizeObserver = vi.fn().mockImplementation((callback) => {
+      resizeCallback = callback;
+      return {
+        observe: vi.fn(),
+        disconnect: vi.fn(),
+        unobserve: vi.fn()
+      };
+    }) as typeof ResizeObserver;
+
+    vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
+
+    render(
+      <DatabaseWorkerProvider>
+        <div>child</div>
+      </DatabaseWorkerProvider>
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    expect(resizeCallback).toBeDefined();
+
+    act(() => {
+      currentLimit = 19;
+      resizeCallback?.([], {} as ResizeObserver);
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    const fetchCalls = vi
+      .mocked(postWorkerMessage)
+      .mock.calls.filter(([, message]) => message.action === "getTableData");
+
+    expect(fetchCalls).toHaveLength(2);
+    expect(fetchCalls[0]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 3, offset: 0 }
+    });
+    expect(fetchCalls[1]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 19, offset: 0 }
+    });
+  });
+
+  it("re-fetches table data when the initial settled layout increases the row limit", () => {
+    let currentLimit = 3;
+
+    vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
+
+    render(
+      <DatabaseWorkerProvider>
+        <div>child</div>
+      </DatabaseWorkerProvider>
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    act(() => {
+      currentLimit = 19;
+      vi.advanceTimersByTime(50);
+    });
+
+    const fetchCalls = vi
+      .mocked(postWorkerMessage)
+      .mock.calls.filter(([, message]) => message.action === "getTableData");
+
+    expect(fetchCalls).toHaveLength(2);
+    expect(fetchCalls[0]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 3, offset: 0 }
+    });
+    expect(fetchCalls[1]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 19, offset: 0 }
+    });
   });
 });

@@ -17,10 +17,7 @@ function getFirstTableRowHeight() {
     ?.getBoundingClientRect().height;
 }
 
-export function calculateTableLimit(
-  _isFirstTimeLoading = false,
-  viewportHeight = window.innerHeight
-) {
+export function calculateTableLimit(viewportHeight = window.innerHeight) {
   const dataSectionHeight = getElementHeight("dataSection");
   const dataSectionTop = getElementTop("dataSection");
   const paginationControlsHeight = getElementHeight("paginationControls");
