@@ -13,7 +13,7 @@ worker-side utilities. The bridge between the React UI and the SQLite web worker
 | `handleWorkerMessage.ts` | `createWorkerMessageHandler`      | Factory returning the `onmessage` handler. Maps worker responses to Zustand store mutations.                                     |
 | `useWorkerActions.ts`    | `useWorkerActions`                | Hook returning all 10 `DatabaseWorkerApi` methods as `useCallback`-memoized functions.                                           |
 | `useWorkerHotkeys.ts`    | `useWorkerHotkeys`                | Binds Ctrl+S/I/U/D/Q/Arrow hotkeys to worker actions.                                                                            |
-| `workerActionUtils.ts`   | pure functions                    | `getSelectedTableColumns`, `createNextFilters`, `createNextSorters`, `getNextPageOffset`. No React deps.                         |
+| `workerActionUtils.ts`   | pure functions                    | `resetBrowseState`, `getSelectedTableColumns`, `createNextFilters`, `createNextSorters`, `getNextPageOffset`. No React deps.     |
 | `postWorkerMessage.ts`   | `postWorkerMessage`               | Thin wrapper around `worker.postMessage()`. Null-guard + toast on failure. Returns type-narrowing boolean.                       |
 | `useIframeBridge.ts`     | `useIframeBridge`                 | Wires cross-frame database loading. Exposes `window.loadDatabaseBuffer` and listens for `postMessage` events from parent frames. |
 

@@ -59,7 +59,8 @@ Zustand + `sql.js` in a web worker.
 ## Architecture you need to know
 
 - App entrypoint is `src/main.tsx`: it initializes API key storage, then mounts
-  `ErrorBoundary > ThemeProvider > PanelProvider > DatabaseWorkerProvider > App`.
+  `StrictMode > ErrorBoundary > ThemeProvider > PanelProvider > DatabaseWorkerProvider > App`.
+  `AppToaster` is a sibling of `PanelProvider` inside `ThemeProvider`.
 - `src/App.tsx` is the top-level tab shell. `ExecuteTab` is lazy-loaded; keep it
   lazy unless the task requires otherwise.
 - Browser UI never talks to SQLite directly. UI actions go through

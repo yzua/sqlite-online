@@ -7,8 +7,8 @@ column details. Also provides `SchemaTree` reused in browse and execute tabs.
 
 | File                       | Export                      | Role                                                                                                                                                       |
 | -------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `StructureTab.tsx`         | `DatabaseStructureTab`      | Thin wrapper. Renders `SchemaTree` in a scrollable container.                                                                                              |
-| `SchemaTreePanel.tsx`      | `SchemaTreePanel` (default) | Scrollable wrapper around `SchemaTree`. Used by other tabs for their schema side panel.                                                                    |
+| `StructureTab.tsx`         | `DatabaseStructureTab`      | Thin wrapper. Renders `SchemaTreePanel` for the standalone structure tab.                                                                                  |
+| `SchemaTreePanel.tsx`      | `SchemaTreePanel` (default) | Scrollable wrapper around `SchemaTree`. Used by all tabs that need the schema tree (browse, execute, and structure).                                       |
 | `SchemaTree.tsx`           | `SchemaTree`                | Main orchestrator. Manages filter text and expand state. Reads `tablesSchema`/`indexesSchema` from `useDatabaseStore`, expand state from `useSchemaStore`. |
 | `TablesSection.tsx`        | `TablesSection` (memoized)  | Collapsible "Tables" section with expand-all/collapse-all. Maps entries to `TableItem`.                                                                    |
 | `TableItem.tsx`            | `TableItem` (memoized)      | Single table row: expand chevron, view icon, name, column count. Expands to show `TableColumn` list.                                                       |

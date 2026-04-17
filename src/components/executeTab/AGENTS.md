@@ -32,7 +32,7 @@ ExecuteTab
         |                 +-- QueryGridCell[] (via react-window Grid)
         |                 +-- QueryResultsEmptyState
         +-- schema panel (hidden on mobile)
-              +-- SchemaTree (from structureTab)
+              +-- SchemaTreePanel (from structureTab)
   +-- ApiKeyModal
 ```
 

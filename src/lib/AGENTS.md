@@ -12,6 +12,7 @@ Shared utilities with no React component dependencies.
 | `secureStorage.ts`       | `SecureStorage` (default)        | AES-GCM encrypted storage via Web Crypto API. Fallback to base64 in localStorage when `crypto.subtle` unavailable.          |
 | `apiKeyStorage.ts`       | `storeApiKey`, `loadApiKey`      | Gemini API key persistence. Stores/loads via `SecureStorage` with legacy localStorage migration.                            |
 | `calculateTableLimit.ts` | `calculateTableLimit`            | Computes row limit from DOM section heights. Used by `WorkerProvider`. Falls back to 50 when DOM measurements unavailable.  |
+| `debounce.ts`            | `debounce`                       | Generic debounce with `cancel()`. Used by `usePanelStore` and `FilterInput`.                                                |
 | `parseSqlStatements.ts`  | `parseSqlStatements`             | Splits SQL text into individual statements. Strips comments (`--` and `/* */`), splits on `;`, trims whitespace.            |
 | `toast.tsx`              | `showToast` (default)            | Toast notification helper wrapping `sonner`. Renders themed icon + message. Side-effect function (no hooks).                |
 

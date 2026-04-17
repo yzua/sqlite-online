@@ -7,7 +7,7 @@ Zustand state stores. All stores use named exports (`useXStore`).
 | File                  | Export                                                                                                                      | Role                                                                                                                            |
 | --------------------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `useDatabaseStore.ts` | `useDatabaseStore`, `selectIsCurrentTableView`, `selectBrowseTableState`, `selectExecuteViewState`, `selectPaginationState` | Primary store. Database state: schema, data, columns, pagination, filters, sorters, custom query, API key, loading/error flags. |
-| `usePanelStore.ts`    | `usePanelStore`, `selectPanelSizes`                                                                                         | UI panel sizes (schema/data). Panel setters are debounced (200ms via lodash).                                                   |
+| `usePanelStore.ts`    | `usePanelStore`, `selectPanelSizes`                                                                                         | UI panel sizes (schema/data). Panel setters are debounced (200ms via `@/lib/debounce`).                                         |
 | `useSchemaStore.ts`   | `useSchemaStore`                                                                                                            | Structure tab expand/collapse state: `expandedTables`, `expandedIndexSection`.                                                  |
 
 ## Key Patterns
