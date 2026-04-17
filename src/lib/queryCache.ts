@@ -12,6 +12,8 @@ interface CacheEntry<T> {
 
 class QueryCache<T = unknown> {
   private cache = new Map<string, CacheEntry<T>>();
+  // Reverse index: table name → set of cache keys for fast invalidation
+  private tableIndex = new Map<string, Set<string>>();
   private maxSize: number;
   private maxAge: number; // in milliseconds
 
@@ -55,7 +57,7 @@ class QueryCache<T = unknown> {
 
     // Check if entry is expired
     if (Date.now() - entry.timestamp > this.maxAge) {
-      this.cache.delete(key);
+      this.deleteKey(key, table);
       return null;
     }
 
@@ -80,10 +82,11 @@ class QueryCache<T = unknown> {
     const key = this.generateKey(table, limit, offset, filters, sorters);
 
     // If cache is full, evict least-recently-used (first in Map order)
-    if (this.cache.size >= this.maxSize) {
+    if (this.cache.size >= this.maxSize && !this.cache.has(key)) {
       const oldestKey = this.cache.keys().next().value;
       if (oldestKey !== undefined) {
-        this.cache.delete(oldestKey);
+        const oldestTable = oldestKey.slice(0, oldestKey.indexOf(":"));
+        this.deleteKey(oldestKey, oldestTable);
       }
     }
 
@@ -91,18 +94,30 @@ class QueryCache<T = unknown> {
       data,
       timestamp: Date.now()
     });
+
+    // Update table index
+    let keySet = this.tableIndex.get(table);
+    if (!keySet) {
+      keySet = new Set();
+      this.tableIndex.set(table, keySet);
+    }
+    keySet.add(key);
   }
 
   /**
    * Invalidate cache entries for a specific table
    */
   invalidateTable(table: string): void {
-    const prefix = `${table}:`;
-    for (const key of this.cache.keys()) {
-      if (key.startsWith(prefix)) {
-        this.cache.delete(key);
-      }
+    const keySet = this.tableIndex.get(table);
+    if (!keySet) {
+      return;
     }
+
+    for (const key of keySet) {
+      this.cache.delete(key);
+    }
+
+    this.tableIndex.delete(table);
   }
 
   /**
@@ -110,6 +125,7 @@ class QueryCache<T = unknown> {
    */
   clear(): void {
     this.cache.clear();
+    this.tableIndex.clear();
   }
 
   /**
@@ -117,6 +133,18 @@ class QueryCache<T = unknown> {
    */
   get size(): number {
     return this.cache.size;
+  }
+
+  /** Remove a single key from both the cache and the table index */
+  private deleteKey(key: string, table: string) {
+    this.cache.delete(key);
+    const keySet = this.tableIndex.get(table);
+    if (keySet) {
+      keySet.delete(key);
+      if (keySet.size === 0) {
+        this.tableIndex.delete(table);
+      }
+    }
   }
 }
 
