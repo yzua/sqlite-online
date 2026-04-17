@@ -10,7 +10,7 @@ export function useIframeBridge(
   loadDatabaseBuffer: (buffer: ArrayBuffer) => void
 ) {
   const stableLoad = useCallback(
-    async (buffer: ArrayBuffer) => {
+    (buffer: ArrayBuffer) => {
       loadDatabaseBuffer(buffer);
     },
     [loadDatabaseBuffer]
@@ -23,22 +23,22 @@ export function useIframeBridge(
       if (event.data.type !== "invokeLoadDatabaseBuffer") return;
 
       const buffer = event.data.buffer as ArrayBuffer;
-      void stableLoad(buffer)
-        .then(() => {
-          event.source?.postMessage(
-            { type: "loadDatabaseBufferSuccess" },
-            event.origin as WindowPostMessageOptions
-          );
-        })
-        .catch((error: unknown) => {
-          event.source?.postMessage(
-            {
-              type: "loadDatabaseBufferError",
-              error: error instanceof Error ? error.message : String(error)
-            },
-            event.origin as WindowPostMessageOptions
-          );
-        });
+
+      try {
+        stableLoad(buffer);
+        event.source?.postMessage(
+          { type: "loadDatabaseBufferSuccess" },
+          event.origin as WindowPostMessageOptions
+        );
+      } catch (error: unknown) {
+        event.source?.postMessage(
+          {
+            type: "loadDatabaseBufferError",
+            error: error instanceof Error ? error.message : String(error)
+          },
+          event.origin as WindowPostMessageOptions
+        );
+      }
     };
 
     window.addEventListener("message", handleMessage);
