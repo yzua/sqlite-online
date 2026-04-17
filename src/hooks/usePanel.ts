@@ -1,6 +1,8 @@
 import { useContext } from "react";
 
-import PanelContext from "@/providers/panel/PanelContext";
+import PanelContext, {
+  EditValuesContext
+} from "@/providers/panel/PanelContext";
 
 const usePanelManager = () => {
   const context = useContext(PanelContext);
@@ -12,4 +14,15 @@ const usePanelManager = () => {
   return context;
 };
 
+const useEditValues = () => {
+  const context = useContext(EditValuesContext);
+
+  if (context === undefined) {
+    throw new Error("useEditValues must be used within a PanelProvider");
+  }
+
+  return context;
+};
+
 export default usePanelManager;
+export { useEditValues };

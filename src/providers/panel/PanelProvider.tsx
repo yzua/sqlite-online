@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from "react";
 import type { SqlValue } from "sql.js";
 import useKeyPress from "@/hooks/useKeyPress";
 
-import PanelContext from "./PanelContext";
+import PanelContext, { EditValuesContext } from "./PanelContext";
 import type { SelectedRowObject } from "./types";
 
 interface PanelProviderProps {
@@ -42,7 +42,7 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
   useKeyPress("ctrl+i", handleInsert, true);
   useKeyPress("ctrl+`", handleCloseEdit, true);
 
-  const value = useMemo(
+  const panelValue = useMemo(
     () => ({
       handleRowClick,
       handleInsert,
@@ -52,7 +52,6 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
       isInserting,
       setIsInserting,
       setSelectedRowObject,
-      editValues,
       setEditValues
     }),
     [
@@ -61,13 +60,18 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
       handleCloseEdit,
       isEditing,
       selectedRowObject,
-      isInserting,
-      editValues
+      isInserting
     ]
   );
 
+  const editValuesValue = useMemo(() => ({ editValues }), [editValues]);
+
   return (
-    <PanelContext.Provider value={value}>{children}</PanelContext.Provider>
+    <PanelContext.Provider value={panelValue}>
+      <EditValuesContext.Provider value={editValuesValue}>
+        {children}
+      </EditValuesContext.Provider>
+    </PanelContext.Provider>
   );
 };
 

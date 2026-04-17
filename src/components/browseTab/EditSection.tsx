@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo } from "react";
-import usePanelManager from "@/hooks/usePanel";
+import usePanelManager, { useEditValues } from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
 import {
   selectIsCurrentTableView,
@@ -11,13 +11,9 @@ import EditSectionHeader from "./EditSectionHeader";
 
 function EditSection() {
   const { handleEditSubmit } = useDatabaseWorker();
-  const {
-    selectedRowObject,
-    isInserting,
-    handleCloseEdit,
-    editValues,
-    setEditValues
-  } = usePanelManager();
+  const { selectedRowObject, isInserting, handleCloseEdit, setEditValues } =
+    usePanelManager();
+  const { editValues } = useEditValues();
   const tablesSchema = useDatabaseStore((state) => state.tablesSchema);
   const currentTable = useDatabaseStore((state) => state.currentTable);
   const columns = useDatabaseStore((state) => state.columns);

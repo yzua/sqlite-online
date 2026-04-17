@@ -16,10 +16,17 @@ interface PanelContextProps {
   setIsInserting: (value: boolean) => void;
   setSelectedRowObject: (value: SelectedRowObject | null) => void;
   handleCloseEdit: () => void;
-  editValues: string[];
   setEditValues: (values: string[]) => void;
 }
 
+interface EditValuesContextProps {
+  editValues: string[];
+}
+
 const PanelContext = createContext<PanelContextProps | undefined>(undefined);
+const EditValuesContext = createContext<EditValuesContextProps | undefined>(
+  undefined
+);
 
 export default PanelContext;
+export { EditValuesContext };

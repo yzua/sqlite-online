@@ -69,7 +69,6 @@ describe("PaginationControls", () => {
       selectedRowObject: null,
       setSelectedRowObject: vi.fn(),
       setIsInserting: vi.fn(),
-      editValues: [],
       setEditValues: vi.fn()
     });
     vi.mocked(useDatabaseStore).mockImplementation((selector) =>
