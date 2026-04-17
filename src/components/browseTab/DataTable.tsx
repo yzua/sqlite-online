@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import ColumnIcon from "@/components/table/ColumnIcon";
 import FilterInput from "@/components/table/FilterInput";
@@ -30,8 +31,17 @@ function DataTable() {
   const { handleRowClick, selectedRowObject } = usePanelManager();
   const { handleClearFilters } = useBrowseActions();
 
+  // Memoize row metadata to avoid per-row array allocations on every render
+  const rowMetas = useMemo(() => {
+    if (!data) return [];
+    return data.map((row) => getRowMeta(row, currentTableSchema));
+  }, [data, currentTableSchema]);
+
   return (
-    <section aria-label="Database table data">
+    <section
+      aria-label="Database table data"
+      className="flex-1 min-h-0 overflow-auto"
+    >
       <Table
         role="table"
         aria-label={
@@ -79,31 +89,20 @@ function DataTable() {
         </TableHeader>
         <TableBody>
           {data && data.length > 0 ? (
-            data.map((row, index) => {
-              const { primaryValue, displayData } = getRowMeta(
-                row,
-                currentTableSchema
-              );
-              const rowKey =
-                primaryValue != null
-                  ? String(primaryValue)
-                  : displayData.map((cell) => String(cell)).join("|") ||
-                    String(index);
-              return (
-                <BrowseTableRow
-                  key={rowKey}
-                  displayData={displayData}
-                  primaryValue={primaryValue}
-                  rowKey={rowKey}
-                  rowIndex={index}
-                  rowCount={data.length}
-                  columns={columns}
-                  currentTableSchema={currentTableSchema}
-                  selectedRowIndex={selectedRowObject?.index}
-                  onSelectRow={handleRowClick}
-                />
-              );
-            })
+            rowMetas.map((meta, index) => (
+              <BrowseTableRow
+                key={meta.rowKey}
+                displayData={meta.displayData}
+                primaryValue={meta.primaryValue}
+                rowKey={meta.rowKey}
+                rowIndex={index}
+                rowCount={data.length}
+                columns={columns}
+                currentTableSchema={currentTableSchema}
+                isSelected={selectedRowObject?.index === index}
+                onSelectRow={handleRowClick}
+              />
+            ))
           ) : (
             <TableRow role="row">
               <TableCell

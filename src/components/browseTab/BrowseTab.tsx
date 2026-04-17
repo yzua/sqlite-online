@@ -59,7 +59,7 @@ function BrowseTab() {
             onResize={setDataPanelSize}
           >
             <div
-              className="flex h-full flex-col justify-between border-l"
+              className="flex h-full min-h-0 flex-col border-l"
               id="dataSection"
             >
               <DataTable />

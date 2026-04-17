@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { SqlValue } from "sql.js";
 import Badge from "@/components/ui/badge";
 import { Span } from "@/components/ui/span";
@@ -12,7 +13,7 @@ interface BrowseTableRowProps {
   rowCount: number;
   columns: string[] | null;
   currentTableSchema: TableSchema[string] | undefined;
-  selectedRowIndex: number | undefined;
+  isSelected: boolean;
   onSelectRow: (
     row: SqlValue[],
     rowIndex: number,
@@ -20,7 +21,7 @@ interface BrowseTableRowProps {
   ) => void;
 }
 
-function BrowseTableRow({
+const BrowseTableRow = memo(function BrowseTableRow({
   displayData,
   primaryValue,
   rowKey,
@@ -28,7 +29,7 @@ function BrowseTableRow({
   rowCount,
   columns,
   currentTableSchema,
-  selectedRowIndex,
+  isSelected,
   onSelectRow
 }: BrowseTableRowProps) {
   const handleSelect = () => {
@@ -41,7 +42,7 @@ function BrowseTableRow({
       onClick={handleSelect}
       className="hover:bg-primary/5 focus:bg-primary/5 data-[state=selected]:bg-primary/5 focus:ring-ring cursor-pointer text-xs focus:ring-2 focus:ring-offset-1 focus:outline-none"
       role="row"
-      data-state={selectedRowIndex === rowIndex ? "selected" : undefined}
+      data-state={isSelected ? "selected" : undefined}
       tabIndex={0}
       aria-label={`Row ${rowIndex + 1} of ${rowCount}, click to edit`}
       onKeyDown={(event) => {
@@ -75,6 +76,6 @@ function BrowseTableRow({
       ))}
     </TableRow>
   );
-}
+});
 
 export default BrowseTableRow;

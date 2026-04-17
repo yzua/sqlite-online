@@ -4,6 +4,7 @@ import type { TableSchema } from "@/types";
 interface RowMeta {
   primaryValue: SqlValue | null;
   displayData: SqlValue[];
+  rowKey: string;
 }
 
 // When a primary key exists and the table is not a view, Sqlite.getTableData
@@ -18,5 +19,7 @@ export function getRowMeta(
   const primaryKey = schema?.primaryKey;
   const primaryValue = primaryKey && !isView ? (row[0] ?? null) : null;
   const displayData = primaryKey && !isView ? row.slice(1) : row;
-  return { primaryValue, displayData };
+  const rowKey =
+    primaryValue != null ? String(primaryValue) : displayData.join("|");
+  return { primaryValue, displayData, rowKey };
 }
