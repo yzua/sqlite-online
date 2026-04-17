@@ -1,11 +1,7 @@
-import SchemaTree from "./SchemaTree";
+import SchemaTreePanel from "./SchemaTreePanel";
 
 const DatabaseStructureTab = () => {
-  return (
-    <div className="h-full overflow-y-auto">
-      <SchemaTree />
-    </div>
-  );
+  return <SchemaTreePanel />;
 };
 
 export default DatabaseStructureTab;

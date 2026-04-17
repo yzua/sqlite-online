@@ -31,45 +31,42 @@ export function useQueryGridMetrics(
     });
   }, [customQueryResult]);
 
+  // Memoize total once so getColumnWidth and getTotalWidth avoid O(n)
+  // reduce on every call. Previously each column width lookup ran a full
+  // reduce, making the Grid render O(n*m) for n visible × m total columns.
+  const totalContentWidth = useMemo(
+    () => columnWidths.reduce((sum, width) => sum + width, 0),
+    [columnWidths]
+  );
+  const columnCount = customQueryResult?.columns.length ?? 0;
+
   const getColumnWidth = useCallback(
     (columnIndex: number, containerWidth?: number) => {
-      if (!customQueryResult || !columnWidths[columnIndex]) {
+      if (!columnWidths[columnIndex]) {
         return MIN_COLUMN_WIDTH;
       }
 
       const contentBasedWidth = columnWidths[columnIndex];
-      if (!containerWidth) {
-        return contentBasedWidth;
-      }
-
-      const totalContentWidth = columnWidths.reduce(
-        (sum, width) => sum + width,
-        0
-      );
-      if (totalContentWidth >= containerWidth) {
+      if (!containerWidth || totalContentWidth >= containerWidth) {
         return contentBasedWidth;
       }
 
       return (
-        contentBasedWidth +
-        (containerWidth - totalContentWidth) / customQueryResult.columns.length
+        contentBasedWidth + (containerWidth - totalContentWidth) / columnCount
       );
     },
-    [customQueryResult, columnWidths]
+    [columnWidths, totalContentWidth, columnCount]
   );
 
   const getTotalWidth = useCallback(
     (containerWidth: number) => {
-      if (!customQueryResult || columnWidths.length === 0) {
+      if (columnWidths.length === 0) {
         return containerWidth;
       }
 
-      return Math.max(
-        columnWidths.reduce((sum, width) => sum + width, 0),
-        containerWidth
-      );
+      return Math.max(totalContentWidth, containerWidth);
     },
-    [customQueryResult, columnWidths]
+    [columnWidths, totalContentWidth]
   );
 
   useEffect(() => {
