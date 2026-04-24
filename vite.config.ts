@@ -23,11 +23,27 @@ export default defineConfig(async ({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks(id: string) {
-            if (id.includes("node_modules")) {
-              return id.toString().split("node_modules/")[1]?.split("/")[0];
+            if (!id.includes("node_modules")) {
+              return undefined;
             }
 
-            return undefined;
+            const pkg = id.split("node_modules/")[1]?.split("/")[0];
+            if (!pkg) return undefined;
+
+            // Merge tiny always-loaded packages into one chunk to cut HTTP
+            // requests (each was under 1.5 KB on its own).
+            if (
+              pkg === "@babel" ||
+              pkg === "rolldown" ||
+              pkg === "rolldown-runtime" ||
+              pkg === "class-variance-authority" ||
+              pkg === "clsx" ||
+              pkg === "zustand"
+            ) {
+              return "vendor-core";
+            }
+
+            return pkg;
           }
         }
       }
