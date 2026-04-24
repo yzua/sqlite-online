@@ -25,6 +25,9 @@ export default class Sqlite {
   public tablesSchema: TableSchema = {};
   public indexesSchema: IndexSchema[] = [];
 
+  // Cache for row counts keyed by (table, filters). Invalidated on any mutation.
+  private tableCountCache = new Map<string, number>();
+
   private constructor(db: Database, isFile = false) {
     this.db = db;
     // Check if user is opening a file or creating a new database.
@@ -107,32 +110,42 @@ export default class Sqlite {
     this.firstTable = schemaSnapshot.firstTable;
   }
 
-  // Run a query, using prepared statement when params are provided
+  // Run a SELECT query, using prepared statement when params are provided.
+  // Bypasses normalize + structure-change detection since this is only used
+  // for data reads (getTableData, getMaxSizeOfTable, export).
   private runQuery(query: string, params: string[] = []) {
     if (params.length > 0) {
       return runPreparedQuery(this.db, query, params);
     }
-    const [results] = this.exec(query);
-    return results;
+    return this.db.exec(query);
   }
 
   // Get the max size of the requested table
-  // Used for pagination
+  // Used for pagination. Results are cached by (table, filters) and
+  // invalidated on any mutation, so pagination through the same filtered
+  // result set skips the COUNT(*) query.
   private getMaxSizeOfTable(tableName: string, filters?: Filters) {
+    const cacheKey = `${tableName}:${filters ? JSON.stringify(filters) : ""}`;
+    const cached = this.tableCountCache.get(cacheKey);
+    if (cached !== undefined) return cached;
+
     const { clause, params } = buildWhereClause(filters);
     const quotedTableName = sanitizeIdentifier(tableName);
 
     const query = `SELECT COUNT(*) FROM ${quotedTableName} ${clause}`;
 
+    let count: number;
     if (params.length > 0) {
       const result = runPreparedScalar(this.db, query, params);
-      return (result as SqlValue[])[0] as number;
+      count = (result as SqlValue[])[0] as number;
+    } else {
+      const results = this.runQuery(query);
+      if (results.length === 0) return 0;
+      count = Number(results[0]?.values[0]?.[0] ?? 0);
     }
 
-    const results = this.runQuery(query);
-    if (results.length === 0) return 0;
-    const count = results[0]?.values[0]?.[0];
-    return Number(count ?? 0);
+    this.tableCountCache.set(cacheKey, count);
+    return count;
   }
 
   // Get the data for the requested table
@@ -209,6 +222,7 @@ export default class Sqlite {
     try {
       fn();
       tableDataCache.invalidateTable(table);
+      this.tableCountCache.clear();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Error while ${operation} table ${table}: ${message}`);
