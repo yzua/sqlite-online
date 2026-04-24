@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef } from "react";
 import usePanelManager from "@/hooks/usePanel";
-import { useTableLimit } from "@/hooks/useTableLimit";
-import { calculateTableLimit } from "@/lib/calculateTableLimit";
-import showToast from "@/lib/toast";
 import SqliteWorker from "@/sqlite/sqliteWorker.ts?worker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { createWorkerMessageHandler } from "./handleWorkerMessage";
 import { postWorkerMessage } from "./postWorkerMessage";
 import { useIframeBridge } from "./useIframeBridge";
+import { useTableDataFetch } from "./useTableDataFetch";
 import { useWorkerActions } from "./useWorkerActions";
 import { useWorkerHotkeys } from "./useWorkerHotkeys";
 import DatabaseWorkerContext from "./WorkerContext";
@@ -18,12 +16,6 @@ interface DatabaseWorkerProviderProps {
 
 const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   const workerRef = useRef<Worker | null>(null);
-
-  const currentTable = useDatabaseStore((state) => state.currentTable);
-  const filters = useDatabaseStore((state) => state.filters);
-  const sorters = useDatabaseStore((state) => state.sorters);
-  const offset = useDatabaseStore((state) => state.offset);
-  const setLimit = useDatabaseStore((state) => state.setLimit);
 
   const { handleCloseEdit, setSelectedRowObject, setIsInserting } =
     usePanelManager();
@@ -78,64 +70,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
     };
   }, [handleCloseEdit, setSelectedRowObject, setIsInserting]);
 
-  const tableLimit = useTableLimit(currentTable);
-
-  // Debounced fetch — only filter typing needs a delay to avoid
-  // firing a query on every keystroke. Pagination, table switches,
-  // sorters, and resize should fetch immediately.
-  useEffect(() => {
-    if (!currentTable) {
-      return;
-    }
-
-    void tableLimit;
-    const fetchData = (limitOverride?: number) => {
-      if (!workerRef.current) {
-        showToast("Worker is not initialized", "error");
-        return;
-      }
-
-      const nextLimit = limitOverride ?? calculateTableLimit();
-
-      useDatabaseStore.getState().setIsDataLoading(true);
-
-      setLimit(nextLimit);
-
-      postWorkerMessage(workerRef.current, {
-        action: "getTableData",
-        payload: {
-          currentTable,
-          filters,
-          sorters,
-          limit: nextLimit,
-          offset
-        }
-      });
-    };
-
-    const correctionHandler =
-      !filters && offset === 0
-        ? setTimeout(() => {
-            const correctedLimit = calculateTableLimit();
-
-            if (correctedLimit !== useDatabaseStore.getState().limit) {
-              fetchData(correctedLimit);
-            }
-          }, 50)
-        : null;
-
-    // Debounce only filter changes (rapid typing). Everything else
-    // (pagination, table switch, sorter toggle, resize) fetches
-    // immediately to avoid adding perceived latency.
-    const handler = setTimeout(fetchData, filters ? 100 : 0);
-
-    return () => {
-      clearTimeout(handler);
-      if (correctionHandler != null) {
-        clearTimeout(correctionHandler);
-      }
-    };
-  }, [currentTable, filters, sorters, offset, tableLimit, setLimit]);
+  useTableDataFetch(workerRef);
 
   const loadDatabaseBuffer = useCallback((buffer: ArrayBuffer) => {
     postWorkerMessage(
