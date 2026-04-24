@@ -1,4 +1,4 @@
-import { tableDataCache } from "@/lib/queryCache";
+import { tableDataCache } from "@/sqlite/queryCache";
 import type { WorkerEvent } from "@/types";
 import Sqlite from "./core";
 import {

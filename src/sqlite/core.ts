@@ -1,7 +1,7 @@
 import type { Database, QueryExecResult, SqlJsStatic, SqlValue } from "sql.js";
 import initSqlJs from "sql.js";
 import sqlWasmUrl from "sql.js/dist/sql-wasm.wasm?url";
-import { tableDataCache } from "@/lib/queryCache";
+import { tableDataCache } from "@/sqlite/queryCache";
 import type { Filters, IndexSchema, Sorters, TableSchema } from "@/types";
 import DEMO_DB from "./demo-db";
 import { readDatabaseSchema } from "./schema";

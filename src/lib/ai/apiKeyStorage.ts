@@ -1,4 +1,4 @@
-import SecureStorage from "@/lib/secureStorage";
+import SecureStorage from "@/lib/storage/secureStorage";
 
 const STORAGE_KEY = "geminiApiKey";
 

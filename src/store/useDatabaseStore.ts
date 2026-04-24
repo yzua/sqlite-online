@@ -1,6 +1,6 @@
 import type { SqlValue } from "sql.js";
 import { create } from "zustand";
-import { loadApiKey, storeApiKey } from "@/lib/apiKeyStorage";
+import { loadApiKey, storeApiKey } from "@/lib/ai/apiKeyStorage";
 import type {
   CustomQueryResult,
   Filters,
