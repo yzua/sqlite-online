@@ -9,10 +9,11 @@ worker-side utilities. The bridge between the React UI and the SQLite web worker
 | ------------------------ | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `types.ts`               | `PageChange`, `DatabaseWorkerApi` | Public contract: 10 action methods exposed via context.                                                                          |
 | `WorkerContext.tsx`      | `DatabaseWorkerContext`           | React context. Value is `DatabaseWorkerApi \| undefined`.                                                                        |
-| `WorkerProvider.tsx`     | `DatabaseWorkerProvider`          | Root provider. Creates worker, wires message handler, reactive data-fetch effect, iframe bridge.                                 |
+| `WorkerProvider.tsx`     | `DatabaseWorkerProvider`          | Root provider. Creates worker, wires message handler, delegates data fetching to `useTableDataFetch`, iframe bridge.             |
 | `handleWorkerMessage.ts` | `createWorkerMessageHandler`      | Factory returning the `onmessage` handler. Maps worker responses to Zustand store mutations.                                     |
 | `useWorkerActions.ts`    | `useWorkerActions`                | Hook returning all 10 `DatabaseWorkerApi` methods as `useCallback`-memoized functions.                                           |
 | `useWorkerHotkeys.ts`    | `useWorkerHotkeys`                | Binds Ctrl+S/I/U/D/Q/Arrow hotkeys to worker actions.                                                                            |
+| `useTableDataFetch.ts`   | `useTableDataFetch`               | Reactive data-fetch effect. Watches `currentTable`, `filters`, `sorters`, `offset`; debounces filter changes (100ms).            |
 | `workerActionUtils.ts`   | pure functions                    | `resetBrowseState`, `getSelectedTableColumns`, `createNextFilters`, `createNextSorters`, `getNextPageOffset`. No React deps.     |
 | `postWorkerMessage.ts`   | `postWorkerMessage`               | Thin wrapper around `worker.postMessage()`. Null-guard + toast on failure. Returns type-narrowing boolean.                       |
 | `useIframeBridge.ts`     | `useIframeBridge`                 | Wires cross-frame database loading. Exposes `window.loadDatabaseBuffer` and listens for `postMessage` events from parent frames. |
@@ -50,17 +51,18 @@ interface DatabaseWorkerApi {
 
 ## Key Patterns
 
-- **Reactive auto-fetch**: `WorkerProvider` has a `useEffect` that watches
-  `currentTable`, `filters`, `sorters`, `offset` and auto-sends `getTableData`
-  with 100ms debounce. Table/filter/sort/page actions only update Zustand; the
-  effect handles the worker message.
+- **Reactive auto-fetch**: `useTableDataFetch` (called from `WorkerProvider`)
+  watches `currentTable`, `filters`, `sorters`, `offset` and auto-sends
+  `getTableData` with 100ms debounce. Table/filter/sort/page actions only update
+  Zustand; the hook's effect handles the worker message.
 - **Direct Zustand reads**: `handleQueryFilter`, `handleQuerySorter`, and
   `handleEditSubmit` use `useDatabaseStore.getState()` to avoid stale closures.
 - **Two loading flags**: `isDatabaseLoading` (init/open) vs `isDataLoading`
   (queries, CRUD).
 - **iframe bridge**: `window.loadDatabaseBuffer` and `postMessage` events enable
   cross-frame database loading.
-- **Row limit**: Dynamically calculated from DOM heights via `@/lib/calculateTableLimit`.
+- **Row limit**: Dynamically calculated from DOM heights via `useTableLimit`
+  (called inside `useTableDataFetch`), which wraps `@/lib/calculateTableLimit`.
 
 ## Guidelines
 

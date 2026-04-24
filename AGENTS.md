@@ -10,9 +10,9 @@ Zustand + `sql.js` in a web worker.
 - Then read the nearest scoped instructions when working under:
   - `src/AGENTS.md`
   - `src/components/AGENTS.md`
-  - `src/components/browseTab/AGENTS.md`
-  - `src/components/executeTab/AGENTS.md`
-  - `src/components/structureTab/AGENTS.md`
+  - `src/components/browse-tab/AGENTS.md`
+  - `src/components/execute-tab/AGENTS.md`
+  - `src/components/structure-tab/AGENTS.md`
   - `src/components/ui/AGENTS.md`
   - `src/hooks/AGENTS.md`
   - `src/lib/AGENTS.md`
@@ -41,7 +41,7 @@ Zustand + `sql.js` in a web worker.
 - Typecheck only: `npm run typecheck`
 - Recommended sequence after edits:
   1. `npx biome check <changed-files>`
-  2. `npx vitest run <changed-files>` (if a `.test.` file exists alongside)
+  2. `npx vitest run src/__tests__/<test-path>` (find the matching test under `__tests__`)
   3. `npm run build`
 - If you changed entrypoints, imports, or dead code boundaries, also run
   `npm run knip`.
@@ -49,7 +49,7 @@ Zustand + `sql.js` in a web worker.
 ## Verified constraints
 
 - Vitest is the test runner (jsdom environment, setup in `src/test/setup.ts`).
-  Test files follow `*.test.ts(x)` naming alongside their source files.
+  Test files live in `src/__tests__/`, mirroring the source tree.
   Run the full suite with `npm test`, or target files with
   `npx vitest run <path>`.
 - Biome is the formatter and linter. Let Biome own import organization.

@@ -5,15 +5,16 @@ operations run in a web worker via `sql.js` (WebAssembly).
 
 ## Files
 
-| File                   | Export                                                | Role                                                                                                                                                                                               |
-| ---------------------- | ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core.ts`              | `Sqlite` (class), `CustomQueryError`                  | Central database abstraction. Private constructor; use `Sqlite.create()` or `Sqlite.open()`. Owns schema state, CRUD, pagination, export, download.                                                |
-| `sqliteWorker.ts`      | none                                                  | Web Worker entry point. Singleton `Sqlite` instance. Routes `WorkerEvent` messages to `workerRuntime.ts` handlers.                                                                                 |
-| `workerRuntime.ts`     | `emitX` functions, action handlers                    | Pure orchestration between the worker message loop and `Sqlite` class. All `postMessage` responses go through here.                                                                                |
-| `schema.ts`            | `readDatabaseSchema`                                  | Schema introspection via `sqlite_master`, `PRAGMA table_info`, `PRAGMA foreign_key_list`. Returns `SchemaSnapshot`.                                                                                |
-| `sqlUtils.ts`          | SQL helpers                                           | Pure functions: `normalizeSqlStatement`, `isStructureChangeable`, `sanitizeIdentifier`, `buildWhereClause`, `buildOrderByClause`, `runPreparedQuery`, `runPreparedScalar`, `arrayToCSV`. No state. |
-| `sqlite-type-check.ts` | `isDate`, `isBlob`, `isText`, `isBoolean`, `isNumber` | Type-checking predicates for SQLite affinity strings. Used by the UI to choose rendering.                                                                                                          |
-| `demo-db.ts`           | `DEMO_DB` (const string)                              | SQL literal seeding the initial in-memory database (Customers, Products, Orders).                                                                                                                  |
+| File                   | Export                                                | Role                                                                                                                                                                                                       |
+| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core.ts`              | `Sqlite` (class), `CustomQueryError`                  | Central database abstraction. Private constructor; use `Sqlite.create()` or `Sqlite.open()`. Owns schema state, CRUD, pagination, export, download.                                                        |
+| `sqliteWorker.ts`      | none                                                  | Web Worker entry point. Singleton `Sqlite` instance. Routes `WorkerEvent` messages to `workerRuntime.ts` handlers.                                                                                         |
+| `workerRuntime.ts`     | action handlers, re-exports from `workerEmit`         | Pure orchestration between the worker message loop and `Sqlite` class. Delegates message emission to `workerEmit.ts`.                                                                                      |
+| `workerEmit.ts`        | `emitX` functions, `cleanupInstance`                  | All `postMessage` responses: `emitInitComplete`, `emitQueryComplete`, `emitSchemaUpdate`, `emitRowMutationComplete`, `emitInsertComplete`, `emitDownloadComplete`, `emitExportComplete`, `emitQueryError`. |
+| `schema.ts`            | `readDatabaseSchema`                                  | Schema introspection via `sqlite_master`, `PRAGMA table_info`, `PRAGMA foreign_key_list`. Returns `SchemaSnapshot`.                                                                                        |
+| `sqlUtils.ts`          | SQL helpers                                           | Pure functions: `normalizeSqlStatement`, `isStructureChangeable`, `sanitizeIdentifier`, `buildWhereClause`, `buildOrderByClause`, `runPreparedQuery`, `runPreparedScalar`, `arrayToCSV`. No state.         |
+| `sqlite-type-check.ts` | `isDate`, `isBlob`, `isText`, `isBoolean`, `isNumber` | Type-checking predicates for SQLite affinity strings. Used by the UI to choose rendering.                                                                                                                  |
+| `demo-db.ts`           | `DEMO_DB` (const string)                              | SQL literal seeding the initial in-memory database (Customers, Products, Orders).                                                                                                                          |
 
 ## Worker Protocol
 
@@ -47,8 +48,9 @@ Public properties: `db`, `firstTable`, `tablesSchema`, `indexesSchema`.
   `@/lib/queryCache`. CRUD methods invalidate the table's cache entries.
 - **SQL injection prevention**: Identifiers quoted via `sanitizeIdentifier()`.
   Filters use parameterized queries. Limit/offset clamped to integers.
-- **Error handling**: Worker wraps all handlers in try/catch -> `emitQueryError`.
-  `CustomQueryError` subclass distinguishes user SQL errors from internal ones.
+- **Error handling**: Worker wraps all handlers in try/catch ->
+  `emitQueryError` (in `workerEmit.ts`). `CustomQueryError` subclass
+  distinguishes user SQL errors from internal ones.
 - **Schema re-read**: After `exec()`, `isStructureChangeable()` checks for
   `CREATE`/`DROP`/`ALTER` prefixes to decide whether to re-introspect.
 

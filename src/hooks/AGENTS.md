@@ -13,8 +13,8 @@ throw descriptive errors when used outside their provider.
 | `useFileDrop.ts`    | `useFileDrop` (default)       | Global drag-and-drop. Attaches window listeners, validates files, delegates to `handleFileUpload`. Returns `{ isDragging }`.      |
 | `useGeminiAI.ts`    | `useGeminiAI` (named)         | Wraps Gemini SQL generation. Provides `generateSqlQuery()` that calls `requestGeminiSql` and updates store.                       |
 | `useKeyPress.ts`    | `useKeyPress` (default)       | Keyboard shortcut hook. Takes key combo string (e.g. `"ctrl+s"`), callback, optional case sensitivity. Prevents default on match. |
-| `usePanelSizing.ts` | `usePanelSizing`              | Convenience hook for panel store. Returns data/schema panel sizes and setters via `useShallow(selectPanelSizes)`.                 |
-| `useTableLimit.ts`  | `useTableLimit`               | Measures available DOM height to compute how many table rows fit. Recalculates on mount and resize.                               |
+| `usePanelSizing.ts` | `usePanelSizing` (named)      | Convenience hook for panel store. Returns data/schema panel sizes and setters via `useShallow(selectPanelSizes)`.                 |
+| `useTableLimit.ts`  | `useTableLimit` (named)       | Measures available DOM height to compute how many table rows fit. Recalculates on mount and resize.                               |
 
 ## Guidelines
 
