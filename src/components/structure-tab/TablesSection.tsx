@@ -16,7 +16,7 @@ interface TablesSectionProps {
   collapseAllTables: () => void;
   expandedTableSection: boolean;
   toggleTableSection: () => void;
-  expandedTables: string[];
+  expandedTables: Set<string>;
   toggleTable: (tableName: string) => void;
 }
 
@@ -32,8 +32,7 @@ const TablesSection = memo(
   }: TablesSectionProps) => {
     const tableNames = useMemo(() => Object.keys(tablesSchema), [tablesSchema]);
     const isExpanded =
-      tableNames.length > 0 &&
-      tableNames.every((t) => expandedTables.includes(t));
+      tableNames.length > 0 && tableNames.every((t) => expandedTables.has(t));
 
     const handleExpandAll = useCallback(
       (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -95,7 +94,7 @@ const TablesSection = memo(
                 key={tableName}
                 name={tableName}
                 table={tableData}
-                expanded={expandedTables.includes(tableName)}
+                expanded={expandedTables.has(tableName)}
                 toggleTable={toggleTable}
               />
             ))}

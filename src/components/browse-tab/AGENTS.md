@@ -1,4 +1,4 @@
-# src/components/browseTab
+# src/components/browse-tab
 
 The "Browse Data" tab. Table viewer with per-column filtering, sorting,
 pagination, inline row editing, and CSV export.

@@ -7,15 +7,15 @@ import {
 import { type ElementType, lazy, Suspense } from "react";
 import LiveRegion from "@/components/accessibility/LiveRegion";
 import SkipLinks from "@/components/accessibility/SkipLinks";
-import BrowseTab from "@/components/browseTab/BrowseTab";
-import DatabaseURLLoader from "@/components/DatabaseURLLoader";
-import FileDropHandler from "@/components/FileDropHandler";
-import StructureTab from "@/components/structureTab/StructureTab";
-import TopBar from "@/components/TopBar";
+import BrowseTab from "@/components/browse-tab/BrowseTab";
+import DatabaseURLLoader from "@/components/layout/DatabaseURLLoader";
+import FileDropHandler from "@/components/layout/FileDropHandler";
+import TopBar from "@/components/layout/TopBar";
+import StructureTab from "@/components/structure-tab/StructureTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
-const ExecuteTab = lazy(() => import("@/components/executeTab/ExecuteTab"));
+const ExecuteTab = lazy(() => import("@/components/execute-tab/ExecuteTab"));
 
 const TAB_ITEMS: {
   id: string;

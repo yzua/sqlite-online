@@ -1,4 +1,4 @@
-# src/components/executeTab
+# src/components/execute-tab
 
 The "Execute SQL" tab. CodeMirror SQL editor with AI-powered generation,
 virtualized results grid, and CSV export. Lazy-loaded by `App.tsx`.
@@ -32,7 +32,7 @@ ExecuteTab
         |                 +-- QueryGridCell[] (via react-window Grid)
         |                 +-- QueryResultsEmptyState
         +-- schema panel (hidden on mobile)
-              +-- SchemaTreePanel (from structureTab)
+              +-- SchemaTreePanel (from structure-tab)
   +-- ApiKeyModal
 ```
 

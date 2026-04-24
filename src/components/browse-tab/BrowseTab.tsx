@@ -1,5 +1,5 @@
 import { LoaderCircleIcon } from "lucide-react";
-import SchemaTreePanel from "@/components/structureTab/SchemaTreePanel";
+import SchemaTreePanel from "@/components/structure-tab/SchemaTreePanel";
 import {
   ResizableHandle,
   ResizablePanel,

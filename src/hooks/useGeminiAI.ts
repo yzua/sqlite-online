@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { isAiPrompt, requestGeminiSql } from "@/lib/gemini";
+import { isAiPrompt, requestGeminiSql } from "@/lib/ai/gemini";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 export function useGeminiAI() {

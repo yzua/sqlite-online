@@ -1,6 +1,6 @@
 import type { QueryExecResult } from "sql.js";
+import showToast from "@/components/common/toast";
 import { triggerDownload } from "@/lib/download";
-import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import type { WorkerResponseEvent } from "@/types";
 import { getSelectedTableColumns } from "./workerActionUtils";

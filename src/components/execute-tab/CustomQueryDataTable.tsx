@@ -19,6 +19,7 @@ function CustomQueryDataTable() {
   );
   const {
     gridRef,
+    handleGridScroll,
     headerScrollRef,
     getColumnWidth,
     getRowHeight,
@@ -97,6 +98,7 @@ function CustomQueryDataTable() {
 
                 <Grid<QueryGridCellCustomProps>
                   gridRef={gridRef}
+                  onScroll={handleGridScroll}
                   style={{
                     height: height - rowHeight,
                     width

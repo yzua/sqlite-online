@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 interface SchemaState {
-  expandedTables: string[];
+  expandedTables: Set<string>;
   expandedIndexSection: boolean;
 }
 
@@ -16,23 +16,24 @@ type SchemaStore = SchemaState & SchemaActions;
 
 export const useSchemaStore = create<SchemaStore>((set) => ({
   // --- State ---
-  expandedTables: [],
+  expandedTables: new Set<string>(),
   expandedIndexSection: true,
 
   // --- Actions ---
   toggleTable: (tableName) =>
     set((state) => {
-      const isExpanded = state.expandedTables.includes(tableName);
-      return {
-        expandedTables: isExpanded
-          ? state.expandedTables.filter((name) => name !== tableName)
-          : [...state.expandedTables, tableName]
-      };
+      const next = new Set(state.expandedTables);
+      if (next.has(tableName)) {
+        next.delete(tableName);
+      } else {
+        next.add(tableName);
+      }
+      return { expandedTables: next };
     }),
 
   setExpandedTables: (tables) =>
     set(() => ({
-      expandedTables: tables
+      expandedTables: new Set(tables)
     })),
 
   toggleExpandedIndexSection: () =>

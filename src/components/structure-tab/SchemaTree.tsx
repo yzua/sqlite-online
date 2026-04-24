@@ -45,9 +45,10 @@ const SchemaTree = () => {
   const filteredTables = useMemo(() => {
     if (!filter) return tablesSchema;
 
+    const lowerFilter = filter.toLowerCase();
     const filtered: TableSchema = {};
     for (const [tableName, tableData] of Object.entries(tablesSchema)) {
-      if (tableName.toLowerCase().includes(filter.toLowerCase())) {
+      if (tableName.toLowerCase().includes(lowerFilter)) {
         filtered[tableName] = tableData;
       }
     }
@@ -57,10 +58,11 @@ const SchemaTree = () => {
   const filteredIndexes = useMemo(() => {
     if (!filter) return indexesSchema;
 
+    const lowerFilter = filter.toLowerCase();
     return indexesSchema.filter(
       (index) =>
-        index.name.toLowerCase().includes(filter.toLowerCase()) ||
-        index.tableName.toLowerCase().includes(filter.toLowerCase())
+        index.name.toLowerCase().includes(lowerFilter) ||
+        index.tableName.toLowerCase().includes(lowerFilter)
     );
   }, [indexesSchema, filter]);
 

@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useRef } from "react";
 import type { SqlValue } from "sql.js";
+import showToast from "@/components/common/toast";
 import usePanelManager, { useEditValues } from "@/hooks/usePanel";
-import { parseSqlStatements } from "@/lib/parseSqlStatements";
-import showToast from "@/lib/toast";
+import { parseSqlStatements } from "@/sqlite/parseSqlStatements";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import type { EditTypes, ExportTypes, WorkerEvent } from "@/types";
 import { postWorkerMessage } from "./postWorkerMessage";

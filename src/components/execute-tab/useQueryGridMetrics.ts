@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type { GridImperativeAPI } from "react-window";
 import type { CustomQueryResult } from "@/types";
 
@@ -16,19 +16,30 @@ export function useQueryGridMetrics(
       return [];
     }
 
-    return customQueryResult.columns.map((column, columnIndex) => {
-      const maxContentLength = Math.max(
-        column.length,
-        ...customQueryResult.data
-          .slice(0, 100)
-          .map((row) => String(row[columnIndex] || "").length)
-      );
+    const cols = customQueryResult.columns;
+    const colCount = cols.length;
+    const sample = customQueryResult.data.slice(0, 100);
+    const maxLens = new Array<number>(colCount);
 
-      return Math.max(
-        MIN_COLUMN_WIDTH,
-        Math.min(maxContentLength * 8 + 32, 300)
-      );
-    });
+    // Seed with header lengths
+    for (let c = 0; c < colCount; c++) {
+      maxLens[c] = cols[c]?.length ?? 0;
+    }
+
+    // Single pass over sampled rows to find max content length per column
+    for (let r = 0; r < sample.length; r++) {
+      const row = sample[r];
+      if (!row) continue;
+      for (let c = 0; c < colCount; c++) {
+        const val = row[c];
+        const len = val != null ? String(val).length : 0;
+        if (len > (maxLens[c] ?? 0)) maxLens[c] = len;
+      }
+    }
+
+    return maxLens.map((len) =>
+      Math.max(MIN_COLUMN_WIDTH, Math.min(len * 8 + 32, 300))
+    );
   }, [customQueryResult]);
 
   // Memoize total once so getColumnWidth and getTotalWidth avoid O(n)
@@ -69,26 +80,21 @@ export function useQueryGridMetrics(
     [columnWidths, totalContentWidth]
   );
 
-  useEffect(() => {
-    const element = gridRef.current?.element;
-    if (!element) {
-      return;
-    }
-
-    const handleScroll = () => {
-      if (headerScrollRef.current) {
-        headerScrollRef.current.scrollLeft = element.scrollLeft;
+  // Sync horizontal scroll between the static header and the virtualised grid.
+  // Uses the Grid's onScroll callback instead of a DOM effect, avoiding
+  // addEventListener/removeEventListener churn on every render.
+  const handleGridScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      if (headerScrollRef.current && event.currentTarget) {
+        headerScrollRef.current.scrollLeft = event.currentTarget.scrollLeft;
       }
-    };
-
-    element.addEventListener("scroll", handleScroll, { passive: true });
-    return () => {
-      element.removeEventListener("scroll", handleScroll);
-    };
-  });
+    },
+    []
+  );
 
   return {
     gridRef,
+    handleGridScroll,
     headerScrollRef,
     getColumnWidth,
     getRowHeight: () => ROW_HEIGHT,

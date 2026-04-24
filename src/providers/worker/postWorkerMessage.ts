@@ -1,4 +1,4 @@
-import showToast from "@/lib/toast";
+import showToast from "@/components/common/toast";
 import type { WorkerEvent } from "@/types";
 
 export function postWorkerMessage(
