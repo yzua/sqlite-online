@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import LiveRegion from "@/components/accessibility/LiveRegion";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import LiveRegion from "./LiveRegion";
 
 vi.mock("@/store/useDatabaseStore", () => ({
   useDatabaseStore: vi.fn()

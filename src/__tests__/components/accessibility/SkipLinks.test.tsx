@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import SkipLinks from "./SkipLinks";
+import SkipLinks from "@/components/accessibility/SkipLinks";
 
 describe("SkipLinks", () => {
   it("renders the accessibility skip links documented in the README", () => {

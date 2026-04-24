@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import FileDropHandler from "@/components/layout/FileDropHandler";
 import useFileDrop from "@/hooks/useFileDrop";
-import FileDropHandler from "./FileDropHandler";
 
 vi.mock("@/hooks/useFileDrop", () => ({
   default: vi.fn()

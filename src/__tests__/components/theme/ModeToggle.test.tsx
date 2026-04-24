@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import ModeToggle from "@/components/theme/ModeToggle";
 import useTheme from "@/hooks/useTheme";
-import ModeToggle from "./ModeToggle";
 
 vi.mock("@/hooks/useTheme", () => ({
   default: vi.fn()

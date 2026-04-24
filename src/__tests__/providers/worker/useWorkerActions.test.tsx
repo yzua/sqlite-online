@@ -1,13 +1,13 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import showToast from "@/components/common/toast";
 import usePanelManager, { useEditValues } from "@/hooks/usePanel";
-import { parseSqlStatements } from "@/lib/parseSqlStatements";
-import showToast from "@/lib/toast";
+import { postWorkerMessage } from "@/providers/worker/postWorkerMessage";
+import { useWorkerActions } from "@/providers/worker/useWorkerActions";
+import { parseSqlStatements } from "@/sqlite/parseSqlStatements";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { postWorkerMessage } from "./postWorkerMessage";
-import { useWorkerActions } from "./useWorkerActions";
 
-vi.mock("@/lib/toast", () => ({
+vi.mock("@/components/common/toast", () => ({
   default: vi.fn()
 }));
 
@@ -20,11 +20,11 @@ vi.mock("@/hooks/usePanel", () => ({
   useEditValues: vi.fn()
 }));
 
-vi.mock("@/lib/parseSqlStatements", () => ({
+vi.mock("@/sqlite/parseSqlStatements", () => ({
   parseSqlStatements: vi.fn()
 }));
 
-vi.mock("./postWorkerMessage", () => ({
+vi.mock("@/providers/worker/postWorkerMessage", () => ({
   postWorkerMessage: vi.fn()
 }));
 

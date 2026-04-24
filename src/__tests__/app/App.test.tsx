@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import App from "@/App";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import App from "./App";
 
 vi.mock("@/store/useDatabaseStore", () => ({
   useDatabaseStore: vi.fn()
@@ -16,27 +16,27 @@ vi.mock("@/components/accessibility/SkipLinks", () => ({
   default: () => <nav>Skip Links</nav>
 }));
 
-vi.mock("@/components/browseTab/BrowseTab", () => ({
+vi.mock("@/components/browse-tab/BrowseTab", () => ({
   default: () => <section>Browse Tab Content</section>
 }));
 
-vi.mock("@/components/FileDropHandler", () => ({
+vi.mock("@/components/layout/FileDropHandler", () => ({
   default: ({ children }: { children: React.ReactNode }) => <>{children}</>
 }));
 
-vi.mock("@/components/structureTab/StructureTab", () => ({
+vi.mock("@/components/structure-tab/StructureTab", () => ({
   default: () => <section>Structure Tab Content</section>
 }));
 
-vi.mock("@/components/TopBar", () => ({
+vi.mock("@/components/layout/TopBar", () => ({
   default: () => <header>Top Bar</header>
 }));
 
-vi.mock("./components/DatabaseURLLoader", () => ({
+vi.mock("@/components/layout/DatabaseURLLoader", () => ({
   default: () => <div>URL Loader</div>
 }));
 
-vi.mock("@/components/executeTab/ExecuteTab", () => ({
+vi.mock("@/components/execute-tab/ExecuteTab", () => ({
   default: () => <section>Execute Tab Content</section>
 }));
 

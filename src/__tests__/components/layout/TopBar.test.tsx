@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import TopBar from "@/components/layout/TopBar";
 import useDatabaseWorker from "@/hooks/useWorker";
-import TopBar from "./TopBar";
 
 vi.mock("@/hooks/useWorker", () => ({
   default: vi.fn()

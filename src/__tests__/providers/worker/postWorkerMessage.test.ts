@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import showToast from "@/lib/toast";
-import { postWorkerMessage } from "./postWorkerMessage";
+import showToast from "@/components/common/toast";
+import { postWorkerMessage } from "@/providers/worker/postWorkerMessage";
 
-vi.mock("@/lib/toast", () => ({
+vi.mock("@/components/common/toast", () => ({
   default: vi.fn()
 }));
 

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { calculateTableLimit } from "./calculateTableLimit";
+import { calculateTableLimit } from "@/lib/calculateTableLimit";
 
 function addSizedElement({
   id,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { tableDataCache } from "./queryCache";
+import { tableDataCache } from "@/sqlite/queryCache";
 
 describe("tableDataCache", () => {
   beforeEach(() => {

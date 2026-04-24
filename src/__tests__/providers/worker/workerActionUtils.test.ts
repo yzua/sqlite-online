@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { TableSchema } from "@/types";
 import {
   createNextFilters,
   createNextSorters,
   getNextPageOffset,
   getSelectedTableColumns
-} from "./workerActionUtils";
+} from "@/providers/worker/workerActionUtils";
+import type { TableSchema } from "@/types";
 
 const tablesSchema = {
   users: {

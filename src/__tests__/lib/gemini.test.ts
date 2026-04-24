@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { isAiPrompt, requestGeminiSql } from "@/lib/ai/gemini";
 import type { TableSchema } from "@/types";
-import { isAiPrompt, requestGeminiSql } from "./gemini";
 
 const tablesSchema: TableSchema = {
   users: {

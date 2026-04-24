@@ -2,13 +2,13 @@ import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import usePanelManager from "@/hooks/usePanel";
 import { calculateTableLimit } from "@/lib/calculateTableLimit";
+import { createWorkerMessageHandler } from "@/providers/worker/handleWorkerMessage";
+import { postWorkerMessage } from "@/providers/worker/postWorkerMessage";
+import { useIframeBridge } from "@/providers/worker/useIframeBridge";
+import { useWorkerActions } from "@/providers/worker/useWorkerActions";
+import { useWorkerHotkeys } from "@/providers/worker/useWorkerHotkeys";
+import DatabaseWorkerProvider from "@/providers/worker/WorkerProvider";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { createWorkerMessageHandler } from "./handleWorkerMessage";
-import { postWorkerMessage } from "./postWorkerMessage";
-import { useIframeBridge } from "./useIframeBridge";
-import { useWorkerActions } from "./useWorkerActions";
-import { useWorkerHotkeys } from "./useWorkerHotkeys";
-import DatabaseWorkerProvider from "./WorkerProvider";
 
 vi.mock("@/hooks/usePanel", () => ({
   default: vi.fn()
@@ -27,23 +27,23 @@ vi.mock("@/sqlite/sqliteWorker.ts?worker", () => ({
   }
 }));
 
-vi.mock("./handleWorkerMessage", () => ({
+vi.mock("@/providers/worker/handleWorkerMessage", () => ({
   createWorkerMessageHandler: vi.fn()
 }));
 
-vi.mock("./postWorkerMessage", () => ({
+vi.mock("@/providers/worker/postWorkerMessage", () => ({
   postWorkerMessage: vi.fn()
 }));
 
-vi.mock("./useIframeBridge", () => ({
+vi.mock("@/providers/worker/useIframeBridge", () => ({
   useIframeBridge: vi.fn()
 }));
 
-vi.mock("./useWorkerActions", () => ({
+vi.mock("@/providers/worker/useWorkerActions", () => ({
   useWorkerActions: vi.fn()
 }));
 
-vi.mock("./useWorkerHotkeys", () => ({
+vi.mock("@/providers/worker/useWorkerHotkeys", () => ({
   useWorkerHotkeys: vi.fn()
 }));
 

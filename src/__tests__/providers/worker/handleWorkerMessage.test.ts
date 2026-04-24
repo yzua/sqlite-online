@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import showToast from "@/lib/toast";
+import showToast from "@/components/common/toast";
+import { createWorkerMessageHandler } from "@/providers/worker/handleWorkerMessage";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { createWorkerMessageHandler } from "./handleWorkerMessage";
 
-vi.mock("@/lib/toast", () => ({
+vi.mock("@/components/common/toast", () => ({
   default: vi.fn()
 }));
 

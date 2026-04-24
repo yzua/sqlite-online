@@ -1,12 +1,12 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { requestGeminiSql } from "@/lib/gemini";
+import { useGeminiAI } from "@/hooks/useGeminiAI";
+import { requestGeminiSql } from "@/lib/ai/gemini";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import { useGeminiAI } from "./useGeminiAI";
 
-vi.mock("@/lib/gemini", async () => {
+vi.mock("@/lib/ai/gemini", async () => {
   const actual =
-    await vi.importActual<typeof import("@/lib/gemini")>("@/lib/gemini");
+    await vi.importActual<typeof import("@/lib/ai/gemini")>("@/lib/ai/gemini");
   return {
     ...actual,
     requestGeminiSql: vi.fn()

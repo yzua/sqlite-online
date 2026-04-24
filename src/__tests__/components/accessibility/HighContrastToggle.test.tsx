@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
-import HighContrastToggle from "./HighContrastToggle";
+import HighContrastToggle from "@/components/accessibility/HighContrastToggle";
 
 describe("HighContrastToggle", () => {
   it("hydrates from storage and toggles the root high-contrast class", async () => {

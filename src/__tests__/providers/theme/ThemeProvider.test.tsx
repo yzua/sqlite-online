@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import useTheme from "@/hooks/useTheme";
-import ThemeProvider from "./ThemeProvider";
+import ThemeProvider from "@/providers/theme/ThemeProvider";
 
 function ThemeConsumer() {
   const { theme, setTheme } = useTheme();

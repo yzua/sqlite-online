@@ -1,12 +1,12 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import showToast from "@/components/common/toast";
+import DatabaseURLLoader from "@/components/layout/DatabaseURLLoader";
 import useDatabaseWorker from "@/hooks/useWorker";
-import showToast from "@/lib/toast";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import DatabaseURLLoader from "./DatabaseURLLoader";
 
-vi.mock("@/lib/toast", () => ({
+vi.mock("@/components/common/toast", () => ({
   default: vi.fn()
 }));
 

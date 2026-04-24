@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SecureStorage from "./secureStorage";
+import SecureStorage from "@/lib/storage/secureStorage";
 
 describe("SecureStorage", () => {
   beforeEach(() => {

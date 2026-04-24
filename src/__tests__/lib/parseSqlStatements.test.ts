@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseSqlStatements } from "./parseSqlStatements";
+import { parseSqlStatements } from "@/sqlite/parseSqlStatements";
 
 describe("parseSqlStatements", () => {
   it("removes line and block comments before splitting statements", () => {

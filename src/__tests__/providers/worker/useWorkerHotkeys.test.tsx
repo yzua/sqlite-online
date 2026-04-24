@@ -1,7 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import useKeyPress from "@/hooks/useKeyPress";
-import { useWorkerHotkeys } from "./useWorkerHotkeys";
+import { useWorkerHotkeys } from "@/providers/worker/useWorkerHotkeys";
 
 vi.mock("@/hooks/useKeyPress", () => ({
   default: vi.fn()

@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SecureStorage from "@/lib/secureStorage";
+import SecureStorage from "@/lib/storage/secureStorage";
 import {
   selectBrowseTableState,
   selectExecuteViewState,
   selectIsCurrentTableView,
   selectPaginationState,
   useDatabaseStore
-} from "./useDatabaseStore";
+} from "@/store/useDatabaseStore";
 
-vi.mock("@/lib/secureStorage", () => ({
+vi.mock("@/lib/storage/secureStorage", () => ({
   default: {
     getItem: vi.fn(),
     removeItem: vi.fn(),

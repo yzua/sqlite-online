@@ -1,10 +1,10 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import showToast from "@/components/common/toast";
+import useFileDrop from "@/hooks/useFileDrop";
 import useDatabaseWorker from "@/hooks/useWorker";
-import showToast from "@/lib/toast";
-import useFileDrop from "./useFileDrop";
 
-vi.mock("@/lib/toast", () => ({
+vi.mock("@/components/common/toast", () => ({
   default: vi.fn()
 }));
 
