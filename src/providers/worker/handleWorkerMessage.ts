@@ -151,10 +151,11 @@ function handleQueryError(
   showToast(payload.error.message, "error");
 }
 
+type WorkerAction = WorkerResponseEvent["action"];
 // biome-ignore lint/suspicious/noExplicitAny: handler map dispatches union-typed payloads
 type ResponseHandler = (payload: any, fx: SideEffects) => void;
 
-const responseHandlers: Record<string, ResponseHandler> = {
+const responseHandlers: Record<WorkerAction, ResponseHandler> = {
   initComplete: (payload, fx) => handleInitComplete(payload, fx),
   queryComplete: (payload) => handleQueryComplete(payload),
   customQueryComplete: (payload) => handleCustomQueryComplete(payload),
@@ -181,12 +182,12 @@ export function createWorkerMessageHandler(actions: {
   };
 
   return (event: MessageEvent<WorkerResponseEvent>) => {
-    const { action, payload } = event.data;
-    const handler = responseHandlers[action];
+    const workerEvent = event.data;
+    const handler = responseHandlers[workerEvent.action];
     if (handler) {
-      handler(payload, fx);
+      handler("payload" in workerEvent ? workerEvent.payload : undefined, fx);
     } else {
-      const _exhaustive: never = event.data;
+      const _exhaustive = workerEvent as never;
       console.warn(
         "Unknown action:",
         (_exhaustive as { action: string }).action

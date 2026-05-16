@@ -112,7 +112,7 @@ describe("sqlUtils", () => {
     });
 
     it("defaults to ASC for unknown direction", () => {
-      expect(buildOrderByClause({ name: "sideways" })).toBe(
+      expect(buildOrderByClause({ name: "sideways" as never })).toBe(
         'ORDER BY "name" ASC'
       );
     });

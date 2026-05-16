@@ -58,7 +58,7 @@ function createMockStore(overrides = {}) {
 }
 
 const defaultPanelProps = {
-  selectedRowObject: { data: [1], index: 0, primaryValue: 1 } as const,
+  selectedRowObject: { data: [1], index: 0, primaryValue: 1 },
   editValues: ["1", "Ada"],
   setSelectedRowObject: vi.fn(),
   setIsInserting: vi.fn()

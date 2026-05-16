@@ -56,15 +56,15 @@ describe("readDatabaseSchema", () => {
     const result = readDatabaseSchema(exec);
     expect(result.firstTable).toBe("users");
     expect(result.tablesSchema.users).toBeDefined();
-    expect(result.tablesSchema.users.type).toBe("table");
-    expect(result.tablesSchema.users.primaryKey).toBe("id");
-    expect(result.tablesSchema.users.schema).toHaveLength(2);
-    expect(result.tablesSchema.users.schema[0]).toMatchObject({
+    expect(result.tablesSchema.users!.type).toBe("table");
+    expect(result.tablesSchema.users!.primaryKey).toBe("id");
+    expect(result.tablesSchema.users!.schema).toHaveLength(2);
+    expect(result.tablesSchema.users!.schema[0]).toMatchObject({
       name: "id",
       isPrimaryKey: true,
       isNullable: false
     });
-    expect(result.tablesSchema.users.schema[1]).toMatchObject({
+    expect(result.tablesSchema.users!.schema[1]).toMatchObject({
       name: "name",
       isPrimaryKey: false,
       isNullable: true
@@ -108,7 +108,7 @@ describe("readDatabaseSchema", () => {
     };
 
     const result = readDatabaseSchema(exec);
-    expect(result.tablesSchema.orders.schema[1].isForeignKey).toBe(true);
+    expect(result.tablesSchema.orders!.schema[1]!.isForeignKey).toBe(true);
   });
 
   it("reads indexes", () => {
@@ -169,7 +169,7 @@ describe("readDatabaseSchema", () => {
     };
 
     const result = readDatabaseSchema(exec);
-    expect(result.tablesSchema["v_users"].type).toBe("view");
-    expect(result.tablesSchema["v_users"].primaryKey).toBeNull();
+    expect(result.tablesSchema["v_users"]!.type).toBe("view");
+    expect(result.tablesSchema["v_users"]!.primaryKey).toBeNull();
   });
 });
