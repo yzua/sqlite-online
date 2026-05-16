@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef } from "react";
-import { usePanelActions } from "@/hooks/usePanel";
+import {
+  useEditValues,
+  usePanelActions,
+  usePanelState
+} from "@/hooks/usePanel";
 import SqliteWorker from "@/sqlite/sqliteWorker.ts?worker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { createWorkerMessageHandler } from "./handleWorkerMessage";
@@ -19,6 +23,8 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
   const { handleCloseEdit, setSelectedRowObject, setIsInserting } =
     usePanelActions();
+  const { selectedRowObject } = usePanelState();
+  const { editValues } = useEditValues();
 
   // Initialize worker and send initial "init" message
   useEffect(() => {
@@ -85,7 +91,13 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
 
   useIframeBridge(loadDatabaseBuffer);
 
-  const workerApi = useWorkerActions({ workerRef });
+  const workerApi = useWorkerActions({
+    workerRef,
+    selectedRowObject,
+    editValues,
+    setSelectedRowObject,
+    setIsInserting
+  });
 
   useWorkerHotkeys({
     handleDownload: workerApi.handleDownload,

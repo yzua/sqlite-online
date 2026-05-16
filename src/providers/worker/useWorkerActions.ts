@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useRef } from "react";
 import type { SqlValue } from "sql.js";
 import showToast from "@/components/common/toast";
-import usePanelManager, { useEditValues } from "@/hooks/usePanel";
+import type { SelectedRowObject } from "@/providers/panel/types";
 import { parseSqlStatements } from "@/sqlite/parseSqlStatements";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import type { EditTypes, ExportTypes } from "@/types";
@@ -18,18 +18,21 @@ import {
   getSelectedTableColumns
 } from "./workerActionUtils";
 
-interface UseWorkerActionsProps {
+export interface UseWorkerActionsProps {
   workerRef: React.RefObject<Worker | null>;
+  selectedRowObject: SelectedRowObject | null;
+  editValues: string[];
+  setSelectedRowObject: (value: SelectedRowObject | null) => void;
+  setIsInserting: (value: boolean) => void;
 }
 
 export function useWorkerActions({
-  workerRef
+  workerRef,
+  selectedRowObject,
+  editValues,
+  setSelectedRowObject,
+  setIsInserting
 }: UseWorkerActionsProps): DatabaseWorkerApi {
-  const { setSelectedRowObject, setIsInserting, selectedRowObject } =
-    usePanelManager();
-
-  const { editValues } = useEditValues();
-
   // Keep latest values in refs so handleEditSubmit can remain stable
   // and avoid invalidating the entire DatabaseWorkerContext on every
   // row selection or edit keystroke.
