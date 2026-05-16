@@ -5,16 +5,16 @@ throw descriptive errors when used outside their provider.
 
 ## Files
 
-| File                | Export                        | Role                                                                                                                              |
-| ------------------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `useWorker.ts`      | `useDatabaseWorker` (default) | Consumer for `DatabaseWorkerContext`. Returns `DatabaseWorkerApi`.                                                                |
-| `usePanel.ts`       | `usePanelManager` (default)   | Consumer for `PanelContext`. Returns edit panel state and handlers.                                                               |
-| `useTheme.ts`       | `useTheme` (default)          | Consumer for `ThemeProviderContext`. Returns `{ theme, setTheme }`.                                                               |
-| `useFileDrop.ts`    | `useFileDrop` (default)       | Global drag-and-drop. Attaches window listeners, validates files, delegates to `handleFileUpload`. Returns `{ isDragging }`.      |
-| `useGeminiAI.ts`    | `useGeminiAI` (named)         | Wraps Gemini SQL generation. Provides `generateSqlQuery()` that calls `requestGeminiSql` and updates store.                       |
-| `useKeyPress.ts`    | `useKeyPress` (default)       | Keyboard shortcut hook. Takes key combo string (e.g. `"ctrl+s"`), callback, optional case sensitivity. Prevents default on match. |
-| `usePanelSizing.ts` | `usePanelSizing` (named)      | Convenience hook for panel store. Returns data/schema panel sizes and setters via `useShallow(selectPanelSizes)`.                 |
-| `useTableLimit.ts`  | `useTableLimit` (named)       | Measures available DOM height to compute how many table rows fit. Recalculates on mount and resize.                               |
+| File                | Export                                                                                   | Role                                                                                                                                                                                                                        |
+| ------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `useWorker.ts`      | `useDatabaseWorker` (default)                                                            | Consumer for `DatabaseWorkerContext`. Returns `DatabaseWorkerApi`.                                                                                                                                                          |
+| `usePanel.ts`       | `usePanelManager` (default), `useEditValues`, `usePanelActions`, `usePanelState` (named) | Consumers for split `PanelContext`. `usePanelManager` merges actions + state. `usePanelActions` returns callbacks only (stable refs). `usePanelState` returns selection state. `useEditValues` returns edit values context. |
+| `useTheme.ts`       | `useTheme` (default)                                                                     | Consumer for `ThemeProviderContext`. Returns `{ theme, setTheme }`.                                                                                                                                                         |
+| `useFileDrop.ts`    | `useFileDrop` (default)                                                                  | Global drag-and-drop. Attaches window listeners, validates files, delegates to `handleFileUpload`. Returns `{ isDragging }`.                                                                                                |
+| `useGeminiAI.ts`    | `useGeminiAI` (named)                                                                    | Wraps Gemini SQL generation. Provides `generateSqlQuery()` that calls `requestGeminiSql` and updates store.                                                                                                                 |
+| `useKeyPress.ts`    | `useKeyPress` (default)                                                                  | Keyboard shortcut hook. Takes key combo string (e.g. `"ctrl+s"`), callback, optional case sensitivity. Prevents default on match.                                                                                           |
+| `usePanelSizing.ts` | `usePanelSizing` (named)                                                                 | Convenience hook for panel store. Returns data/schema panel sizes and setters via `useShallow(selectPanelSizes)`.                                                                                                           |
+| `useTableLimit.ts`  | `useTableLimit` (named)                                                                  | Measures available DOM height to compute how many table rows fit. Recalculates on mount and resize.                                                                                                                         |
 
 ## Guidelines
 

@@ -1,7 +1,7 @@
 # src/components/structure-tab
 
 The "Database Structure" tab. Schema tree showing tables, views, indexes, and
-column details. Also provides `SchemaTree` reused in browse and execute tabs.
+column details. Also provides `SchemaTreePanel` reused in browse and execute tabs.
 
 ## Files
 
@@ -22,7 +22,7 @@ column details. Also provides `SchemaTree` reused in browse and execute tabs.
 ## Key Patterns
 
 - All components are `memo`-wrapped for performance with large schemas.
-- `SchemaTree` is exported for reuse in browse and execute tab schema panels.
+- `SchemaTreePanel` is exported for reuse in browse and execute tab schema panels.
 - Expand/collapse state is split: `useSchemaStore` (Zustand) for persistence,
   local state in `SchemaTree` for the "expanded table section" (column list).
 - Filtering uses `useMemo` over `tablesSchema` keys and index names.

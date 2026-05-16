@@ -52,9 +52,12 @@ Useful project commands:
 - `npm run build:pages`
 - `npm run typecheck`
 - `npm run check`
+- `npm run check:fix`
+- `npm run doctor`
 - `npm run preview`
 - `npm run preview:pages`
 - `npm run lint`
+- `npm run lint:fix`
 - `npm run format`
 - `npm run format:check`
 - `npm test`
@@ -66,19 +69,18 @@ Useful project commands:
 
 Streamline your workflow with these built-in hotkeys:
 
-| Shortcut              | Action                  |
-| --------------------- | ----------------------- |
-| **Ctrl + s**          | Download the database   |
-| **Ctrl + ArrowRight** | Go to the next page     |
-| **Ctrl + ArrowUp**    | Jump to the first page  |
-| **Ctrl + ArrowDown**  | Jump to the last page   |
-| **Ctrl + ArrowLeft**  | Go to the previous page |
-| **Ctrl + `**          | Close the edit panel    |
-| **Ctrl + i**          | Trigger insert panel    |
-| **Ctrl + Shift + I**  | Submit an insert edit   |
-| **Ctrl + u**          | Submit an update edit   |
-| **Ctrl + d**          | Submit a delete edit    |
-| **Ctrl + q**          | Execute the SQL query   |
+| Shortcut              | Action                      |
+| --------------------- | --------------------------- |
+| **Ctrl + s**          | Download the database       |
+| **Ctrl + ArrowRight** | Go to the next page         |
+| **Ctrl + ArrowUp**    | Jump to the first page      |
+| **Ctrl + ArrowDown**  | Jump to the last page       |
+| **Ctrl + ArrowLeft**  | Go to the previous page     |
+| **Ctrl + \`**         | Close the edit panel        |
+| **Ctrl + i**          | Insert mode / submit insert |
+| **Ctrl + u**          | Submit an update edit       |
+| **Ctrl + d**          | Submit a delete edit        |
+| **Ctrl + q**          | Execute the SQL query       |
 
 ## License
 

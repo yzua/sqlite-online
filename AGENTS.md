@@ -61,12 +61,12 @@ Zustand + `sql.js` in a web worker.
 - App entrypoint is `src/main.tsx`: it initializes API key storage, then mounts
   `StrictMode > ErrorBoundary > ThemeProvider > PanelProvider > DatabaseWorkerProvider > App`.
   `AppToaster` is a sibling of `PanelProvider` inside `ThemeProvider`.
-- `src/App.tsx` is the top-level tab shell. `ExecuteTab` is lazy-loaded; keep it
-  lazy unless the task requires otherwise.
+- `src/App.tsx` is the top-level tab shell. `ExecuteTab` and `StructureTab`
+  are lazy-loaded; keep them lazy unless the task requires otherwise.
 - Browser UI never talks to SQLite directly. UI actions go through
   `src/providers/worker/WorkerProvider.tsx` into `src/sqlite/sqliteWorker.ts`.
-- `src/types.ts` is the source of truth for worker protocol and shared domain
-  types.
+- `src/types/` (split into `index.ts` for domain types and `worker-protocol.ts`
+  for worker protocol types) is the source of truth for type definitions.
 - `src/store/useDatabaseStore.ts` is the main app state store. Use selectors and
   existing store actions before adding new state.
 

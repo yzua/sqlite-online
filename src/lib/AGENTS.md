@@ -13,10 +13,10 @@ Shared utilities with no React component dependencies.
 
 ## Subdirectories
 
-| Directory  | Contents                                                                         |
-| ---------- | -------------------------------------------------------------------------------- |
-| `ai/`      | `gemini.ts` (Gemini API integration), `apiKeyStorage.ts` (encrypted key storage) |
-| `storage/` | `secureStorage.ts` (AES-GCM encrypted storage via Web Crypto API)                |
+| Directory  | Contents                                                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai/`      | `gemini.ts` (`requestGeminiSql`, `isAiPrompt` — Gemini API integration), `apiKeyStorage.ts` (encrypted key storage via `SecureStorage`) |
+| `storage/` | `secureStorage.ts` (AES-GCM encrypted storage via Web Crypto API)                                                                       |
 
 ## Key Patterns
 

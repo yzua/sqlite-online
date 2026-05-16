@@ -5,23 +5,25 @@ operations run in a web worker via `sql.js` (WebAssembly).
 
 ## Files
 
-| File                   | Export                                                | Role                                                                                                                                                                                                       |
-| ---------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core.ts`              | `Sqlite` (class), `CustomQueryError`                  | Central database abstraction. Private constructor; use `Sqlite.create()` or `Sqlite.open()`. Owns schema state, CRUD, pagination, export, download.                                                        |
-| `sqliteWorker.ts`      | none                                                  | Web Worker entry point. Singleton `Sqlite` instance. Routes `WorkerEvent` messages to `workerRuntime.ts` handlers.                                                                                         |
-| `workerRuntime.ts`     | action handlers, re-exports from `workerEmit`         | Pure orchestration between the worker message loop and `Sqlite` class. Delegates message emission to `workerEmit.ts`.                                                                                      |
-| `workerEmit.ts`        | `emitX` functions, `cleanupInstance`                  | All `postMessage` responses: `emitInitComplete`, `emitQueryComplete`, `emitSchemaUpdate`, `emitRowMutationComplete`, `emitInsertComplete`, `emitDownloadComplete`, `emitExportComplete`, `emitQueryError`. |
-| `schema.ts`            | `readDatabaseSchema`                                  | Schema introspection via `sqlite_master`, `PRAGMA table_info`, `PRAGMA foreign_key_list`. Returns `SchemaSnapshot`.                                                                                        |
-| `sqlUtils.ts`          | SQL helpers                                           | Pure functions: `normalizeSqlStatement`, `isStructureChangeable`, `sanitizeIdentifier`, `buildWhereClause`, `buildOrderByClause`, `runPreparedQuery`, `runPreparedScalar`, `arrayToCSV`. No state.         |
-| `sqlite-type-check.ts` | `isDate`, `isBlob`, `isText`, `isBoolean`, `isNumber` | Type-checking predicates for SQLite affinity strings. Used by the UI to choose rendering.                                                                                                                  |
-| `demo-db.ts`           | `DEMO_DB` (const string)                              | SQL literal seeding the initial in-memory database (Customers, Products, Orders).                                                                                                                          |
+| File                    | Export                                                | Role                                                                                                                                                                                                       |
+| ----------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core.ts`               | `Sqlite` (class), `CustomQueryError`                  | Central database abstraction. Private constructor; use `Sqlite.create()` or `Sqlite.open()`. Owns schema state, CRUD, pagination, export, download.                                                        |
+| `sqliteWorker.ts`       | none                                                  | Web Worker entry point. Singleton `Sqlite` instance. Routes `WorkerEvent` messages to `workerRuntime.ts` handlers.                                                                                         |
+| `workerRuntime.ts`      | action handlers, re-exports from `workerEmit`         | Pure orchestration between the worker message loop and `Sqlite` class. Delegates message emission to `workerEmit.ts`.                                                                                      |
+| `workerEmit.ts`         | `emitX` functions, `cleanupInstance`                  | All `postMessage` responses: `emitInitComplete`, `emitQueryComplete`, `emitSchemaUpdate`, `emitRowMutationComplete`, `emitInsertComplete`, `emitDownloadComplete`, `emitExportComplete`, `emitQueryError`. |
+| `schema.ts`             | `readDatabaseSchema`                                  | Schema introspection via `sqlite_master`, `PRAGMA table_info`, `PRAGMA foreign_key_list`. Returns `SchemaSnapshot`.                                                                                        |
+| `sqlUtils.ts`           | SQL helpers                                           | Pure functions: `normalizeSqlStatement`, `isStructureChangeable`, `sanitizeIdentifier`, `buildWhereClause`, `buildOrderByClause`, `runPreparedQuery`, `runPreparedScalar`, `arrayToCSV`. No state.         |
+| `sqlite-type-check.ts`  | `isDate`, `isBlob`, `isText`, `isBoolean`, `isNumber` | Type-checking predicates for SQLite affinity strings. Used by the UI to choose rendering.                                                                                                                  |
+| `queryCache.ts`         | `tableDataCache`                                      | LRU cache for paginated query results. 100 entries, 5-min TTL. Per-table invalidation.                                                                                                                     |
+| `parseSqlStatements.ts` | `parseSqlStatements`                                  | Splits a SQL string into individual statements. Strips comments and empty statements. Used by `useWorkerActions` for batch execution.                                                                      |
+| `demo-db.ts`            | `DEMO_DB` (const string)                              | SQL literal seeding the initial in-memory database (Customers, Products, Orders).                                                                                                                          |
 
 ## Worker Protocol
 
-Messages use discriminated unions on `action` (see `@/types` for `WorkerEvent`
-and `WorkerResponseEvent`).
+Messages use discriminated unions on `action` (see `@/types/worker-protocol`
+for `WorkerEvent` and `WorkerResponseEvent`).
 
-**Inbound (main -> worker):** `init`, `openFile`, `refresh`, `getTableData`,
+**Inbound (main -> worker):** `init`, `openFile`, `getTableData`,
 `exec`, `execBatch`, `download`, `update`, `delete`, `insert`, `export`.
 
 **Outbound (worker -> main):** `initComplete`, `queryComplete`,
@@ -32,20 +34,23 @@ and `WorkerResponseEvent`).
 
 - `static async create()` - New DB with demo data
 - `static async open(file: Uint8Array)` - Open from bytes
-- `exec(sql)` - Execute SQL, returns `[results, schemaChanged]`
+- `exec(sql, options?)` - Execute SQL, returns `[results, schemaChanged]`. `options.skipSchemaUpdate` suppresses per-statement schema re-reads (used by batch execution).
+- `refreshSchema()` - Re-read schema after batch DDL
 - `download()` - Export as `Uint8Array`
 - `getTableData(table, limit, offset, filters?, sorters?)` - Paginated read
 - `update(table, columns, values, id)` - Update row by PK
 - `delete(table, id)` - Delete row by PK
 - `insert(table, columns, values)` - Insert row
-- `export(opts)` - Export as CSV
+- `export(opts)` - Query for export; CSV conversion via `arrayToCSV` in `workerEmit`
 
 Public properties: `db`, `firstTable`, `tablesSchema`, `indexesSchema`.
 
 ## Key Patterns
 
 - **Caching**: `getTableData` checks an LRU cache (100 entries, 5-min TTL) from
-  `@/lib/queryCache`. CRUD methods invalidate the table's cache entries.
+  `./queryCache` (`tableDataCache`). CRUD methods invalidate the table's cache
+  entries. `core.ts` also maintains a private `tableCountCache` (Map, invalidated
+  on mutations) for COUNT(\*) results.
 - **SQL injection prevention**: Identifiers quoted via `sanitizeIdentifier()`.
   Filters use parameterized queries. Limit/offset clamped to integers.
 - **Error handling**: Worker wraps all handlers in try/catch ->
@@ -57,8 +62,9 @@ Public properties: `db`, `firstTable`, `tablesSchema`, `indexesSchema`.
 ## Dependencies
 
 - `sql.js` (external): Database, QueryExecResult, SqlJsStatic, SqlValue, initSqlJs
-- `@/lib/queryCache`: `tableDataCache`
-- `@/types`: Filters, IndexSchema, Sorters, TableSchema, WorkerEvent, WorkerResponseEvent
+- `./queryCache`: `tableDataCache`
+- `@/types`: Filters, IndexSchema, Sorters, TableSchema
+- `@/types/worker-protocol`: WorkerEvent, WorkerResponseEvent
 
 ## Guidelines
 
