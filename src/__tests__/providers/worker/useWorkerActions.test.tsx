@@ -1,7 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import showToast from "@/components/common/toast";
-import usePanelManager, { useEditValues } from "@/hooks/usePanel";
 import { postWorkerMessage } from "@/providers/worker/postWorkerMessage";
 import { useWorkerActions } from "@/providers/worker/useWorkerActions";
 import { parseSqlStatements } from "@/sqlite/parseSqlStatements";
@@ -13,11 +12,6 @@ vi.mock("@/components/common/toast", () => ({
 
 vi.mock("@/store/useDatabaseStore", () => ({
   useDatabaseStore: { getState: vi.fn(), setState: vi.fn() }
-}));
-
-vi.mock("@/hooks/usePanel", () => ({
-  default: vi.fn(),
-  useEditValues: vi.fn()
 }));
 
 vi.mock("@/sqlite/parseSqlStatements", () => ({
@@ -63,26 +57,20 @@ function createMockStore(overrides = {}) {
   };
 }
 
-describe("useWorkerActions", () => {
-  const mockSetSelectedRowObject = vi.fn();
-  const mockSetIsInserting = vi.fn();
+const defaultPanelProps = {
+  selectedRowObject: { data: [1], index: 0, primaryValue: 1 } as const,
+  editValues: ["1", "Ada"],
+  setSelectedRowObject: vi.fn(),
+  setIsInserting: vi.fn()
+};
 
+describe("useWorkerActions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
 
     vi.mocked(useDatabaseStore.getState).mockReturnValue(
       createMockStore() as never
     );
-    vi.mocked(usePanelManager).mockReturnValue({
-      selectedRowObject: { data: [1], index: 0, primaryValue: 1 },
-      setSelectedRowObject: mockSetSelectedRowObject,
-      setIsInserting: mockSetIsInserting,
-      setEditValues: vi.fn()
-    } as never);
-
-    vi.mocked(useEditValues).mockReturnValue({
-      editValues: ["1", "Ada"]
-    });
     vi.mocked(parseSqlStatements).mockReturnValue(["SELECT * FROM users"]);
     vi.mocked(postWorkerMessage).mockReturnValue(true);
   });
@@ -91,7 +79,9 @@ describe("useWorkerActions", () => {
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
-    const { result } = renderHook(() => useWorkerActions({ workerRef }));
+    const { result } = renderHook(() =>
+      useWorkerActions({ workerRef, ...defaultPanelProps })
+    );
 
     result.current.handleTableChange("users");
 
@@ -109,7 +99,9 @@ describe("useWorkerActions", () => {
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
-    const { result } = renderHook(() => useWorkerActions({ workerRef }));
+    const { result } = renderHook(() =>
+      useWorkerActions({ workerRef, ...defaultPanelProps })
+    );
 
     result.current.handleTableChange("missing");
 
@@ -123,7 +115,9 @@ describe("useWorkerActions", () => {
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
-    const { result } = renderHook(() => useWorkerActions({ workerRef }));
+    const { result } = renderHook(() =>
+      useWorkerActions({ workerRef, ...defaultPanelProps })
+    );
 
     result.current.handleQueryExecute();
 
@@ -148,7 +142,9 @@ describe("useWorkerActions", () => {
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
-    const { result } = renderHook(() => useWorkerActions({ workerRef }));
+    const { result } = renderHook(() =>
+      useWorkerActions({ workerRef, ...defaultPanelProps })
+    );
 
     result.current.handleQueryExecute();
 
@@ -166,21 +162,17 @@ describe("useWorkerActions", () => {
   });
 
   it("shows a delete error when no row is selected", () => {
-    vi.mocked(usePanelManager).mockReturnValue({
-      selectedRowObject: { data: [], index: 0, primaryValue: null },
-      setSelectedRowObject: mockSetSelectedRowObject,
-      setIsInserting: mockSetIsInserting,
-      setEditValues: vi.fn()
-    } as never);
-
-    vi.mocked(useEditValues).mockReturnValue({
-      editValues: []
-    });
-
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
-    const { result } = renderHook(() => useWorkerActions({ workerRef }));
+    const panelProps = {
+      ...defaultPanelProps,
+      selectedRowObject: { data: [], index: 0, primaryValue: null },
+      editValues: [] as string[]
+    };
+    const { result } = renderHook(() =>
+      useWorkerActions({ workerRef, ...panelProps })
+    );
 
     result.current.handleEditSubmit("delete");
 
@@ -194,7 +186,9 @@ describe("useWorkerActions", () => {
     const workerRef = {
       current: { postMessage: vi.fn() } as unknown as Worker
     };
-    const { result } = renderHook(() => useWorkerActions({ workerRef }));
+    const { result } = renderHook(() =>
+      useWorkerActions({ workerRef, ...defaultPanelProps })
+    );
 
     result.current.handleEditSubmit("update");
 

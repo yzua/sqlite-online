@@ -1,6 +1,10 @@
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { usePanelActions } from "@/hooks/usePanel";
+import {
+  useEditValues,
+  usePanelActions,
+  usePanelState
+} from "@/hooks/usePanel";
 import { BROWSE_TABLE_LAYOUT_EVENT } from "@/hooks/useTableLimit";
 import { calculateTableLimit } from "@/lib/calculateTableLimit";
 import { createWorkerMessageHandler } from "@/providers/worker/handleWorkerMessage";
@@ -77,6 +81,14 @@ describe("WorkerProvider", () => {
       handleRowClick: vi.fn(),
       setEditValues: vi.fn()
     } as never);
+
+    vi.mocked(usePanelState).mockReturnValue({
+      isEditing: false,
+      isInserting: false,
+      selectedRowObject: null
+    });
+
+    vi.mocked(useEditValues).mockReturnValue({ editValues: [] });
 
     vi.mocked(createWorkerMessageHandler).mockReturnValue(vi.fn());
     vi.mocked(postWorkerMessage).mockReturnValue(true);
