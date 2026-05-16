@@ -20,7 +20,7 @@ import {
 import SorterButton from "../table/SorterButton";
 import BrowseTableEmptyState from "./BrowseTableEmptyState";
 import BrowseTableRow from "./BrowseTableRow";
-import { getRowMeta } from "./rowMeta";
+import { getRowMetas } from "./rowMeta";
 import { useBrowseActions } from "./useBrowseActions";
 
 function DataTable() {
@@ -31,10 +31,10 @@ function DataTable() {
   const { handleRowClick, selectedRowObject } = usePanelManager();
   const { handleClearFilters } = useBrowseActions();
 
-  // Memoize row metadata to avoid per-row array allocations on every render
+  // Batch-compute row metadata: PK index resolved once, then O(1) per row.
   const rowMetas = useMemo(() => {
     if (!data) return [];
-    return data.map((row) => getRowMeta(row, currentTableSchema));
+    return getRowMetas(data, currentTableSchema);
   }, [data, currentTableSchema]);
 
   return (

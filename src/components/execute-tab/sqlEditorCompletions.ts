@@ -154,23 +154,27 @@ const BUILT_IN_FUNCTIONS = [
   "UPPER"
 ];
 
-function getSchemaCompletionNames(tablesSchema: TableSchema) {
+// Pre-compute constant completions once at module load.
+const KEYWORD_COMPLETIONS: Completion[] = SQLITE_KEYWORDS.map((keyword) => ({
+  label: keyword,
+  type: "keyword"
+}));
+const FUNCTION_COMPLETIONS: Completion[] = BUILT_IN_FUNCTIONS.map((fn) => ({
+  label: fn,
+  type: "function"
+}));
+const STATIC_COMPLETIONS = [...KEYWORD_COMPLETIONS, ...FUNCTION_COMPLETIONS];
+
+export function createSqlCompletionOptions(
+  tablesSchema: TableSchema
+): Completion[] {
   const tableNames = Object.keys(tablesSchema);
   const columnNames = tableNames.flatMap(
     (table) => tablesSchema[table]?.schema.map((column) => column.name) ?? []
   );
 
-  return { tableNames, columnNames };
-}
-
-export function createSqlCompletionOptions(
-  tablesSchema: TableSchema
-): Completion[] {
-  const { tableNames, columnNames } = getSchemaCompletionNames(tablesSchema);
-
   return [
-    ...SQLITE_KEYWORDS.map((keyword) => ({ label: keyword, type: "keyword" })),
-    ...BUILT_IN_FUNCTIONS.map((fn) => ({ label: fn, type: "function" })),
+    ...STATIC_COMPLETIONS,
     ...tableNames.map((table) => ({ label: table, type: "table" })),
     ...columnNames.map((column) => ({ label: column, type: "column" }))
   ];

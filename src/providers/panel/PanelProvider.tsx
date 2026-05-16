@@ -2,7 +2,11 @@ import { useCallback, useMemo, useState } from "react";
 import type { SqlValue } from "sql.js";
 import useKeyPress from "@/hooks/useKeyPress";
 
-import PanelContext, { EditValuesContext } from "./PanelContext";
+import {
+  EditValuesContext,
+  PanelActionsContext,
+  PanelStateContext
+} from "./PanelContext";
 import type { SelectedRowObject } from "./types";
 
 interface PanelProviderProps {
@@ -17,7 +21,6 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
 
   const isEditing = selectedRowObject !== null || isInserting;
 
-  // Handle row click to toggle edit panel
   const handleRowClick = useCallback(
     (row: SqlValue[], index: number, primaryValue: SqlValue | null) => {
       setIsInserting(false);
@@ -26,52 +29,48 @@ const PanelProvider = ({ children }: PanelProviderProps) => {
     []
   );
 
-  // Handle insert row button click
   const handleInsert = useCallback(() => {
     setSelectedRowObject(null);
     setIsInserting(true);
   }, []);
 
-  // Handle closing edit panel
   const handleCloseEdit = useCallback(() => {
     setIsInserting(false);
     setSelectedRowObject(null);
   }, []);
 
-  // Register hotkeys
   useKeyPress("ctrl+i", handleInsert, true);
   useKeyPress("ctrl+`", handleCloseEdit, true);
 
-  const panelValue = useMemo(
+  // Actions never change — all callbacks are stable via useCallback([]) or
+  // useState setters.
+  const actionsValue = useMemo(
     () => ({
       handleRowClick,
       handleInsert,
       handleCloseEdit,
-      isEditing,
-      selectedRowObject,
-      isInserting,
-      setIsInserting,
       setSelectedRowObject,
+      setIsInserting,
       setEditValues
     }),
-    [
-      handleRowClick,
-      handleInsert,
-      handleCloseEdit,
-      isEditing,
-      selectedRowObject,
-      isInserting
-    ]
+    [handleRowClick, handleInsert, handleCloseEdit]
+  );
+
+  const stateValue = useMemo(
+    () => ({ isEditing, isInserting, selectedRowObject }),
+    [isEditing, isInserting, selectedRowObject]
   );
 
   const editValuesValue = useMemo(() => ({ editValues }), [editValues]);
 
   return (
-    <PanelContext.Provider value={panelValue}>
-      <EditValuesContext.Provider value={editValuesValue}>
-        {children}
-      </EditValuesContext.Provider>
-    </PanelContext.Provider>
+    <PanelActionsContext.Provider value={actionsValue}>
+      <PanelStateContext.Provider value={stateValue}>
+        <EditValuesContext.Provider value={editValuesValue}>
+          {children}
+        </EditValuesContext.Provider>
+      </PanelStateContext.Provider>
+    </PanelActionsContext.Provider>
   );
 };
 

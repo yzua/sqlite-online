@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import SchemaTreePanel from "@/components/structure-tab/SchemaTreePanel";
 import {
   ResizableHandle,
@@ -8,18 +9,23 @@ import {
 import { useGeminiAI } from "@/hooks/useGeminiAI";
 import { usePanelSizing } from "@/hooks/usePanelSizing";
 import useDatabaseWorker from "@/hooks/useWorker";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import {
+  selectExecuteViewState,
+  useDatabaseStore
+} from "@/store/useDatabaseStore";
 import ApiKeyModal from "./ApiKeyModal";
 import ExecuteTabEditorPanel from "./ExecuteTabEditorPanel";
 import ExecuteTabToolbar from "./ExecuteTabToolbar";
 
 function ExecuteTab() {
-  const errorMessage = useDatabaseStore((state) => state.errorMessage);
+  const {
+    errorMessage,
+    isDataLoading,
+    isDatabaseLoading,
+    customQuery,
+    customQueryObject
+  } = useDatabaseStore(useShallow(selectExecuteViewState));
   const setErrorMessage = useDatabaseStore((state) => state.setErrorMessage);
-  const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
-  const isDatabaseLoading = useDatabaseStore(
-    (state) => state.isDatabaseLoading
-  );
 
   const {
     dataPanelSize,
@@ -28,11 +34,6 @@ function ExecuteTab() {
     setSchemaPanelSize
   } = usePanelSizing();
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
-
-  const customQueryObject = useDatabaseStore(
-    (state) => state.customQueryObject
-  );
-  const customQuery = useDatabaseStore((state) => state.customQuery);
 
   const { handleQueryExecute, handleExport } = useDatabaseWorker();
   const { generateSqlQuery, isAiLoading } = useGeminiAI();

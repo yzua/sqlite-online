@@ -17,15 +17,11 @@ import {
   selectIsCurrentTableView,
   useDatabaseStore
 } from "@/store/useDatabaseStore";
-import type { Filters, Sorters } from "@/types";
 import { useBrowseActions } from "./useBrowseActions";
 
-interface ActionDropdownProps {
-  filters: Filters;
-  sorters: Sorters;
-}
-
-function ActionsDropdown({ filters, sorters }: Readonly<ActionDropdownProps>) {
+function ActionsDropdown() {
+  const filters = useDatabaseStore((state) => state.filters);
+  const sorters = useDatabaseStore((state) => state.sorters);
   const { isInserting, handleInsert } = usePanelManager();
   const isView = useDatabaseStore(selectIsCurrentTableView);
   const { handleClearFilters, handleResetSorters, handleExport } =

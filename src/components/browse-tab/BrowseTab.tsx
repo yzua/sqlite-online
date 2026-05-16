@@ -1,22 +1,21 @@
 import { LoaderCircleIcon } from "lucide-react";
+import { useLayoutEffect } from "react";
 import SchemaTreePanel from "@/components/structure-tab/SchemaTreePanel";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from "@/components/ui/resizable";
-import usePanelManager from "@/hooks/usePanel";
 import { usePanelSizing } from "@/hooks/usePanelSizing";
+import { BROWSE_TABLE_LAYOUT_EVENT } from "@/hooks/useTableLimit";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import ActionButtons from "./ActionButtons";
 import DataTable from "./DataTable";
-import EditSection from "./EditSection";
+import EditOverlay from "./EditOverlay";
 import PaginationControls from "./PaginationControls";
 import TableSelector from "./TableSelector";
 
 function BrowseTab() {
-  const filters = useDatabaseStore((state) => state.filters);
-  const sorters = useDatabaseStore((state) => state.sorters);
   const isDataLoading = useDatabaseStore((state) => state.isDataLoading);
   const isDatabaseLoading = useDatabaseStore(
     (state) => state.isDatabaseLoading
@@ -29,7 +28,9 @@ function BrowseTab() {
     setSchemaPanelSize
   } = usePanelSizing();
 
-  const { isEditing } = usePanelManager();
+  useLayoutEffect(() => {
+    window.dispatchEvent(new Event(BROWSE_TABLE_LAYOUT_EVENT));
+  }, []);
 
   return (
     <div className="flex h-full flex-col">
@@ -39,7 +40,7 @@ function BrowseTab() {
         aria-label="Table controls and actions"
       >
         <TableSelector />
-        <ActionButtons filters={filters} sorters={sorters} />
+        <ActionButtons />
         {(isDataLoading || isDatabaseLoading) && (
           <span className="text-muted-foreground ml-2 flex items-center text-sm">
             <LoaderCircleIcon
@@ -77,24 +78,12 @@ function BrowseTab() {
             className="relative hidden min-w-0 md:block"
           >
             <SchemaTreePanel />
-            <div
-              className={`bg-background absolute inset-0 z-40 ${isEditing ? "block" : "hidden"}`}
-            >
-              <section className="bg-primary/5 h-full">
-                <EditSection />
-              </section>
-            </div>
+            <EditOverlay />
           </ResizablePanel>
         </ResizablePanelGroup>
 
         <div className="md:hidden">
-          <div
-            className={`bg-background absolute inset-0 z-40 ${isEditing ? "block" : "hidden"}`}
-          >
-            <section className="bg-primary/5 h-full">
-              <EditSection />
-            </section>
-          </div>
+          <EditOverlay />
         </div>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import usePanelManager from "@/hooks/usePanel";
+import { usePanelActions } from "@/hooks/usePanel";
 import SqliteWorker from "@/sqlite/sqliteWorker.ts?worker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 import { createWorkerMessageHandler } from "./handleWorkerMessage";
@@ -18,7 +18,7 @@ const DatabaseWorkerProvider = ({ children }: DatabaseWorkerProviderProps) => {
   const workerRef = useRef<Worker | null>(null);
 
   const { handleCloseEdit, setSelectedRowObject, setIsInserting } =
-    usePanelManager();
+    usePanelActions();
 
   // Initialize worker and send initial "init" message
   useEffect(() => {

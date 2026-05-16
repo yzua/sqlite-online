@@ -7,19 +7,30 @@ interface RowMeta {
   rowKey: string;
 }
 
-// When a primary key exists and the table is not a view, Sqlite.getTableData
-// prepends the PK column to the SELECT (e.g. `SELECT "id", *`). This means
-// row[0] is the PK value (duplicated) and row.slice(1) is the display data.
-// See src/sqlite/core.ts getTableData selectClause construction.
-export function getRowMeta(
-  row: SqlValue[],
+// Pre-compute the PK column index from schema so each row lookup is O(1)
+// instead of O(columns) via findIndex.
+function resolvePkIndex(schema: TableSchema[string] | undefined): number {
+  if (
+    !schema ||
+    schema.type === "view" ||
+    !schema.primaryKey ||
+    !schema.schema
+  ) {
+    return -1;
+  }
+  return schema.schema.findIndex((col) => col.name === schema.primaryKey);
+}
+
+// Batch version: compute PK index once, then O(1) per row.
+export function getRowMetas(
+  rows: SqlValue[][],
   schema: TableSchema[string] | undefined
-): RowMeta {
-  const isView = schema?.type === "view";
-  const primaryKey = schema?.primaryKey;
-  const primaryValue = primaryKey && !isView ? (row[0] ?? null) : null;
-  const displayData = primaryKey && !isView ? row.slice(1) : row;
-  const rowKey =
-    primaryValue != null ? String(primaryValue) : displayData.join("|");
-  return { primaryValue, displayData, rowKey };
+): RowMeta[] {
+  const pkIndex = resolvePkIndex(schema);
+
+  return rows.map((row) => {
+    const primaryValue = pkIndex >= 0 ? (row[pkIndex] ?? null) : null;
+    const rowKey = primaryValue != null ? String(primaryValue) : row.join("|");
+    return { primaryValue, displayData: row, rowKey };
+  });
 }

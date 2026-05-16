@@ -1,15 +1,12 @@
 import { FilterXIcon, FolderOutputIcon, ListRestartIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Filters, Sorters } from "@/types";
+import { useDatabaseStore } from "@/store/useDatabaseStore";
 import ActionsDropdown from "./ActionsDropdown";
 import { useBrowseActions } from "./useBrowseActions";
 
-interface ActionButtonsProps {
-  filters: Filters;
-  sorters: Sorters;
-}
-
-function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
+function ActionButtons() {
+  const filters = useDatabaseStore((state) => state.filters);
+  const sorters = useDatabaseStore((state) => state.sorters);
   const { handleClearFilters, handleResetSorters, handleExport } =
     useBrowseActions();
 
@@ -80,7 +77,7 @@ function ActionButtons({ filters, sorters }: Readonly<ActionButtonsProps>) {
         </Button>
       </section>
       <div className="md:hidden">
-        <ActionsDropdown filters={filters} sorters={sorters} />
+        <ActionsDropdown />
       </div>
     </>
   );

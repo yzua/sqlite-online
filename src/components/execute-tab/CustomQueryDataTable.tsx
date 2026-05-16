@@ -1,4 +1,5 @@
 import { TableIcon } from "lucide-react";
+import { useMemo } from "react";
 import * as AutoSizerModule from "react-virtualized-auto-sizer";
 import { Grid } from "react-window";
 import { useShallow } from "zustand/react/shallow";
@@ -26,6 +27,13 @@ function CustomQueryDataTable() {
     getTotalWidth,
     rowHeight
   } = useQueryGridMetrics(customQueryObject);
+
+  // Stable object reference so React.memo on QueryGridCell can skip re-renders
+  // when only the Grid scroll position changes, not the underlying data.
+  const cellProps = useMemo<QueryGridCellCustomProps>(
+    () => ({ data: customQueryObject?.data ?? [] }),
+    [customQueryObject?.data]
+  );
 
   if (!customQueryObject) {
     return <QueryResultsEmptyState hasQuery={customQuery.length > 0} />;
@@ -103,8 +111,10 @@ function CustomQueryDataTable() {
                     height: height - rowHeight,
                     width
                   }}
-                  cellComponent={QueryGridCell}
-                  cellProps={{ data: customQueryObject.data }}
+                  // Type assertion needed: react-window's Grid type doesn't
+                  // accept MemoExoticComponent, but the runtime behavior is identical.
+                  cellComponent={QueryGridCell as never}
+                  cellProps={cellProps}
                   columnCount={customQueryObject.columns.length}
                   rowCount={customQueryObject.data.length}
                   columnWidth={(index) => getColumnWidth(index, width)}

@@ -12,35 +12,39 @@ interface SorterButtonProps {
 }
 
 const SorterButton = memo(({ column }: SorterButtonProps) => {
-  const sorters = useDatabaseStore((state) => state.sorters);
+  // Subscribe to only this column's sort direction — avoids re-rendering
+  // every SorterButton when a different column's sort changes.
+  const sortDirection = useDatabaseStore(
+    (state) => state.sorters?.[column] ?? null
+  );
   const { handleQuerySorter } = useDatabaseWorker();
 
-  if (sorters?.[column]) {
-    if (sorters[column] === "asc") {
-      return (
-        <button
-          title="Sort column in descending order"
-          type="button"
-          aria-label="Sort descending"
-          className="cursor-pointer"
-          onClick={() => handleQuerySorter(column)}
-        >
-          <ArrowDownNarrowWideIcon className="h-3 w-3" />
-        </button>
-      );
-    } else {
-      return (
-        <button
-          title="Sort column in ascending order"
-          type="button"
-          aria-label="Sort ascending"
-          className="cursor-pointer"
-          onClick={() => handleQuerySorter(column)}
-        >
-          <ArrowUpNarrowWideIcon className="h-3 w-3" />
-        </button>
-      );
-    }
+  if (sortDirection === "asc") {
+    return (
+      <button
+        title="Sort column in descending order"
+        type="button"
+        aria-label="Sort descending"
+        className="cursor-pointer"
+        onClick={() => handleQuerySorter(column)}
+      >
+        <ArrowDownNarrowWideIcon className="h-3 w-3" />
+      </button>
+    );
+  }
+
+  if (sortDirection === "desc") {
+    return (
+      <button
+        title="Sort column in ascending order"
+        type="button"
+        aria-label="Sort ascending"
+        className="cursor-pointer"
+        onClick={() => handleQuerySorter(column)}
+      >
+        <ArrowUpNarrowWideIcon className="h-3 w-3" />
+      </button>
+    );
   }
 
   return (

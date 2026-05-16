@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import usePanelManager from "@/hooks/usePanel";
+import { useCallback, useMemo } from "react";
+import { usePanelActions } from "@/hooks/usePanel";
 import useDatabaseWorker from "@/hooks/useWorker";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
@@ -7,7 +7,7 @@ export function useBrowseActions() {
   const setFilters = useDatabaseStore((state) => state.setFilters);
   const setSorters = useDatabaseStore((state) => state.setSorters);
   const { handleExport } = useDatabaseWorker();
-  const { setSelectedRowObject } = usePanelManager();
+  const { setSelectedRowObject } = usePanelActions();
 
   const handleClearFilters = useCallback(() => {
     setFilters(null);
@@ -19,9 +19,8 @@ export function useBrowseActions() {
     setSelectedRowObject(null);
   }, [setSorters, setSelectedRowObject]);
 
-  return {
-    handleClearFilters,
-    handleResetSorters,
-    handleExport
-  };
+  return useMemo(
+    () => ({ handleClearFilters, handleResetSorters, handleExport }),
+    [handleClearFilters, handleResetSorters, handleExport]
+  );
 }

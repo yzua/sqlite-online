@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import { type CSSProperties, memo } from "react";
 import Badge from "@/components/ui/badge";
 import { Span } from "@/components/ui/span";
 import type { CustomQueryResult } from "@/types";
@@ -17,7 +17,7 @@ interface QueryGridCellProps extends QueryGridCellCustomProps {
   style: CSSProperties;
 }
 
-function QueryGridCell({
+const QueryGridCell = memo(function QueryGridCell({
   ariaAttributes,
   columnIndex,
   rowIndex,
@@ -40,6 +40,6 @@ function QueryGridCell({
       )}
     </div>
   );
-}
+});
 
 export default QueryGridCell;
