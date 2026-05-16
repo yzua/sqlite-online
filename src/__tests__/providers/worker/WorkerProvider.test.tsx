@@ -1,6 +1,7 @@
 import { act, render } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import usePanelManager from "@/hooks/usePanel";
+import { usePanelActions } from "@/hooks/usePanel";
+import { BROWSE_TABLE_LAYOUT_EVENT } from "@/hooks/useTableLimit";
 import { calculateTableLimit } from "@/lib/calculateTableLimit";
 import { createWorkerMessageHandler } from "@/providers/worker/handleWorkerMessage";
 import { postWorkerMessage } from "@/providers/worker/postWorkerMessage";
@@ -11,7 +12,10 @@ import DatabaseWorkerProvider from "@/providers/worker/WorkerProvider";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 vi.mock("@/hooks/usePanel", () => ({
-  default: vi.fn()
+  default: vi.fn(),
+  usePanelActions: vi.fn(),
+  usePanelState: vi.fn(),
+  useEditValues: vi.fn()
 }));
 
 vi.mock("@/lib/calculateTableLimit", () => ({
@@ -65,15 +69,12 @@ describe("WorkerProvider", () => {
       isDataLoading: false
     });
 
-    vi.mocked(usePanelManager).mockReturnValue({
+    vi.mocked(usePanelActions).mockReturnValue({
       handleCloseEdit: vi.fn(),
       setSelectedRowObject: vi.fn(),
       setIsInserting: vi.fn(),
       handleInsert: vi.fn(),
       handleRowClick: vi.fn(),
-      isEditing: false,
-      isInserting: false,
-      selectedRowObject: null,
       setEditValues: vi.fn()
     } as never);
 
@@ -106,10 +107,20 @@ describe("WorkerProvider", () => {
     vi.useRealTimers();
   });
 
-  it("re-fetches table data with a recalculated limit on window resize", () => {
-    vi.mocked(calculateTableLimit).mockImplementation(() =>
-      window.innerHeight === 700 ? 8 : 12
-    );
+  it("re-fetches table data with a recalculated limit when ResizeObserver fires", () => {
+    let resizeCallback: ResizeObserverCallback | undefined;
+    let currentLimit = 12;
+
+    globalThis.ResizeObserver = vi.fn().mockImplementation((callback) => {
+      resizeCallback = callback;
+      return {
+        observe: vi.fn(),
+        disconnect: vi.fn(),
+        unobserve: vi.fn()
+      };
+    }) as typeof ResizeObserver;
+
+    vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
 
     render(
       <DatabaseWorkerProvider>
@@ -132,12 +143,8 @@ describe("WorkerProvider", () => {
     });
 
     act(() => {
-      Object.defineProperty(window, "innerHeight", {
-        configurable: true,
-        writable: true,
-        value: 700
-      });
-      window.dispatchEvent(new Event("resize"));
+      currentLimit = 8;
+      resizeCallback?.([], {} as ResizeObserver);
     });
 
     act(() => {
@@ -154,6 +161,84 @@ describe("WorkerProvider", () => {
       payload: { currentTable: "users", limit: 8, offset: 0 }
     });
     expect(useDatabaseStore.getState().limit).toBe(8);
+  });
+
+  it("re-fetches table data with a recalculated limit on window resize", () => {
+    let currentLimit = 12;
+
+    vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
+
+    render(
+      <DatabaseWorkerProvider>
+        <div>child</div>
+      </DatabaseWorkerProvider>
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    act(() => {
+      currentLimit = 8;
+      window.dispatchEvent(new Event("resize"));
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const fetchCalls = vi
+      .mocked(postWorkerMessage)
+      .mock.calls.filter(([, message]) => message.action === "getTableData");
+
+    expect(fetchCalls).toHaveLength(2);
+    expect(fetchCalls[0]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 12, offset: 0 }
+    });
+    expect(fetchCalls[1]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 8, offset: 0 }
+    });
+  });
+
+  it("re-fetches table data when the browse tab layout remounts", () => {
+    let currentLimit = 50;
+
+    vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
+
+    render(
+      <DatabaseWorkerProvider>
+        <div>child</div>
+      </DatabaseWorkerProvider>
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    act(() => {
+      currentLimit = 19;
+      window.dispatchEvent(new Event(BROWSE_TABLE_LAYOUT_EVENT));
+    });
+
+    act(() => {
+      vi.advanceTimersByTime(0);
+    });
+
+    const fetchCalls = vi
+      .mocked(postWorkerMessage)
+      .mock.calls.filter(([, message]) => message.action === "getTableData");
+
+    expect(fetchCalls).toHaveLength(2);
+    expect(fetchCalls[0]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 50, offset: 0 }
+    });
+    expect(fetchCalls[1]?.[1]).toMatchObject({
+      action: "getTableData",
+      payload: { currentTable: "users", limit: 19, offset: 0 }
+    });
   });
 
   it("recalculates the table limit when the current table becomes available", () => {
@@ -177,7 +262,7 @@ describe("WorkerProvider", () => {
 
     act(() => {
       currentLimit = 12;
-      useDatabaseStore.getState().setCurrentTable("users");
+      useDatabaseStore.setState({ currentTable: "users" });
     });
 
     act(() => {
@@ -246,7 +331,7 @@ describe("WorkerProvider", () => {
     });
   });
 
-  it("re-fetches table data when the initial settled layout increases the row limit", () => {
+  it("re-fetches once when the post-render limit correction changes the row count", () => {
     let currentLimit = 3;
 
     vi.mocked(calculateTableLimit).mockImplementation(() => currentLimit);
@@ -261,9 +346,12 @@ describe("WorkerProvider", () => {
       vi.advanceTimersByTime(0);
     });
 
+    // Change the limit mock — in the old code, a correction timeout at 50ms
+    // should fire a second fetch after the browse panel reaches its final
+    // measured height.
     act(() => {
       currentLimit = 19;
-      vi.advanceTimersByTime(50);
+      vi.advanceTimersByTime(100);
     });
 
     const fetchCalls = vi

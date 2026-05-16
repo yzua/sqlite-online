@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import SecureStorage from "@/lib/storage/secureStorage";
 import {
   selectBrowseTableState,
   selectExecuteViewState,
@@ -7,16 +6,6 @@ import {
   selectPaginationState,
   useDatabaseStore
 } from "@/store/useDatabaseStore";
-
-vi.mock("@/lib/storage/secureStorage", () => ({
-  default: {
-    getItem: vi.fn(),
-    removeItem: vi.fn(),
-    setItem: vi.fn()
-  }
-}));
-
-const secureStorage = vi.mocked(SecureStorage);
 
 describe("useDatabaseStore", () => {
   beforeEach(() => {
@@ -37,46 +26,10 @@ describe("useDatabaseStore", () => {
       limit: 50,
       offset: 0,
       customQuery: "",
-      customQueryObject: null,
-      geminiApiKey: null,
-      isAiLoading: false
+      customQueryObject: null
     });
     localStorage.clear();
     vi.clearAllMocks();
-  });
-
-  it("persists API keys securely and removes them when cleared", async () => {
-    await useDatabaseStore.getState().setGeminiApiKey("secret-key");
-    await useDatabaseStore.getState().setGeminiApiKey(null);
-
-    expect(secureStorage.setItem).toHaveBeenCalledWith(
-      "geminiApiKey",
-      "secret-key"
-    );
-    expect(secureStorage.removeItem).toHaveBeenCalledWith("geminiApiKey");
-  });
-
-  it("falls back to localStorage when secure persistence fails", async () => {
-    secureStorage.setItem.mockRejectedValueOnce(new Error("boom"));
-
-    await useDatabaseStore.getState().setGeminiApiKey("fallback-key");
-
-    expect(localStorage.getItem("geminiApiKey")).toBe("fallback-key");
-  });
-
-  it("loads and migrates legacy API keys during initialization", async () => {
-    secureStorage.getItem.mockResolvedValueOnce(null);
-    secureStorage.setItem.mockResolvedValueOnce();
-    localStorage.setItem("geminiApiKey", "legacy-key");
-
-    await useDatabaseStore.getState().initializeApiKey();
-
-    expect(secureStorage.setItem).toHaveBeenCalledWith(
-      "geminiApiKey",
-      "legacy-key"
-    );
-    expect(localStorage.getItem("geminiApiKey")).toBeNull();
-    expect(useDatabaseStore.getState().geminiApiKey).toBe("legacy-key");
   });
 
   it("supports functional offset updates and exposes derived selectors", () => {

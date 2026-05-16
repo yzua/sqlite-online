@@ -115,7 +115,7 @@ describe("createWorkerMessageHandler", () => {
       data: {
         action: "queryComplete",
         payload: {
-          results: [{ values: [[1, "Ada"]], columns: ["id", "name"] }],
+          values: [[1, "Ada"]],
           maxSize: 20
         }
       }

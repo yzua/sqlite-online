@@ -92,7 +92,9 @@ describe("App", () => {
         name: /database structure/i
       })
     );
-    expect(screen.getByText("Structure Tab Content")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Structure Tab Content")
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: /execute sql/i }));
     expect(await screen.findByText("Execute Tab Content")).toBeInTheDocument();

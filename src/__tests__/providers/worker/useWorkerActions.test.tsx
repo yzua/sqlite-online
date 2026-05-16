@@ -12,7 +12,7 @@ vi.mock("@/components/common/toast", () => ({
 }));
 
 vi.mock("@/store/useDatabaseStore", () => ({
-  useDatabaseStore: { getState: vi.fn() }
+  useDatabaseStore: { getState: vi.fn(), setState: vi.fn() }
 }));
 
 vi.mock("@/hooks/usePanel", () => ({
@@ -57,12 +57,8 @@ function createMockStore(overrides = {}) {
     columns: ["id", "name"],
     setFilters: vi.fn(),
     setSorters: vi.fn(),
-    setCurrentTable: vi.fn(),
-    setColumns: vi.fn(),
     setOffset: vi.fn(),
-    setMaxSize: vi.fn(),
     setIsDataLoading: vi.fn(),
-    resetPagination: vi.fn(),
     ...overrides
   };
 }
@@ -99,12 +95,14 @@ describe("useWorkerActions", () => {
 
     result.current.handleTableChange("users");
 
-    const store = useDatabaseStore.getState();
-    expect(store.setFilters).toHaveBeenCalledWith(null);
-    expect(store.setSorters).toHaveBeenCalledWith(null);
-    expect(store.resetPagination).toHaveBeenCalled();
-    expect(store.setCurrentTable).toHaveBeenCalledWith("users");
-    expect(store.setColumns).toHaveBeenCalledWith(["id"]);
+    expect(useDatabaseStore.setState).toHaveBeenCalledWith({
+      currentTable: "users",
+      columns: ["id"],
+      maxSize: 0,
+      filters: null,
+      sorters: null,
+      offset: 0
+    });
   });
 
   it("shows an error when changing to an unknown table", () => {
