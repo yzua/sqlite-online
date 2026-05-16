@@ -3,7 +3,7 @@ import type Sqlite from "./core";
 import { CustomQueryError } from "./core";
 import { arrayToCSV } from "./sqlUtils";
 
-type WorkerPostMessage = (
+export type WorkerPostMessage = (
   message: unknown,
   transfer?: Transferable[] | undefined
 ) => void;
@@ -48,7 +48,10 @@ export function emitQueryComplete(
   results: readonly QueryExecResult[],
   maxSize: number
 ) {
-  emit(postMessage, "queryComplete", { results, maxSize });
+  emit(postMessage, "queryComplete", {
+    values: results[0]?.values ?? [],
+    maxSize
+  });
 }
 
 export function emitSchemaUpdate(

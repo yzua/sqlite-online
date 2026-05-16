@@ -1,14 +1,16 @@
 import { tableDataCache } from "@/sqlite/queryCache";
-import type { WorkerEvent } from "@/types";
+import type { WorkerEvent } from "@/types/worker-protocol";
 import Sqlite from "./core";
 import {
   cleanupInstance,
-  deleteRow,
   emitDownloadComplete,
   emitExportComplete,
   emitInitComplete,
   emitQueryComplete,
-  emitQueryError,
+  emitQueryError
+} from "./workerEmit";
+import {
+  deleteRow,
   executeBatchStatements,
   executeStatement,
   exportResults,
@@ -83,8 +85,6 @@ self.onmessage = async (event: MessageEvent<WorkerEvent>) => {
 
         break;
       }
-      // Refreshes the current table data
-      case "refresh":
       case "getTableData": {
         const [results, maxSize] = loadCurrentTable(instance, payload);
         emitQueryComplete(post, results, maxSize);

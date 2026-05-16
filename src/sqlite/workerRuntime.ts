@@ -1,32 +1,20 @@
 import type { QueryExecResult } from "sql.js";
-import type { TableQueryPayload, WorkerEvent } from "@/types";
+import type { TableQueryPayload } from "@/types";
+import type { WorkerEvent } from "@/types/worker-protocol";
 import type Sqlite from "./core";
 import { CustomQueryError } from "./core";
 import {
   emitInsertComplete,
   emitQueryComplete,
   emitRowMutationComplete,
-  emitSchemaUpdate
+  emitSchemaUpdate,
+  type WorkerPostMessage
 } from "./workerEmit";
-
-type WorkerPostMessage = (
-  message: unknown,
-  transfer?: Transferable[] | undefined
-) => void;
 
 type ExportPayload = Extract<WorkerEvent, { action: "export" }>["payload"];
 type RowMutationPayload = Extract<WorkerEvent, { action: "update" }>["payload"];
 type DeletePayload = Extract<WorkerEvent, { action: "delete" }>["payload"];
 type InsertPayload = Extract<WorkerEvent, { action: "insert" }>["payload"];
-
-export {
-  cleanupInstance,
-  emitDownloadComplete,
-  emitExportComplete,
-  emitInitComplete,
-  emitQueryComplete,
-  emitQueryError
-} from "./workerEmit";
 
 export function loadCurrentTable(instance: Sqlite, payload: TableQueryPayload) {
   return instance.getTableData(

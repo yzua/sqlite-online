@@ -28,6 +28,15 @@ export default class Sqlite {
   // Cache for row counts keyed by (table, filters). Invalidated on any mutation.
   private tableCountCache = new Map<string, number>();
 
+  private invalidateTableCount(table: string) {
+    const prefix = `${table}:`;
+    for (const key of [...this.tableCountCache.keys()]) {
+      if (key === table || key.startsWith(prefix)) {
+        this.tableCountCache.delete(key);
+      }
+    }
+  }
+
   private constructor(db: Database, isFile = false) {
     this.db = db;
     // Check if user is opening a file or creating a new database.
@@ -75,12 +84,11 @@ export default class Sqlite {
     sql = normalizeSqlStatement(sql);
 
     const results = this.db.exec(sql);
-    const upperSql = sql.toUpperCase();
     // If the statement requires schema updates
     let doTablesChanged = false;
 
     // Update tables if the SQL statement is a CREATE TABLE statement.
-    if (isStructureChangeable(upperSql)) {
+    if (isStructureChangeable(sql)) {
       if (!options?.skipSchemaUpdate) {
         this.getDatabaseSchema();
       }
@@ -125,7 +133,9 @@ export default class Sqlite {
   // invalidated on any mutation, so pagination through the same filtered
   // result set skips the COUNT(*) query.
   private getMaxSizeOfTable(tableName: string, filters?: Filters) {
-    const cacheKey = `${tableName}:${filters ? JSON.stringify(filters) : ""}`;
+    const cacheKey = filters
+      ? `${tableName}:${JSON.stringify(filters)}`
+      : tableName;
     const cached = this.tableCountCache.get(cacheKey);
     if (cached !== undefined) return cached;
 
@@ -173,11 +183,8 @@ export default class Sqlite {
       return cachedResult as readonly [QueryExecResult[], number];
     }
 
-    const primaryKey = this.getPrimaryKey(table);
     const quotedTable = sanitizeIdentifier(table);
-    const selectClause = primaryKey
-      ? `${sanitizeIdentifier(primaryKey)}, *`
-      : "*";
+    const selectClause = "*";
 
     const { clause: whereClause, params } = buildWhereClause(filters);
     const orderByClause = buildOrderByClause(sorters);
@@ -222,7 +229,7 @@ export default class Sqlite {
     try {
       fn();
       tableDataCache.invalidateTable(table);
-      this.tableCountCache.clear();
+      this.invalidateTableCount(table);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Error while ${operation} table ${table}: ${message}`);

@@ -87,9 +87,23 @@ export function runPreparedScalar(
 }
 
 export function arrayToCSV(columns: string[], rows: SqlValue[][]) {
-  const header = columns.map((column) => `"${column}"`).join(",");
-  const csvRows = rows.map((row) =>
-    columns.map((_, i) => `"${row[i] ?? ""}"`).join(",")
-  );
-  return [header, ...csvRows].join("\n");
+  const colCount = columns.length;
+  const rowCount = rows.length;
+  const parts = new Array<string>(rowCount + 1);
+
+  const headerCells = new Array<string>(colCount);
+  for (let c = 0; c < colCount; c++) {
+    headerCells[c] = `"${columns[c]}"`;
+  }
+  parts[0] = headerCells.join(",");
+
+  const cells = new Array<string>(colCount);
+  for (const [r, row] of rows.entries()) {
+    for (let c = 0; c < colCount; c++) {
+      cells[c] = `"${row[c] ?? ""}"`;
+    }
+    parts[r + 1] = cells.join(",");
+  }
+
+  return parts.join("\n");
 }
