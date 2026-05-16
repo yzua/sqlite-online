@@ -57,6 +57,7 @@ function BrowseTab() {
             id="dataPanel"
             defaultSize={dataPanelSize}
             onResize={setDataPanelSize}
+            className="min-w-0"
           >
             <div
               className="flex h-full min-h-0 flex-col border-l"
@@ -67,25 +68,23 @@ function BrowseTab() {
             </div>
           </ResizablePanel>
 
-          <div className="hidden md:contents">
-            <ResizableHandle withHandle />
+          <ResizableHandle className="hidden md:flex" withHandle />
 
-            <ResizablePanel
-              id="schemaPanel"
-              defaultSize={schemaPanelSize}
-              onResize={setSchemaPanelSize}
-              className="relative"
+          <ResizablePanel
+            id="schemaPanel"
+            defaultSize={schemaPanelSize}
+            onResize={setSchemaPanelSize}
+            className="relative hidden min-w-0 md:block"
+          >
+            <SchemaTreePanel />
+            <div
+              className={`bg-background absolute inset-0 z-40 ${isEditing ? "block" : "hidden"}`}
             >
-              <SchemaTreePanel />
-              <div
-                className={`bg-background absolute inset-0 z-40 ${isEditing ? "block" : "hidden"}`}
-              >
-                <section className="bg-primary/5 h-full">
-                  <EditSection />
-                </section>
-              </div>
-            </ResizablePanel>
-          </div>
+              <section className="bg-primary/5 h-full">
+                <EditSection />
+              </section>
+            </div>
+          </ResizablePanel>
         </ResizablePanelGroup>
 
         <div className="md:hidden">
