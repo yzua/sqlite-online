@@ -1,47 +1,14 @@
 import type { QueryExecResult, SqlValue } from "sql.js";
+import type {
+  ExportTypes,
+  Filters,
+  IndexSchema,
+  Sorters,
+  TableQueryPayload,
+  TableSchema
+} from "@/types";
 
-export type TableSchema = {
-  [tableName: string]: {
-    primaryKey: "_rowid_" | string | null;
-    schema: TableSchemaRow[];
-    type: "table" | "view";
-  };
-};
-
-export type TableSchemaRow = {
-  name: string; // Column name
-  cid: number;
-  type: string | null;
-  dflt_value: string;
-  isNullable: boolean;
-  isPrimaryKey: boolean;
-  isForeignKey: boolean;
-};
-
-export type IndexSchema = {
-  name: string;
-  tableName: string;
-};
-
-export type Sorters = Record<string, "asc" | "desc"> | null;
-export type Filters = Record<string, string> | null;
-export type EditResultType = "updated" | "deleted";
-
-export interface CustomQueryResult {
-  data: SqlValue[][];
-  columns: string[];
-}
-
-export interface TableQueryPayload {
-  currentTable: string;
-  limit: number;
-  offset: number;
-  filters: Filters;
-  sorters: Sorters;
-}
-
-export type EditTypes = "insert" | "update" | "delete";
-export type ExportTypes = "table" | "current" | "custom";
+type EditResultType = "updated" | "deleted";
 
 // --- WORKER MESSAGES --- //
 interface InitEvent {
@@ -54,11 +21,6 @@ interface OpenFileEvent {
   payload: {
     file: ArrayBuffer;
   };
-}
-
-interface RefreshEvent {
-  action: "refresh";
-  payload: TableQueryPayload;
 }
 
 interface ExecEvent {
@@ -128,7 +90,6 @@ interface ExportEvent {
 export type WorkerEvent =
   | InitEvent
   | OpenFileEvent
-  | RefreshEvent
   | ExecEvent
   | ExecBatchEvent
   | GetTableDataEvent
@@ -151,7 +112,7 @@ interface InitCompleteResponse {
 interface QueryCompleteResponse {
   action: "queryComplete";
   payload: {
-    results?: QueryExecResult[];
+    values: SqlValue[][];
     maxSize: number;
   };
 }

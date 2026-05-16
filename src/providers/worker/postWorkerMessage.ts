@@ -1,5 +1,5 @@
 import showToast from "@/components/common/toast";
-import type { WorkerEvent } from "@/types";
+import type { WorkerEvent } from "@/types/worker-protocol";
 
 export function postWorkerMessage(
   worker: Worker | null,

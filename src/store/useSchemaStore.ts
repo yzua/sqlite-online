@@ -9,7 +9,6 @@ interface SchemaActions {
   toggleTable: (tableName: string) => void;
   setExpandedTables: (tables: string[]) => void;
   toggleExpandedIndexSection: () => void;
-  setExpandedIndexSection: (value: boolean) => void;
 }
 
 type SchemaStore = SchemaState & SchemaActions;
@@ -39,10 +38,5 @@ export const useSchemaStore = create<SchemaStore>((set) => ({
   toggleExpandedIndexSection: () =>
     set((state) => ({
       expandedIndexSection: !state.expandedIndexSection
-    })),
-
-  setExpandedIndexSection: (value) =>
-    set(() => ({
-      expandedIndexSection: value
     }))
 }));
