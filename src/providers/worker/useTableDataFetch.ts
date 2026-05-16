@@ -10,17 +10,16 @@ import { postWorkerMessage } from "./postWorkerMessage";
  *
  * Debounces filter changes (100ms) to avoid querying on every keystroke;
  * pagination, table switches, sorters, and resize trigger immediate fetches.
- * Includes a one-shot limit correction after initial render when no filters
- * are active.
+ * Includes a one-shot limit correction after initial render because the first
+ * DOM measurement can happen before the browse panel reaches its final height.
  */
 export function useTableDataFetch(workerRef: React.RefObject<Worker | null>) {
   const currentTable = useDatabaseStore((state) => state.currentTable);
   const filters = useDatabaseStore((state) => state.filters);
   const sorters = useDatabaseStore((state) => state.sorters);
   const offset = useDatabaseStore((state) => state.offset);
-  const setLimit = useDatabaseStore((state) => state.setLimit);
 
-  // Dynamic row limit based on viewport height
+  // Dynamic row limit based on viewport height — updated by ResizeObserver
   const tableLimit = useTableLimit(currentTable);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: workerRef is a stable ref — including workerRef.current would cause the effect to fire on every render.
@@ -29,19 +28,20 @@ export function useTableDataFetch(workerRef: React.RefObject<Worker | null>) {
       return;
     }
 
-    void tableLimit;
-
     const fetchData = (limitOverride?: number) => {
       if (!workerRef.current) {
         showToast("Worker is not initialized", "error");
         return;
       }
 
-      const nextLimit = limitOverride ?? calculateTableLimit();
+      const nextLimit = limitOverride ?? tableLimit;
 
-      useDatabaseStore.getState().setIsDataLoading(true);
-
-      setLimit(nextLimit);
+      // Single setState to batch limit + loading into one subscriber notification.
+      const currentLimit = useDatabaseStore.getState().limit;
+      useDatabaseStore.setState({
+        ...(nextLimit !== currentLimit ? { limit: nextLimit } : {}),
+        isDataLoading: true
+      });
 
       postWorkerMessage(workerRef.current, {
         action: "getTableData",
@@ -55,9 +55,6 @@ export function useTableDataFetch(workerRef: React.RefObject<Worker | null>) {
       });
     };
 
-    // After initial render, correct the row limit if the viewport-based
-    // calculation differs from the stored value. Only runs when there are
-    // no active filters and we're on the first page.
     const correctionHandler =
       !filters && offset === 0
         ? setTimeout(() => {
@@ -77,5 +74,5 @@ export function useTableDataFetch(workerRef: React.RefObject<Worker | null>) {
         clearTimeout(correctionHandler);
       }
     };
-  }, [currentTable, filters, sorters, offset, tableLimit, setLimit]);
+  }, [currentTable, filters, sorters, offset, tableLimit]);
 }

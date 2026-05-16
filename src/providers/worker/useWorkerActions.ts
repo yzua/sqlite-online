@@ -4,7 +4,8 @@ import showToast from "@/components/common/toast";
 import usePanelManager, { useEditValues } from "@/hooks/usePanel";
 import { parseSqlStatements } from "@/sqlite/parseSqlStatements";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import type { EditTypes, ExportTypes, WorkerEvent } from "@/types";
+import type { EditTypes, ExportTypes } from "@/types";
+import type { WorkerEvent } from "@/types/worker-protocol";
 import { postWorkerMessage } from "./postWorkerMessage";
 import type { DatabaseWorkerApi, PageChange } from "./types";
 import {
@@ -14,8 +15,7 @@ import {
   createNextFilters,
   createNextSorters,
   getNextPageOffset,
-  getSelectedTableColumns,
-  resetBrowseState
+  getSelectedTableColumns
 } from "./workerActionUtils";
 
 interface UseWorkerActionsProps {
@@ -79,29 +79,36 @@ export function useWorkerActions({
 
   const handleTableChange = useCallback(
     (selectedTable: string) => {
-      const { tablesSchema, ...store } = useDatabaseStore.getState();
+      const { tablesSchema } = useDatabaseStore.getState();
       const selectedTableSchema = tablesSchema[selectedTable];
       if (!selectedTableSchema) {
         showToast("Selected table schema not found", "error");
         return;
       }
 
-      resetBrowseState(store);
-      store.setMaxSize(0);
+      // Single setState to avoid 5 separate subscriber notifications.
+      useDatabaseStore.setState({
+        currentTable: selectedTable,
+        columns: getSelectedTableColumns(tablesSchema, selectedTable),
+        maxSize: 0,
+        filters: null,
+        sorters: null,
+        offset: 0
+      });
       setSelectedRowObject(null);
       setIsInserting(false);
-      store.setCurrentTable(selectedTable);
-      store.setColumns(getSelectedTableColumns(tablesSchema, selectedTable));
     },
     [setSelectedRowObject, setIsInserting]
   );
 
   const handleQueryFilter = useCallback(
     (column: string, value: string) => {
-      const { filters, ...store } = useDatabaseStore.getState();
-      store.setFilters(createNextFilters(filters, column, value));
+      const { filters } = useDatabaseStore.getState();
+      useDatabaseStore.setState({
+        filters: createNextFilters(filters, column, value),
+        offset: 0
+      });
       setSelectedRowObject(null);
-      store.resetPagination();
     },
     [setSelectedRowObject]
   );

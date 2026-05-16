@@ -2,7 +2,7 @@ import type { QueryExecResult } from "sql.js";
 import showToast from "@/components/common/toast";
 import { triggerDownload } from "@/lib/download";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
-import type { WorkerResponseEvent } from "@/types";
+import type { WorkerResponseEvent } from "@/types/worker-protocol";
 import { getSelectedTableColumns } from "./workerActionUtils";
 
 interface WorkerMessageActions {
@@ -59,7 +59,7 @@ export function createWorkerMessageHandler(actions: WorkerMessageActions) {
 
       case "queryComplete": {
         const { payload } = workerEvent;
-        const data = getResultRows(payload.results);
+        const data = payload.values;
         store.applyQueryResults(data.length > 0 ? data : null, payload.maxSize);
         break;
       }

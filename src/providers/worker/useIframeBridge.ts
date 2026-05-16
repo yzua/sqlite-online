@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 
 /**
  * Wires up cross-frame database loading.
@@ -9,15 +9,8 @@ import { useCallback, useEffect } from "react";
 export function useIframeBridge(
   loadDatabaseBuffer: (buffer: ArrayBuffer) => void
 ) {
-  const stableLoad = useCallback(
-    (buffer: ArrayBuffer) => {
-      loadDatabaseBuffer(buffer);
-    },
-    [loadDatabaseBuffer]
-  );
-
   useEffect(() => {
-    window.loadDatabaseBuffer = stableLoad;
+    window.loadDatabaseBuffer = loadDatabaseBuffer;
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type !== "invokeLoadDatabaseBuffer") return;
@@ -25,7 +18,7 @@ export function useIframeBridge(
       const buffer = event.data.buffer as ArrayBuffer;
 
       try {
-        stableLoad(buffer);
+        loadDatabaseBuffer(buffer);
         event.source?.postMessage(
           { type: "loadDatabaseBufferSuccess" },
           event.origin as WindowPostMessageOptions
@@ -45,5 +38,5 @@ export function useIframeBridge(
     return () => {
       window.removeEventListener("message", handleMessage);
     };
-  }, [stableLoad]);
+  }, [loadDatabaseBuffer]);
 }
