@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import { useAiStore } from "@/store/useAiStore";
 
 interface ApiKeyModalProps {
   isOpen: boolean;
@@ -27,7 +27,7 @@ function ApiKeyModalContent({
   onClose
 }: Readonly<ApiKeyModalContentProps>) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const setGeminiApiKey = useDatabaseStore((state) => state.setGeminiApiKey);
+  const setGeminiApiKey = useAiStore((state) => state.setGeminiApiKey);
 
   const handleSave = () => {
     setGeminiApiKey(inputRef.current?.value ?? "");
@@ -70,7 +70,7 @@ function ApiKeyModalContent({
 }
 
 function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
-  const geminiApiKey = useDatabaseStore((state) => state.geminiApiKey);
+  const geminiApiKey = useAiStore((state) => state.geminiApiKey);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

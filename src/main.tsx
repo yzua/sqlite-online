@@ -7,14 +7,14 @@ import AppToaster from "@/components/common/Toaster/Toaster";
 import PanelProvider from "@/providers/panel/PanelProvider";
 import ThemeProvider from "@/providers/theme/ThemeProvider.tsx";
 import DatabaseWorkerProvider from "@/providers/worker/WorkerProvider.tsx";
-import { useDatabaseStore } from "@/store/useDatabaseStore";
+import { useAiStore } from "@/store/useAiStore";
 
 import App from "./App.tsx";
 
 // Initialize secure API key storage
 const initializeApp = async () => {
   try {
-    const { initializeApiKey } = useDatabaseStore.getState();
+    const { initializeApiKey } = useAiStore.getState();
     await initializeApiKey();
   } catch (error) {
     console.error("App: Failed to initialize API key:", error);

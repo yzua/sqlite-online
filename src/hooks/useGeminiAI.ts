@@ -1,15 +1,25 @@
 import { useCallback } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { isAiPrompt, requestGeminiSql } from "@/lib/ai/gemini";
+import { useAiStore } from "@/store/useAiStore";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 export function useGeminiAI() {
-  const geminiApiKey = useDatabaseStore((state) => state.geminiApiKey);
-  const tablesSchema = useDatabaseStore((state) => state.tablesSchema);
-  const customQuery = useDatabaseStore((state) => state.customQuery);
+  const { geminiApiKey, isAiLoading } = useAiStore(
+    useShallow((state) => ({
+      geminiApiKey: state.geminiApiKey,
+      isAiLoading: state.isAiLoading
+    }))
+  );
+  const { tablesSchema, customQuery } = useDatabaseStore(
+    useShallow((state) => ({
+      tablesSchema: state.tablesSchema,
+      customQuery: state.customQuery
+    }))
+  );
   const setCustomQuery = useDatabaseStore((state) => state.setCustomQuery);
   const setErrorMessage = useDatabaseStore((state) => state.setErrorMessage);
-  const setIsAiLoading = useDatabaseStore((state) => state.setIsAiLoading);
-  const isAiLoading = useDatabaseStore((state) => state.isAiLoading);
+  const setIsAiLoading = useAiStore((state) => state.setIsAiLoading);
 
   const generateSqlQuery = useCallback(async () => {
     if (!geminiApiKey) {

@@ -57,30 +57,26 @@ function parseGeminiSqlResponse(data: unknown) {
 }
 
 function extractCandidateText(data: unknown): string {
-  if (typeof data !== "object" || data === null || !("candidates" in data)) {
+  if (typeof data !== "object" || data === null) {
     throw new Error("Unexpected Gemini response format");
   }
 
-  const candidates = (data as { candidates: unknown[] }).candidates;
+  const candidates = (data as { candidates?: unknown[] }).candidates;
   if (!Array.isArray(candidates) || candidates.length === 0) {
     throw new Error("Unexpected Gemini response format");
   }
 
-  const content = (candidates[0] as Record<string, unknown>)?.content;
-  if (
-    typeof content !== "object" ||
-    content === null ||
-    !("parts" in content)
-  ) {
+  const content = (candidates[0] as { content?: unknown })?.content;
+  if (typeof content !== "object" || content === null) {
     throw new Error("Unexpected Gemini response format");
   }
 
-  const parts = (content as { parts: unknown[] }).parts;
+  const parts = (content as { parts?: unknown[] }).parts;
   if (!Array.isArray(parts) || parts.length === 0) {
     throw new Error("Unexpected Gemini response format");
   }
 
-  const text = (parts[0] as Record<string, unknown>)?.text;
+  const text = (parts[0] as { text?: unknown })?.text;
   if (typeof text !== "string") {
     throw new Error("Unexpected Gemini response format");
   }

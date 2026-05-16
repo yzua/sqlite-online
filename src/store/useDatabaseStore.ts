@@ -1,6 +1,5 @@
 import type { SqlValue } from "sql.js";
 import { create } from "zustand";
-import { loadApiKey, storeApiKey } from "@/lib/ai/apiKeyStorage";
 import type {
   CustomQueryResult,
   Filters,
@@ -25,30 +24,16 @@ interface DatabaseState {
   offset: number;
   customQuery: string;
   customQueryObject: CustomQueryResult | null;
-  geminiApiKey: string | null;
-  isAiLoading: boolean;
 }
 
 interface DatabaseActions {
-  setTablesSchema: (schema: TableSchema) => void;
-  setIndexesSchema: (schema: IndexSchema[]) => void;
-  setCurrentTable: (table: string | null) => void;
-  setData: (data: SqlValue[][] | null) => void;
-  setColumns: (columns: string[] | null) => void;
-  setMaxSize: (size: number) => void;
   setIsDatabaseLoading: (loading: boolean) => void;
   setIsDataLoading: (loading: boolean) => void;
   setErrorMessage: (message: string | null) => void;
   setFilters: (filters: Filters) => void;
   setSorters: (sorters: Sorters) => void;
-  setLimit: (limit: number) => void;
   setOffset: (offset: number | ((currentOffset: number) => number)) => void;
   setCustomQuery: (query: string) => void;
-  setCustomQueryObject: (obj: CustomQueryResult | null) => void;
-  setGeminiApiKey: (key: string | null) => Promise<void>;
-  setIsAiLoading: (loading: boolean) => void;
-  resetPagination: () => void;
-  initializeApiKey: () => Promise<void>;
   // Compound actions for grouped state transitions
   applyInit: (
     tableSchema: TableSchema,
@@ -85,38 +70,18 @@ export const useDatabaseStore = create<DatabaseStore>((set) => ({
   offset: 0,
   customQuery: "",
   customQueryObject: null,
-  geminiApiKey: null, // Will be initialized asynchronously
-  isAiLoading: false,
 
   // --- Actions ---
-  setTablesSchema: (schema) => set({ tablesSchema: schema }),
-  setIndexesSchema: (schema) => set({ indexesSchema: schema }),
-  setCurrentTable: (table) => set({ currentTable: table }),
-  setData: (data) => set({ data }),
-  setColumns: (columns) => set({ columns }),
-  setMaxSize: (size) => set({ maxSize: size }),
   setIsDatabaseLoading: (loading) => set({ isDatabaseLoading: loading }),
   setIsDataLoading: (loading) => set({ isDataLoading: loading }),
   setErrorMessage: (message) => set({ errorMessage: message }),
   setFilters: (filters) => set({ filters }),
   setSorters: (sorters) => set({ sorters }),
-  setLimit: (limit) => set({ limit }),
   setOffset: (offset) =>
     set((state) => ({
       offset: typeof offset === "function" ? offset(state.offset) : offset
     })),
   setCustomQuery: (query) => set({ customQuery: query }),
-  setCustomQueryObject: (obj) => set({ customQueryObject: obj }),
-  setGeminiApiKey: async (key) => {
-    set({ geminiApiKey: key });
-    await storeApiKey(key);
-  },
-  setIsAiLoading: (loading) => set({ isAiLoading: loading }),
-  resetPagination: () => set({ offset: 0 }),
-  initializeApiKey: async () => {
-    const key = await loadApiKey();
-    set({ geminiApiKey: key });
-  },
 
   // --- Compound actions ---
   applyInit: (tableSchema, indexSchema, currentTable, columns) =>
