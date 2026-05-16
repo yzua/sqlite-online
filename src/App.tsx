@@ -11,11 +11,13 @@ import BrowseTab from "@/components/browse-tab/BrowseTab";
 import DatabaseURLLoader from "@/components/layout/DatabaseURLLoader";
 import FileDropHandler from "@/components/layout/FileDropHandler";
 import TopBar from "@/components/layout/TopBar";
-import StructureTab from "@/components/structure-tab/StructureTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useDatabaseStore } from "@/store/useDatabaseStore";
 
 const ExecuteTab = lazy(() => import("@/components/execute-tab/ExecuteTab"));
+const StructureTab = lazy(
+  () => import("@/components/structure-tab/StructureTab")
+);
 
 const TAB_ITEMS: {
   id: string;
@@ -121,7 +123,9 @@ function App() {
                 role="tabpanel"
                 aria-labelledby="structure"
               >
-                <StructureTab />
+                <Suspense fallback={<PanelLoadingState />}>
+                  <StructureTab />
+                </Suspense>
               </TabsContent>
               <TabsContent
                 value="execute"
